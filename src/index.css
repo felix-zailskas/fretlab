@@ -1,0 +1,16 @@
+@import "tailwindcss";
+
+:root {
+  --color-root: #3B82F6;
+  --color-third: #F59E0B;
+  --color-fifth: #10B981;
+  --color-seventh: #8B5CF6;
+  --color-scale: #6B7280;
+  --color-muted: #374151;
+
+  --color-bg: #111827;
+  --color-text: #F9FAFB;
+  --color-fretboard: #292524;
+  --color-string: #9CA3AF;
+  --color-fret: #6B7280;
+}
