@@ -2,13 +2,23 @@ import { useMemo } from 'react'
 import { Fretboard } from '../components/Fretboard/Fretboard'
 import { STANDARD_TUNING, getNoteAtFret, getDisplayName } from '../theory/notes'
 import { getIntervalRole } from '../theory/scales'
-import type { NoteMarker, NoteDisplayRole } from '../theory/types'
+import type { IntervalRole, NoteMarker, NoteDisplayRole } from '../theory/types'
 
 type NoteMapViewProps = {
   selectedKey: string
 }
 
 const FRET_COUNT = 15
+
+const INTERVAL_TO_DISPLAY_ROLE: Record<IntervalRole, NoteDisplayRole> = {
+  root: 'root',
+  second: 'scale',
+  third: 'third',
+  fourth: 'scale',
+  fifth: 'fifth',
+  sixth: 'scale',
+  seventh: 'seventh',
+}
 
 export function NoteMapView({ selectedKey }: NoteMapViewProps) {
   const markers = useMemo(() => {
@@ -21,8 +31,7 @@ export function NoteMapView({ selectedKey }: NoteMapViewProps) {
         const interval = getIntervalRole(selectedKey, note)
         if (interval === null) continue
 
-        let role: NoteDisplayRole = 'scale'
-        if (interval === 'root') role = 'root'
+        const role = INTERVAL_TO_DISPLAY_ROLE[interval]
 
         result.push({
           string: stringIndex,
