@@ -2,12 +2,13 @@ import { useMemo } from 'react'
 import { Fretboard } from '../components/Fretboard/Fretboard'
 import { ALL_NOTES_KEY } from '../components/KeySelector'
 import type { HighlightableRole } from '../components/Legend'
-import { STANDARD_TUNING, getNoteAtFret, getDisplayName } from '../theory/notes'
+import { STANDARD_TUNING, getNoteAtFret, getDisplayName, type AccidentalStyle } from '../theory/notes'
 import { getIntervalRole } from '../theory/scales'
 import type { IntervalRole, NoteMarker, NoteDisplayRole } from '../theory/types'
 
 type NoteMapViewProps = {
   selectedKey: string
+  accidentalStyle: AccidentalStyle
   enabledHighlights: Set<HighlightableRole>
 }
 
@@ -27,7 +28,7 @@ const HIGHLIGHTABLE: ReadonlySet<NoteDisplayRole> = new Set<NoteDisplayRole>([
   'root', 'third', 'fifth', 'seventh',
 ])
 
-export function NoteMapView({ selectedKey, enabledHighlights }: NoteMapViewProps) {
+export function NoteMapView({ selectedKey, accidentalStyle, enabledHighlights }: NoteMapViewProps) {
   const markers = useMemo(() => {
     const result: NoteMarker[] = []
     const showAll = selectedKey === ALL_NOTES_KEY
@@ -42,7 +43,7 @@ export function NoteMapView({ selectedKey, enabledHighlights }: NoteMapViewProps
 
         if (showAll) {
           role = 'scale'
-          displayName = note
+          displayName = getDisplayName(note, selectedKey, accidentalStyle)
         } else {
           const interval = getIntervalRole(selectedKey, note)
           if (interval === null) continue
@@ -51,7 +52,7 @@ export function NoteMapView({ selectedKey, enabledHighlights }: NoteMapViewProps
           if (HIGHLIGHTABLE.has(role) && !enabledHighlights.has(role as HighlightableRole)) {
             role = 'scale'
           }
-          displayName = getDisplayName(note, selectedKey)
+          displayName = getDisplayName(note, selectedKey, accidentalStyle)
         }
 
         result.push({
@@ -64,7 +65,7 @@ export function NoteMapView({ selectedKey, enabledHighlights }: NoteMapViewProps
     }
 
     return result
-  }, [selectedKey, enabledHighlights])
+  }, [selectedKey, accidentalStyle, enabledHighlights])
 
   return <Fretboard markers={markers} fretCount={FRET_COUNT} />
 }

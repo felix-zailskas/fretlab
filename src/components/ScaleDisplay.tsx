@@ -1,3 +1,4 @@
+import type { AccidentalStyle } from '../theory/notes'
 import { getMajorScaleNotes } from '../theory/scales'
 import { ALL_NOTES_KEY } from './KeySelector'
 
@@ -5,12 +6,13 @@ const DEGREE_LABELS = ['1', '2', '3', '4', '5', '6', '7']
 
 type ScaleDisplayProps = {
   selectedKey: string
+  accidentalStyle: AccidentalStyle
 }
 
-export function ScaleDisplay({ selectedKey }: ScaleDisplayProps) {
+export function ScaleDisplay({ selectedKey, accidentalStyle }: ScaleDisplayProps) {
   if (selectedKey === ALL_NOTES_KEY) return null
 
-  const notes = getMajorScaleNotes(selectedKey)
+  const notes = getMajorScaleNotes(selectedKey, accidentalStyle)
 
   return (
     <div className="flex flex-wrap gap-3 text-sm">

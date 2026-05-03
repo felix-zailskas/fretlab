@@ -44,6 +44,14 @@ describe('getMajorScaleNotes', () => {
       expect(scale[0]).toBe(key)
     }
   })
+
+  it('respects sharp accidentalStyle for a flat-keyed scale', () => {
+    expect(getMajorScaleNotes('F', 'sharp')).toEqual(['F', 'G', 'A', 'A#', 'C', 'D', 'E'])
+  })
+
+  it('respects flat accidentalStyle for a sharp-keyed scale', () => {
+    expect(getMajorScaleNotes('G', 'flat')).toEqual(['G', 'A', 'B', 'C', 'D', 'E', 'Gb'])
+  })
 })
 
 describe('getIntervalRole', () => {

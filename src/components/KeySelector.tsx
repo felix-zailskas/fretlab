@@ -1,6 +1,9 @@
+import type { AccidentalStyle } from '../theory/notes'
+
 export const ALL_NOTES_KEY = 'all'
 
-const KEYS = [ALL_NOTES_KEY, 'C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B']
+const FLAT_STYLE_KEYS = [ALL_NOTES_KEY, 'C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B']
+const SHARP_STYLE_KEYS = [ALL_NOTES_KEY, 'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
 
 const KEY_LABELS: Record<string, string> = {
   [ALL_NOTES_KEY]: 'All',
@@ -8,13 +11,16 @@ const KEY_LABELS: Record<string, string> = {
 
 type KeySelectorProps = {
   selectedKey: string
+  accidentalStyle: AccidentalStyle
   onKeyChange: (key: string) => void
 }
 
-export function KeySelector({ selectedKey, onKeyChange }: KeySelectorProps) {
+export function KeySelector({ selectedKey, accidentalStyle, onKeyChange }: KeySelectorProps) {
+  const keys = accidentalStyle === 'sharp' ? SHARP_STYLE_KEYS : FLAT_STYLE_KEYS
+
   return (
     <div className="flex flex-wrap gap-1">
-      {KEYS.map((key) => (
+      {keys.map((key) => (
         <button
           key={key}
           onClick={() => onKeyChange(key)}

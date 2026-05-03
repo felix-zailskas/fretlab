@@ -1,16 +1,16 @@
-import { getNoteIndex, getDisplayName, CHROMATIC_SCALE } from './notes'
+import { getNoteIndex, getDisplayName, CHROMATIC_SCALE, type AccidentalStyle } from './notes'
 import type { IntervalRole } from './types'
 
 export const MAJOR_SCALE_INTERVALS = [0, 2, 4, 5, 7, 9, 11] as const
 
 const INTERVAL_NAMES: IntervalRole[] = ['root', 'second', 'third', 'fourth', 'fifth', 'sixth', 'seventh']
 
-export function getMajorScaleNotes(key: string): string[] {
+export function getMajorScaleNotes(key: string, accidentalStyle?: AccidentalStyle): string[] {
   const rootIndex = getNoteIndex(key)
   return MAJOR_SCALE_INTERVALS.map((interval) => {
     const noteIndex = (rootIndex + interval) % 12
     const sharpName = CHROMATIC_SCALE[noteIndex]
-    return getDisplayName(sharpName, key)
+    return getDisplayName(sharpName, key, accidentalStyle)
   })
 }
 

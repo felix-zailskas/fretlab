@@ -32,16 +32,22 @@ export function getNoteAtFret(openString: string, fret: number): string {
   return CHROMATIC_SCALE[noteIndex]
 }
 
-export function getDisplayName(note: string, key: string): string {
+export type AccidentalStyle = 'sharp' | 'flat'
+
+export function getDisplayName(note: string, key: string, accidentalStyle?: AccidentalStyle): string {
   // Normalize to sharp name first
   const sharpName = FLAT_TO_SHARP[note] ?? note
-  const isFlatKey = (FLAT_KEYS as readonly string[]).includes(key)
 
   // Natural notes are always returned as-is
   if (!sharpName.includes('#')) {
     return sharpName
   }
 
+  // Explicit user preference wins over per-key inference
+  if (accidentalStyle === 'sharp') return sharpName
+  if (accidentalStyle === 'flat') return SHARP_TO_FLAT[sharpName] ?? sharpName
+
+  const isFlatKey = (FLAT_KEYS as readonly string[]).includes(key)
   if (isFlatKey) {
     return SHARP_TO_FLAT[sharpName] ?? sharpName
   }

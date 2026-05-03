@@ -91,4 +91,21 @@ describe('getDisplayName', () => {
     expect(getDisplayName('Db', 'G')).toBe('C#')
     expect(getDisplayName('Gb', 'D')).toBe('F#')
   })
+
+  it('forces sharps when accidentalStyle="sharp" overrides a flat key', () => {
+    expect(getDisplayName('C#', 'F', 'sharp')).toBe('C#')
+    expect(getDisplayName('Db', 'F', 'sharp')).toBe('C#')
+    expect(getDisplayName('Bb', 'F', 'sharp')).toBe('A#')
+  })
+
+  it('forces flats when accidentalStyle="flat" overrides a sharp key', () => {
+    expect(getDisplayName('C#', 'G', 'flat')).toBe('Db')
+    expect(getDisplayName('F#', 'D', 'flat')).toBe('Gb')
+    expect(getDisplayName('A#', 'C', 'flat')).toBe('Bb')
+  })
+
+  it('falls back to per-key inference when accidentalStyle is undefined', () => {
+    expect(getDisplayName('C#', 'F')).toBe('Db')
+    expect(getDisplayName('C#', 'G')).toBe('C#')
+  })
 })
