@@ -1,4 +1,10 @@
-const KEYS = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B']
+export const ALL_NOTES_KEY = 'all'
+
+const KEYS = [ALL_NOTES_KEY, 'C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B']
+
+const KEY_LABELS: Record<string, string> = {
+  [ALL_NOTES_KEY]: 'All',
+}
 
 type KeySelectorProps = {
   selectedKey: string
@@ -18,7 +24,7 @@ export function KeySelector({ selectedKey, onKeyChange }: KeySelectorProps) {
               : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
           }`}
         >
-          {key}
+          {KEY_LABELS[key] ?? key}
         </button>
       ))}
     </div>
