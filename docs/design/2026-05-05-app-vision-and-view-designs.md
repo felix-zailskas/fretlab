@@ -76,22 +76,36 @@ practice value:
 
 ### Chord Tones in Scale Positions *(highest practice value)*
 
-- Inputs: global key + chord degree (I, ii, iii, IV, V, vi, vii°) + scale
-  position (P1–P5 or **All**, single-select; default All).
-- The selected chord's **R / 3 / 5** light up in interval colors against the
-  in-key scale tones, exactly like the chord-row behavior already on the Note
-  Map view.
-- The Legend's existing R / 3 / 5 / 7 toggles control which roles light up —
-  same control as Note Map. Adding the 7 simply re-uses the Legend toggle. No
-  separate per-view "Add 7" button.
-- **Out-of-position notes default to hidden** when a position other than All
-  is selected, focusing the user on the box they're practicing. A "Show
-  outside position" switch flips that behavior to render outside-window notes
-  with role `muted` (faint context). Switch is hidden when position = All.
-- Worked example: in G major, ii (Am), the notes A / C / E are highlighted as
-  R / 3 / 5; toggling the 7th adds G as ♭7 (since Am7 = A C E G).
-- "All Notes" key shows an empty-state message ("Select a key to view chord
+- **The view's identity is the box.** Note Map answers *where are the notes?*
+  globally; this view answers *inside this box, what are my chord-tone
+  targets?* Without a position selected the view becomes a degenerate Note
+  Map, so a position must always be picked.
+- Inputs: global key + chord degree (I, ii, iii, IV, V, vi, vii°) + a set of
+  CAGED positions (P1–P5, independently toggleable). Default: just **P1**.
+  No "All" option.
+- The fretboard renders a soft tinted rectangle behind each selected
+  position's fret window with a compact label (e.g., `P1 — E`) above it. The
+  box is a visible artifact, not just inferred from where markers happen to
+  appear. Multiple selected positions' windows stack via translucency where
+  they overlap; explicit transition-zone highlighting is reserved for the
+  Scale Positions tab.
+- The selected chord's **R / 3 / 5 / 7** light up in interval colors inside
+  the union of selected position windows, against in-key scale tones (faint).
+  The Legend's existing R / 3 / 5 / 7 toggles control which roles light up —
+  same control as Note Map.
+- A **"Show context notes"** toggle (off by default) renders in-key notes
+  outside the selected positions with role `muted` (very faint context).
+  Default off keeps the box visually focused.
+- **Zero positions toggled** → empty-state message ("Toggle a position to
+  begin"). The position toggles stay visible above the message so the user
+  can re-enable.
+- **"All Notes" key** → empty-state message ("Select a key to view chord
   tones"). The chord-tones concept requires a key.
+- Layout matches Note Map: fretboard, then Legend below it, then the
+  diatonic chord row. View-specific controls (position toggles, context
+  toggle) sit inside the view above the fretboard.
+- Worked example: in G major, ii (Am7), with P1 selected, the notes A / C /
+  E are highlighted as R / 3 / 5; toggling the 7 in the Legend adds G as ♭7.
 - Answers the question: *"I'm soloing over ii in G in position 3 — which notes do
   I target?"*
 - Implementation spec:

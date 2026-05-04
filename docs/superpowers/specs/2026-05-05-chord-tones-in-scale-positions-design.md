@@ -11,9 +11,9 @@ major-scale background, optionally constrained to a CAGED position window.
 This spec also introduces the **CAGED position model** as shared theory
 infrastructure that the future Scale Positions tab will reuse.
 
-The Scale Positions tab itself, multi-position selection, overlap-zone
-highlighting, and any other CAGED features beyond a single-position window are
-**out of scope**.
+The Scale Positions tab itself and explicit overlap-zone (transition)
+highlighting between adjacent positions are **out of scope** — the latter is
+the Scale Positions tab's signature feature.
 
 ## Constraints
 
@@ -35,15 +35,19 @@ Two layers, mirroring the existing project structure:
   `NoteMapView.tsx` and the `fretCount = 15` default in `Fretboard.tsx`.
 - `src/theory/positions.ts` — CAGED position model: `getPositionWindow`,
   `isInPositionWindow`, `CAGED_POSITIONS`, plus the `PositionId` type.
-- `src/theory/chordTones.ts` — two exports:
+- `src/theory/chordTones.ts` — three exports:
   - `roleFromChordTone(note, chord, intervalRole)`, extracted from the inline
     logic currently in `NoteMapView.tsx` (the `chordIndices` block in the
     marker `useMemo`) so `ChordTonesView` and `NoteMapView` share one
     implementation.
-  - `buildChordToneMarkers({ key, chord, accidentalStyle, position,
-    showOutside, enabledHighlights })`: the full marker-computation pipeline
+  - `buildChordToneMarkers({ key, chord, accidentalStyle, positions,
+    showContext, enabledHighlights })`: the full marker-computation pipeline
     described under **Marker Computation** below, returned as
-    `NoteMarker[]`. Pure function. Returns `[]` when `key === ALL_NOTES_KEY`.
+    `NoteMarker[]`. Pure function. Returns `[]` when `key === ALL_NOTES_KEY`
+    or when `positions.length === 0`. The `positions` argument is a
+    `ReadonlyArray<PositionId>` — every selected position contributes to the
+    visible window; a fret is "in window" if it falls in **any** selected
+    position's range.
   - `HIGHLIGHTABLE` set, currently inlined in `NoteMapView.tsx`, hoisted here
     so both views apply the same Legend-toggle demotion logic from a single
     source.
@@ -55,8 +59,17 @@ Two layers, mirroring the existing project structure:
   via props.
 
 **Component layer (new).**
-- `src/components/PositionSelector.tsx` — single-select buttons P1–P5 plus
-  "All". Mirrors styling of `ViewSelector` / `DiatonicChords` cards.
+- `src/components/PositionToggles.tsx` — independent toggle buttons for
+  P1–P5. Each button toggles its position on/off. No "All" option. Styled
+  like the existing `Legend` toggles for visual consistency.
+
+**Component layer (modified).**
+- `src/components/Fretboard/Fretboard.tsx` — accepts a new optional
+  `positionWindows?: ReadonlyArray<{ id: string; low: number; high: number;
+  label: string }>` prop. For each entry, the renderer draws a soft tinted
+  rectangle behind the strings spanning the fret window and a compact label
+  (e.g., `P1 — E`) above it. Multiple overlapping windows stack via
+  translucency.
 
 **Wire-up.**
 - `App.tsx` adds a route case for `selectedView === 'chord-tones'` rendering
@@ -139,18 +152,24 @@ function isInPositionWindow(
 
 ## View Layout
 
-Top to bottom on the Chord Tones tab:
+Top to bottom on the Chord Tones tab — primary arrangement matches Note Map
+(fretboard, then Legend, then chord row) for visual cohesion across views.
+View-specific controls sit *inside* `ChordTonesView` above its fretboard.
 
-1. **Diatonic chord row** (existing `DiatonicChords`) — pick chord degree.
-2. **Position selector** (new `PositionSelector`) — P1 / P2 / P3 / P4 / P5 /
-   All. Single-select. Default: All.
-3. **Focus toggle** (new) — "Show outside position" switch. Off by default
-   (hide outside-window notes). On = render outside-window notes with role
-   `'muted'` (faint context). **Hidden** when position = All (nothing outside
-   to show).
-4. **Fretboard** (existing `Fretboard`).
-5. **Legend** (existing) — R / 3 / 5 / 7 toggles, already wired through
-   `enabledHighlights`.
+1. **Inside the view, above the fretboard:**
+   - **Position toggles** (new `PositionToggles`) — P1 / P2 / P3 / P4 / P5,
+     each independently toggleable. Default: `P1` only.
+   - **Show context notes toggle** — "Show context notes" checkbox. Off by
+     default (only chord-tone-bearing positions render). On = also render
+     in-key notes outside any selected position with role `'muted'` (faint
+     context).
+2. **Fretboard** (existing, with new `positionWindows` annotation prop).
+   When zero positions are selected, an empty-state message replaces the
+   fretboard ("Toggle a position to begin").
+3. **Legend** (existing) — R / 3 / 5 / 7 toggles, already wired through
+   `enabledHighlights`. Sits below the fretboard, matching Note Map.
+4. **Diatonic chord row** (existing `DiatonicChords`) — pick chord degree.
+   Sits below the Legend, matching Note Map.
 
 ## State
 
@@ -158,8 +177,10 @@ Top to bottom on the Chord Tones tab:
 - `selectedKey`, `accidentalStyle`, `selectedChordDegree`, `enabledHighlights`.
 
 **Local to `ChordTonesView`:**
-- `selectedPosition: PositionId | 'all'` — default `'all'`.
-- `showOutside: boolean` — default `false`.
+- `selectedPositions: Set<PositionId>` — default `new Set(['P1'])`. Multi-select
+  via independent toggles; empty set is legal and triggers the empty state.
+- `showContext: boolean` — default `false`. When true, in-key notes outside
+  the selected positions render with role `'muted'`.
 
 These are tab-local. Switching to another tab and back resets them. Per the
 vision doc's fast-switching constraint, that's acceptable; persistence isn't a
@@ -167,20 +188,23 @@ goal.
 
 ## Marker Computation
 
-Inside `ChordTonesView`, all in one `useMemo` keyed on every input. Pseudocode:
+The pure function `buildChordToneMarkers` (in `src/theory/chordTones.ts`) is
+called from `ChordTonesView` inside a `useMemo` keyed on every input.
+Pseudocode:
 
 ```
-inputs: key, accidentalStyle, chord, enabledHighlights, position, showOutside
+inputs: key, accidentalStyle, chord, enabledHighlights, positions, showContext
 
-if (key === ALL_NOTES_KEY) return []          // empty state, see below
+if (key === ALL_NOTES_KEY) return []          // empty-state branch
+if (positions.length === 0) return []         // empty-state branch
 
 for each (string = 0..5, fret = 0..FRET_COUNT):
   noteAtFret = getNoteAtFret(STANDARD_TUNING[string], fret)
   intervalRole = getIntervalRole(key, noteAtFret)
   if (intervalRole === null) continue          // out of key — drop entirely
 
-  inWindow = (position === 'all') || isInPositionWindow(key, position, fret)
-  if (!inWindow && !showOutside) continue      // hide outside (focus mode)
+  inWindow = positions.some(p => isInPositionWindow(key, p, fret))
+  if (!inWindow && !showContext) continue      // hide outside-position notes
 
   role = roleFromChordTone(noteAtFret, chord, intervalRole)
         // -> 'root' | 'third' | 'fifth' | 'seventh' | 'scale'
@@ -189,14 +213,15 @@ for each (string = 0..5, fret = 0..FRET_COUNT):
     role = 'scale'                             // legend toggle off → demote
   }
   if (!inWindow) {
-    role = 'muted'                             // outside-window override
+    role = 'muted'                             // outside-window context override
   }
 
   push { string, fret, note: getDisplayName(noteAtFret, key, accidentalStyle), role }
 ```
 
-`roleFromChordTone` is extracted from `NoteMapView.tsx:73-82` into
-`src/theory/chordTones.ts` and imported by both views.
+`roleFromChordTone` is extracted from `NoteMapView.tsx` (the `chordIndices`
+block in the marker `useMemo`) into `src/theory/chordTones.ts` and imported by
+both views.
 
 ## Edge Cases
 
@@ -205,13 +230,20 @@ empty state ("Select a key to view chord tones") instead of the fretboard.
 Matches the existing pattern in `DiatonicChords.tsx` and `ScaleDisplay.tsx`,
 which already hide themselves in this state.
 
+**Zero positions selected.** Render an empty state ("Toggle a position to
+begin") instead of the fretboard. The position toggles remain visible above
+the message so the user can re-enable a position.
+
 **Position window contains no chord tones.** E.g., B major P3 clips to
 `[15, 15]`, and on that single fret the chord's R/3/5 may not appear. The view
 just renders the scale tones that do land in the window. No special message —
 honest behavior.
 
-**Focus toggle while position = All.** Toggle is hidden — locked under View
-Layout above.
+**Multiple overlapping position windows.** When two or more selected
+positions overlap (e.g., P1 `[0,3]` and P2 `[2,5]` share frets 2–3), their
+tinted rectangles stack via translucency; the overlap is naturally darker
+without explicit overlap-zone logic. Explicit transition-zone highlighting
+remains the Scale Positions tab's signature feature and is out of scope here.
 
 ## Testing
 
@@ -234,25 +266,33 @@ Tests `buildChordToneMarkers` (covers what would otherwise be a component
 test; the view itself is a thin composition layer with no logic of its own,
 so we test the pure marker output instead of mounting the view):
 - `key === ALL_NOTES_KEY` → returns `[]`.
-- `key='C'`, `degree=2` (Dm7), `position='P1'`, `showOutside=false`,
+- `positions = []` (empty array) → returns `[]`.
+- `key='C'`, `degree=2` (Dm7), `positions=['P1']`, `showContext=false`,
   `enabledHighlights = {root, third, fifth}`: every marker has `fret ≤ 3`;
   chord tones D / F / A have roles `root` / `third` / `fifth`; other in-window
   in-key scale tones have role `'scale'`; no muted markers exist.
-- Same inputs but `showOutside=true`: at least one marker exists with `fret > 3`
-  and role `'muted'`; in-window markers retain their chord-tone roles.
+- Same inputs but `showContext=true`: at least one marker exists with
+  `fret > 3` and role `'muted'`; in-window markers retain their chord-tone
+  roles.
 - Same inputs but `enabledHighlights` includes `seventh`: C (Dm7's ♭7) appears
   with role `'seventh'`.
 - Same inputs but `enabledHighlights` excludes `fifth`: A appears with role
   `'scale'` instead of `'fifth'` (Legend toggle demotion).
-- `position='all'`: markers exist across the full fretboard, not just one
-  window.
+- `positions=['P1', 'P2']`: markers exist across the union of both windows
+  (frets 0–5 in C major); a fret in both windows still renders once with its
+  chord-tone role.
+- `positions=['P1','P2','P3','P4','P5']`: markers exist across the full
+  fretboard.
 
 (No jsdom / @testing-library install needed — no component test required.)
 
 **Manual verification before claiming done:**
 - `npm run dev`, open Chord Tones tab.
 - Cycle keys C / G / A / B (covers fits / straddle / wrap), 7 chord degrees,
-  positions All + P1–P5, focus toggle on/off, Legend R/3/5/7 toggles.
+  P1–P5 toggles (single and multiple), context toggle on/off, Legend R/3/5/7
+  toggles.
+- Toggle all positions off → empty-state message appears, position toggles
+  remain interactive.
 - Switch to "All Notes" key → empty state shows.
 - Switch tabs back and forth → no animation lag, global state persists, local
   state resets.
@@ -262,13 +302,12 @@ so we test the pure marker output instead of mounting the view):
 ## What's Explicitly Not in This Spec
 
 - Scale Positions tab (build order #4). Stays "Coming soon."
-- Multi-position selection.
-- Overlap-zone (transition) highlighting between adjacent positions.
+- Explicit overlap-zone (transition) highlighting between adjacent positions
+  (this is the Scale Positions tab's signature feature; here, overlapping
+  windows simply stack via translucency).
 - Per-string CAGED fret-offset encoding (the simpler fret-window encoding is
   sufficient for visible correctness).
-- Persistence of position / focus toggle across tab switches.
-- Visual frame / shaded rectangle around the position window (the markers
-  themselves communicate the window).
+- Persistence of position / context toggle across tab switches.
 
 ## References
 
