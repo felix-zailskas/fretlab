@@ -6,6 +6,7 @@ import { Legend, type HighlightableRole } from './components/Legend'
 import { ScaleDisplay } from './components/ScaleDisplay'
 import { DiatonicChords } from './components/DiatonicChords'
 import { NoteMapView } from './views/NoteMapView'
+import { ChordTonesView } from './views/ChordTonesView'
 import type { AccidentalStyle } from './theory/notes'
 import { getDiatonicChords } from './theory/scales'
 
@@ -76,7 +77,7 @@ function App() {
       </header>
 
       <main className="max-w-6xl mx-auto">
-        {selectedView === 'note-map' ? (
+        {selectedView === 'note-map' && (
           <>
             <NoteMapView
               selectedKey={selectedKey}
@@ -94,7 +95,29 @@ function App() {
               onSelectDegree={handleChordSelect}
             />
           </>
-        ) : (
+        )}
+        {selectedView === 'chord-tones' && (
+          <>
+            <DiatonicChords
+              selectedKey={selectedKey}
+              accidentalStyle={accidentalStyle}
+              selectedDegree={selectedChordDegree}
+              onSelectDegree={handleChordSelect}
+            />
+            <div className="mt-4">
+              <ChordTonesView
+                selectedKey={selectedKey}
+                accidentalStyle={accidentalStyle}
+                enabledHighlights={enabledHighlights}
+                selectedChord={selectedChord}
+              />
+            </div>
+            <div className="mt-4">
+              <Legend enabledRoles={enabledHighlights} onToggleRole={toggleHighlight} />
+            </div>
+          </>
+        )}
+        {selectedView !== 'note-map' && selectedView !== 'chord-tones' && (
           <div className="text-fg-faint text-center py-20">
             Coming soon
           </div>
