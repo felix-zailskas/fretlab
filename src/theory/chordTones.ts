@@ -1,6 +1,16 @@
-import { getNoteIndex } from './notes'
-import type { DiatonicChord } from './scales'
-import type { IntervalRole, NoteDisplayRole } from './types'
+import { ALL_NOTES_KEY } from '../components/KeySelector'
+import type { HighlightableRole } from '../components/Legend'
+import { FRET_COUNT } from './constants'
+import {
+  STANDARD_TUNING,
+  getDisplayName,
+  getNoteAtFret,
+  getNoteIndex,
+  type AccidentalStyle,
+} from './notes'
+import { isInPositionWindow, type PositionId } from './positions'
+import { getIntervalRole, type DiatonicChord } from './scales'
+import type { IntervalRole, NoteDisplayRole, NoteMarker } from './types'
 
 const INTERVAL_TO_DISPLAY_ROLE: Record<IntervalRole, NoteDisplayRole> = {
   root: 'root',
@@ -48,4 +58,62 @@ export function roleFromChordTone(
   if (noteIdx === fifthIdx) return 'fifth'
   if (noteIdx === seventhIdx) return 'seventh'
   return 'scale'
+}
+
+export type PositionSelection = PositionId | 'all'
+
+export type BuildChordToneMarkersInput = {
+  key: string
+  chord: DiatonicChord | null
+  accidentalStyle: AccidentalStyle
+  position: PositionSelection
+  showOutside: boolean
+  enabledHighlights: Set<HighlightableRole>
+}
+
+// Pure function: given the Chord-Tones view's full input, returns the
+// NoteMarker[] that the Fretboard should render. Mirrors the pipeline
+// described in the spec under "Marker Computation". Returns [] for the
+// "All Notes" key (the chord-tones concept requires a key).
+export function buildChordToneMarkers({
+  key,
+  chord,
+  accidentalStyle,
+  position,
+  showOutside,
+  enabledHighlights,
+}: BuildChordToneMarkersInput): NoteMarker[] {
+  if (key === ALL_NOTES_KEY) return []
+
+  const result: NoteMarker[] = []
+
+  for (let stringIndex = 0; stringIndex < STANDARD_TUNING.length; stringIndex++) {
+    const openString = STANDARD_TUNING[stringIndex]
+    for (let fret = 0; fret <= FRET_COUNT; fret++) {
+      const note = getNoteAtFret(openString, fret)
+      const interval = getIntervalRole(key, note)
+      if (interval === null) continue // out of key — drop entirely
+
+      const inWindow =
+        position === 'all' ? true : isInPositionWindow(key, position, fret)
+      if (!inWindow && !showOutside) continue // hide outside (focus mode)
+
+      let role = roleFromChordTone(note, chord, interval)
+      if (HIGHLIGHTABLE.has(role) && !enabledHighlights.has(role as HighlightableRole)) {
+        role = 'scale' // Legend toggle off → demote
+      }
+      if (!inWindow) {
+        role = 'muted' // outside-window override (showOutside=true case)
+      }
+
+      result.push({
+        string: stringIndex,
+        fret,
+        note: getDisplayName(note, key, accidentalStyle),
+        role,
+      })
+    }
+  }
+
+  return result
 }

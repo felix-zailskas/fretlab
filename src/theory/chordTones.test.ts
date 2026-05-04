@@ -1,7 +1,9 @@
 import { describe, it, expect } from 'vitest'
-import { roleFromChordTone, HIGHLIGHTABLE } from './chordTones'
+import { roleFromChordTone, HIGHLIGHTABLE, buildChordToneMarkers } from './chordTones'
 import { getDiatonicChords, getIntervalRole } from './scales'
 import type { IntervalRole, NoteDisplayRole } from './types'
+import type { HighlightableRole } from '../components/Legend'
+import { ALL_NOTES_KEY } from '../components/KeySelector'
 
 describe('roleFromChordTone', () => {
   it('returns the major-scale interval mapping when no chord is given', () => {
@@ -56,5 +58,122 @@ describe('HIGHLIGHTABLE', () => {
     expect(HIGHLIGHTABLE.has('seventh')).toBe(true)
     expect(HIGHLIGHTABLE.has('scale')).toBe(false)
     expect(HIGHLIGHTABLE.has('muted')).toBe(false)
+  })
+})
+
+describe('buildChordToneMarkers', () => {
+  // Reusable inputs: C major, ii (Dm7), default Legend (all four roles on).
+  const cMajor_ii = () => getDiatonicChords('C')[1]
+  const allRoles: Set<HighlightableRole> = new Set(['root', 'third', 'fifth', 'seventh'])
+
+  it('returns an empty list when key is ALL_NOTES_KEY', () => {
+    const markers = buildChordToneMarkers({
+      key: ALL_NOTES_KEY,
+      chord: null,
+      accidentalStyle: 'sharp',
+      position: 'all',
+      showOutside: false,
+      enabledHighlights: allRoles,
+    })
+    expect(markers).toEqual([])
+  })
+
+  it('with position=P1 and showOutside=false, every marker has fret <= 3', () => {
+    const markers = buildChordToneMarkers({
+      key: 'C',
+      chord: cMajor_ii(),
+      accidentalStyle: 'sharp',
+      position: 'P1',
+      showOutside: false,
+      enabledHighlights: allRoles,
+    })
+    expect(markers.length).toBeGreaterThan(0)
+    for (const m of markers) {
+      expect(m.fret).toBeLessThanOrEqual(3)
+    }
+  })
+
+  it('with position=P1 and chord=Dm7 in C, marks D=root, F=third, A=fifth, C=seventh', () => {
+    const markers = buildChordToneMarkers({
+      key: 'C',
+      chord: cMajor_ii(),
+      accidentalStyle: 'sharp',
+      position: 'P1',
+      showOutside: false,
+      enabledHighlights: allRoles,
+    })
+    // String index convention: 0=low E, 1=A, 2=D, 3=G, 4=B, 5=high E.
+    // Pick one representative cell for each chord tone within [0,3]:
+    // - D: D string (idx 2) open
+    // - F: low E (idx 0) + fret 1
+    // - A: A string (idx 1) open
+    // - C: A string (idx 1) + fret 3
+    const find = (string: number, fret: number) =>
+      markers.find((m) => m.string === string && m.fret === fret)
+
+    expect(find(2, 0)?.role).toBe('root')    // D string open = D
+    expect(find(0, 1)?.role).toBe('third')   // low E + 1 = F
+    expect(find(1, 0)?.role).toBe('fifth')   // A string open = A
+    expect(find(1, 3)?.role).toBe('seventh') // A string + 3 = C
+  })
+
+  it('non-chord scale tones in the position are role "scale"', () => {
+    const markers = buildChordToneMarkers({
+      key: 'C',
+      chord: cMajor_ii(),
+      accidentalStyle: 'sharp',
+      position: 'P1',
+      showOutside: false,
+      enabledHighlights: allRoles,
+    })
+    // E is a C-major scale tone but not in Dm7 (D F A C).
+    // E appears on the low E string at fret 0.
+    const e = markers.find((m) => m.string === 0 && m.fret === 0)
+    expect(e?.role).toBe('scale')
+  })
+
+  it('with showOutside=true, at least one outside-window marker exists with role "muted"', () => {
+    const markers = buildChordToneMarkers({
+      key: 'C',
+      chord: cMajor_ii(),
+      accidentalStyle: 'sharp',
+      position: 'P1',
+      showOutside: true,
+      enabledHighlights: allRoles,
+    })
+    const outside = markers.filter((m) => m.fret > 3)
+    expect(outside.length).toBeGreaterThan(0)
+    for (const m of outside) {
+      expect(m.role).toBe('muted')
+    }
+  })
+
+  it('demotes a chord-tone role to "scale" when the Legend toggles it off', () => {
+    const without5: Set<HighlightableRole> = new Set(['root', 'third', 'seventh'])
+    const markers = buildChordToneMarkers({
+      key: 'C',
+      chord: cMajor_ii(),
+      accidentalStyle: 'sharp',
+      position: 'P1',
+      showOutside: false,
+      enabledHighlights: without5,
+    })
+    // A string open = A, which would be 'fifth' of Dm7. With fifth toggled off,
+    // it should demote to 'scale'.
+    const a = markers.find((m) => m.string === 1 && m.fret === 0)
+    expect(a?.role).toBe('scale')
+  })
+
+  it('with position="all", returns markers spanning the full neck', () => {
+    const markers = buildChordToneMarkers({
+      key: 'C',
+      chord: cMajor_ii(),
+      accidentalStyle: 'sharp',
+      position: 'all',
+      showOutside: false,
+      enabledHighlights: allRoles,
+    })
+    const maxFret = Math.max(...markers.map((m) => m.fret))
+    expect(maxFret).toBeGreaterThan(10) // covers higher-neck cells
   })
 })
