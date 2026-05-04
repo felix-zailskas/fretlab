@@ -61,7 +61,6 @@ function App() {
         </div>
         <ViewSelector selectedView={selectedView} onViewChange={setSelectedView} />
         <ScaleDisplay selectedKey={selectedKey} accidentalStyle={accidentalStyle} />
-        <Legend enabledRoles={enabledHighlights} onToggleRole={toggleHighlight} />
       </header>
 
       <main className="max-w-6xl mx-auto">
@@ -72,6 +71,9 @@ function App() {
               accidentalStyle={accidentalStyle}
               enabledHighlights={enabledHighlights}
             />
+            <div className="mt-4">
+              <Legend enabledRoles={enabledHighlights} onToggleRole={toggleHighlight} />
+            </div>
             <DiatonicChords selectedKey={selectedKey} accidentalStyle={accidentalStyle} />
           </>
         ) : (
