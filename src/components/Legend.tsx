@@ -23,7 +23,7 @@ export function Legend({ enabledRoles, onToggleRole }: LegendProps) {
           <button
             key={item.label}
             onClick={() => onToggleRole(item.role)}
-            className={`flex items-center gap-1.5 px-2 py-1 rounded transition-opacity cursor-pointer hover:bg-gray-800 ${
+            className={`flex items-center gap-1.5 px-2 py-1 rounded transition-opacity cursor-pointer hover:bg-surface-raised ${
               isEnabled ? 'opacity-100' : 'opacity-40'
             }`}
             aria-pressed={isEnabled}
@@ -32,7 +32,7 @@ export function Legend({ enabledRoles, onToggleRole }: LegendProps) {
               className="inline-block w-3 h-3 rounded-full"
               style={{ backgroundColor: item.color }}
             />
-            <span className="text-gray-300">{item.label}</span>
+            <span className="text-fg-secondary">{item.label}</span>
           </button>
         )
       })}
