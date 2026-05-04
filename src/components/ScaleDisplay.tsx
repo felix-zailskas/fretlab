@@ -27,10 +27,10 @@ export function ScaleDisplay({ selectedKey, accidentalStyle }: ScaleDisplayProps
           </div>
           {i < notes.length - 1 && (
             <span
-              className={`px-2 py-0.5 rounded text-sm font-bold tracking-wide ${
+              className={`px-2 py-0.5 rounded text-xs font-medium tracking-wide border ${
                 MAJOR_SCALE_STEPS[i] === 'half'
-                  ? 'bg-amber-700/40 text-amber-200 border border-amber-700/60'
-                  : 'bg-gray-700 text-gray-200 border border-gray-600'
+                  ? 'bg-amber-900/25 text-amber-300/80 border-amber-800/40'
+                  : 'bg-emerald-900/25 text-emerald-300/80 border-emerald-800/40'
               }`}
               title={MAJOR_SCALE_STEPS[i] === 'half' ? 'Half step' : 'Whole step'}
             >
