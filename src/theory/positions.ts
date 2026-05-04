@@ -65,3 +65,36 @@ export function isInPositionWindow(
   const [low, high] = getPositionWindow(key, position)
   return fret >= low && fret <= high
 }
+
+export type OverlapZone = {
+  id: string
+  low: number
+  high: number
+}
+
+// Computes pairwise overlaps between selected positions' fret windows. Each
+// non-empty intersection is emitted once with a stable id derived from the
+// sorted position pair (so id is independent of input order). Returns [] for
+// 0 or 1 selected positions.
+export function computeOverlapZones(
+  key: string,
+  positions: ReadonlyArray<PositionId>,
+): OverlapZone[] {
+  if (positions.length < 2) return []
+
+  const result: OverlapZone[] = []
+  for (let i = 0; i < positions.length; i++) {
+    const [aLow, aHigh] = getPositionWindow(key, positions[i])
+    for (let j = i + 1; j < positions.length; j++) {
+      const [bLow, bHigh] = getPositionWindow(key, positions[j])
+      const low = Math.max(aLow, bLow)
+      const high = Math.min(aHigh, bHigh)
+      if (low > high) continue
+      // Stable id: sort the pair lexicographically so the same id is produced
+      // regardless of which order the caller passed the positions in.
+      const [a, b] = [positions[i], positions[j]].sort()
+      result.push({ id: `${a}-${b}`, low, high })
+    }
+  }
+  return result
+}

@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import {
   CAGED_POSITIONS,
+  computeOverlapZones,
   getPositionWindow,
   isInPositionWindow,
   type PositionId,
@@ -89,5 +90,47 @@ describe('isInPositionWindow', () => {
     expect(isInPositionWindow('G', 'P5', 4)).toBe(true)
     expect(isInPositionWindow('G', 'P5', 8)).toBe(true)
     expect(isInPositionWindow('G', 'P5', 16)).toBe(false) // outside the rendered range
+  })
+})
+
+describe('computeOverlapZones', () => {
+  it('returns the shared frets for two adjacent positions in C major', () => {
+    // C major: P1 [0,3], P2 [2,5] → overlap [2,3].
+    const overlaps = computeOverlapZones('C', ['P1', 'P2'])
+    expect(overlaps).toHaveLength(1)
+    expect(overlaps[0].low).toBe(2)
+    expect(overlaps[0].high).toBe(3)
+  })
+
+  it('returns no overlap for non-adjacent positions in C major', () => {
+    // C major: P1 [0,3], P3 [4,8] → no shared frets.
+    const overlaps = computeOverlapZones('C', ['P1', 'P3'])
+    expect(overlaps).toEqual([])
+  })
+
+  it('returns multiple overlap zones for three sequential positions', () => {
+    // C major: P1 [0,3], P2 [2,5], P3 [4,8].
+    // Pairs that overlap: P1∩P2 = [2,3], P2∩P3 = [4,5]. P1∩P3 is empty.
+    const overlaps = computeOverlapZones('C', ['P1', 'P2', 'P3'])
+    expect(overlaps).toHaveLength(2)
+    const ranges = overlaps.map((o) => [o.low, o.high]).sort()
+    expect(ranges).toEqual([
+      [2, 3],
+      [4, 5],
+    ])
+  })
+
+  it('returns no overlap for a single selected position', () => {
+    expect(computeOverlapZones('C', ['P3'])).toEqual([])
+  })
+
+  it('returns no overlap for an empty selection', () => {
+    expect(computeOverlapZones('C', [])).toEqual([])
+  })
+
+  it('produces a stable id for each pair (independent of input order)', () => {
+    const a = computeOverlapZones('C', ['P1', 'P2'])
+    const b = computeOverlapZones('C', ['P2', 'P1'])
+    expect(a.map((o) => o.id).sort()).toEqual(b.map((o) => o.id).sort())
   })
 })

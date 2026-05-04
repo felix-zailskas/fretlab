@@ -11,25 +11,39 @@ export type PositionWindow = {
   label: string
 }
 
+export type OverlapZone = {
+  id: string
+  low: number
+  high: number
+}
+
 type FretboardProps = {
   markers: NoteMarker[]
   fretCount?: number
   positionWindows?: ReadonlyArray<PositionWindow>
+  overlapZones?: ReadonlyArray<OverlapZone>
 }
 
 const PADDING = { top: 20, bottom: 40, left: 50, right: 20 }
 const STRING_SPACING = 30
 const NUM_STRINGS = 6
 
-// Visual tint applied to position-window rectangles. Stacked translucency
-// naturally darkens overlap zones between adjacent CAGED positions.
+// Visual tint applied to position-window rectangles. Subtle by design — the
+// box is a backdrop, not the focus.
 const POSITION_FILL = 'rgba(255, 255, 255, 0.06)'
 const POSITION_STROKE = 'rgba(255, 255, 255, 0.22)'
+
+// Brighter tint applied to overlap zones so the transition between two
+// adjacent CAGED boxes reads clearly — the boxes are connected pieces of one
+// continuous map, not isolated islands.
+const OVERLAP_FILL = 'rgba(255, 255, 255, 0.12)'
+const OVERLAP_STROKE = 'rgba(255, 255, 255, 0.55)'
 
 export function Fretboard({
   markers,
   fretCount = FRET_COUNT,
   positionWindows,
+  overlapZones,
 }: FretboardProps) {
   const boardTop = PADDING.top
   const boardBottom = PADDING.top + (NUM_STRINGS - 1) * STRING_SPACING
@@ -97,6 +111,26 @@ export function Fretboard({
             fill={POSITION_FILL}
             stroke={POSITION_STROKE}
             strokeWidth={1}
+          />
+        )
+      })}
+
+      {/* Overlap zones — drawn over the position windows with brighter
+          fill/stroke so transition zones between adjacent CAGED boxes pop. */}
+      {overlapZones?.map((zone) => {
+        const leftX = windowLeftX(zone.low)
+        const rightX = windowRightX(zone.high)
+        return (
+          <rect
+            key={`overlap-${zone.id}`}
+            x={leftX}
+            y={boardTop - 10}
+            width={rightX - leftX}
+            height={boardBottom - boardTop + 20}
+            rx={3}
+            fill={OVERLAP_FILL}
+            stroke={OVERLAP_STROKE}
+            strokeWidth={1.5}
           />
         )
       })}

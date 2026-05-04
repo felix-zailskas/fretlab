@@ -1,5 +1,9 @@
 import { useCallback, useMemo, useState } from 'react'
-import { Fretboard, type PositionWindow } from '../components/Fretboard/Fretboard'
+import {
+  Fretboard,
+  type OverlapZone,
+  type PositionWindow,
+} from '../components/Fretboard/Fretboard'
 import { PositionToggles } from '../components/PositionToggles'
 import { ALL_NOTES_KEY } from '../components/KeySelector'
 import type { HighlightableRole } from '../components/Legend'
@@ -7,6 +11,7 @@ import { FRET_COUNT } from '../theory/constants'
 import { buildChordToneMarkers } from '../theory/chordTones'
 import {
   CAGED_POSITIONS,
+  computeOverlapZones,
   getPositionWindow,
   type PositionId,
 } from '../theory/positions'
@@ -67,6 +72,11 @@ export function ScalePositionsView({
     })
   }, [selectedKey, selectedPositions])
 
+  const overlapZones = useMemo<OverlapZone[]>(() => {
+    if (selectedKey === ALL_NOTES_KEY) return []
+    return computeOverlapZones(selectedKey, positionsArray)
+  }, [selectedKey, positionsArray])
+
   const markers = useMemo(
     () =>
       buildChordToneMarkers({
@@ -110,6 +120,7 @@ export function ScalePositionsView({
           markers={markers}
           fretCount={FRET_COUNT}
           positionWindows={positionWindows}
+          overlapZones={overlapZones}
         />
       )}
     </div>
