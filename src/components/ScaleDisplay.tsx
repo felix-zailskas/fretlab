@@ -16,21 +16,21 @@ export function ScaleDisplay({ selectedKey, accidentalStyle }: ScaleDisplayProps
 
   return (
     <div className="flex flex-wrap items-center gap-2 text-sm">
-      <span className="text-xs text-gray-400 uppercase tracking-wide">
+      <span className="text-xs text-fg-muted uppercase tracking-wide">
         {selectedKey} major
       </span>
       {notes.map((note, i) => (
         <div key={`${i}-${note}`} className="flex items-center gap-2">
-          <div className="flex items-baseline gap-1 px-2 py-1 rounded bg-gray-800 border border-gray-700">
-            <span className="text-xs text-gray-400">{DEGREE_LABELS[i]}</span>
-            <span className="text-gray-100 font-semibold">{note}</span>
+          <div className="flex items-baseline gap-1 px-2 py-1 rounded bg-surface-raised border border-default">
+            <span className="text-xs text-fg-muted">{DEGREE_LABELS[i]}</span>
+            <span className="text-fg-secondary font-semibold">{note}</span>
           </div>
           {i < notes.length - 1 && (
             <span
               className={`px-2 py-0.5 rounded text-sm font-medium tracking-wide border ${
                 MAJOR_SCALE_STEPS[i] === 'half'
-                  ? 'bg-blue-900/25 text-blue-300/80 border-blue-800/40'
-                  : 'bg-emerald-900/25 text-emerald-300/80 border-emerald-800/40'
+                  ? 'bg-root/25 text-root/80 border-root/40'
+                  : 'bg-fifth/25 text-fifth/80 border-fifth/40'
               }`}
               title={MAJOR_SCALE_STEPS[i] === 'half' ? 'Half step' : 'Whole step'}
             >
