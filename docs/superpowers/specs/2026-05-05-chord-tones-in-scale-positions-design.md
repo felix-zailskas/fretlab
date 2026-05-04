@@ -1,19 +1,27 @@
-# Chord Tones in Scale Positions — Design
+# Scale Positions — Design
+
+> Originally specced as **"Chord Tones in Scale Positions"**. Consolidated
+> with the planned standalone Scale Positions tab once the multi-position +
+> box-annotation implementation made the split redundant — the same data and
+> controls serve both practice intents (CAGED-box study and chord-tone
+> targeting). The spec filename is preserved for git/history continuity.
 
 ## Goal
 
-Implement the **Chord Tones in Scale Positions** view (tab id `chord-tones`), the
-highest-practice-value view per the build priority order. The view answers the
-question *"I'm soloing over chord X in key Y in position Z — which notes do I
-target?"* by rendering a chord's R / 3 / 5 (and optional 7) against a faint
-major-scale background, optionally constrained to a CAGED position window.
+Implement the consolidated **Scale Positions** view (tab id `scale-positions`),
+the highest-practice-value Fretlab view. It answers two questions in one:
+
+- *"What does the C-shape (P3) box look like in this key, and where does it
+  overlap with the A-shape (P4)?"* — pure CAGED-box study.
+- *"I'm soloing over ii in G in position 3 — which notes do I target?"* —
+  chord-tone targeting inside one or more boxes.
+
+A chord is selected → chord-relative R / 3 / 5 / 7 light up. No chord
+selected → the major scale's 1 / 3 / 5 / 7 light up (effectively the I-chord
+mapping). Same controls, same visualization.
 
 This spec also introduces the **CAGED position model** as shared theory
-infrastructure that the future Scale Positions tab will reuse.
-
-The Scale Positions tab itself and explicit overlap-zone (transition)
-highlighting between adjacent positions are **out of scope** — the latter is
-the Scale Positions tab's signature feature.
+infrastructure.
 
 ## Constraints
 
@@ -38,7 +46,7 @@ Two layers, mirroring the existing project structure:
 - `src/theory/chordTones.ts` — three exports:
   - `roleFromChordTone(note, chord, intervalRole)`, extracted from the inline
     logic currently in `NoteMapView.tsx` (the `chordIndices` block in the
-    marker `useMemo`) so `ChordTonesView` and `NoteMapView` share one
+    marker `useMemo`) so `ScalePositionsView` and `NoteMapView` share one
     implementation.
   - `buildChordToneMarkers({ key, chord, accidentalStyle, positions,
     showContext, enabledHighlights })`: the full marker-computation pipeline
@@ -53,7 +61,8 @@ Two layers, mirroring the existing project structure:
     source.
 
 **View layer (new).**
-- `src/views/ChordTonesView.tsx` — composes the inputs into `NoteMarker[]` and
+- `src/views/ScalePositionsView.tsx` — composes the inputs into `NoteMarker[]`,
+  computes `positionWindows` and `overlapZones`, and
   feeds the existing `Fretboard`. Owns local UI state (selected position, focus
   mode). Reads global state (key, accidental, chord degree, enabled highlights)
   via props.
@@ -64,17 +73,21 @@ Two layers, mirroring the existing project structure:
   like the existing `Legend` toggles for visual consistency.
 
 **Component layer (modified).**
-- `src/components/Fretboard/Fretboard.tsx` — accepts a new optional
-  `positionWindows?: ReadonlyArray<{ id: string; low: number; high: number;
-  label: string }>` prop. For each entry, the renderer draws a soft tinted
-  rectangle behind the strings spanning the fret window and a compact label
-  (e.g., `P1 — E`) above it. Multiple overlapping windows stack via
-  translucency.
+- `src/components/Fretboard/Fretboard.tsx` — accepts two new optional props:
+  - `positionWindows?: ReadonlyArray<{ id: string; low: number; high: number;
+    label: string }>` — soft tinted rectangle behind the strings spanning each
+    selected position's fret window, with a compact label (e.g., `P1 — E`)
+    above it.
+  - `overlapZones?: ReadonlyArray<{ id: string; low: number; high: number }>`
+    — additional rectangles drawn over the position windows with brighter
+    fill and stroke. Reinforces the transition zones between adjacent CAGED
+    boxes — they're connected pieces of one continuous map, not islands.
 
 **Wire-up.**
-- `App.tsx` adds a route case for `selectedView === 'chord-tones'` rendering
-  `ChordTonesView`. Removes the "Coming soon" placeholder for that tab id only;
-  the other unimplemented tabs remain placeholders.
+- `App.tsx` adds a route case for `selectedView === 'scale-positions'`
+  rendering `ScalePositionsView`. The old `'chord-tones'` tab id is removed
+  from `ViewSelector` (the consolidated view replaces both originally-planned
+  entries). Other unimplemented tabs remain "Coming soon" placeholders.
 
 ## CAGED Position Model
 
@@ -154,7 +167,7 @@ function isInPositionWindow(
 
 Top to bottom on the Chord Tones tab — primary arrangement matches Note Map
 (fretboard, then Legend, then chord row) for visual cohesion across views.
-View-specific controls sit *inside* `ChordTonesView` above its fretboard.
+View-specific controls sit *inside* `ScalePositionsView` above its fretboard.
 
 1. **Inside the view, above the fretboard:**
    - **Position toggles** (new `PositionToggles`) — P1 / P2 / P3 / P4 / P5,
@@ -176,7 +189,7 @@ View-specific controls sit *inside* `ChordTonesView` above its fretboard.
 **Global, in `App.tsx`** (already exists):
 - `selectedKey`, `accidentalStyle`, `selectedChordDegree`, `enabledHighlights`.
 
-**Local to `ChordTonesView`:**
+**Local to `ScalePositionsView`:**
 - `selectedPositions: Set<PositionId>` — default `new Set(['P1'])`. Multi-select
   via independent toggles; empty set is legal and triggers the empty state.
 - `showContext: boolean` — default `false`. When true, in-key notes outside
@@ -189,7 +202,7 @@ goal.
 ## Marker Computation
 
 The pure function `buildChordToneMarkers` (in `src/theory/chordTones.ts`) is
-called from `ChordTonesView` inside a `useMemo` keyed on every input.
+called from `ScalePositionsView` inside a `useMemo` keyed on every input.
 Pseudocode:
 
 ```
@@ -225,10 +238,10 @@ both views.
 
 ## Edge Cases
 
-**`ALL_NOTES_KEY` selected.** The chord-tones concept requires a key. Render an
-empty state ("Select a key to view chord tones") instead of the fretboard.
-Matches the existing pattern in `DiatonicChords.tsx` and `ScaleDisplay.tsx`,
-which already hide themselves in this state.
+**`ALL_NOTES_KEY` selected.** The view requires a key. Render an empty state
+("Select a key to view scale positions") instead of the fretboard. Matches
+the existing pattern in `DiatonicChords.tsx` and `ScaleDisplay.tsx`, which
+already hide themselves in this state.
 
 **Zero positions selected.** Render an empty state ("Toggle a position to
 begin") instead of the fretboard. The position toggles remain visible above
@@ -240,10 +253,14 @@ just renders the scale tones that do land in the window. No special message —
 honest behavior.
 
 **Multiple overlapping position windows.** When two or more selected
-positions overlap (e.g., P1 `[0,3]` and P2 `[2,5]` share frets 2–3), their
-tinted rectangles stack via translucency; the overlap is naturally darker
-without explicit overlap-zone logic. Explicit transition-zone highlighting
-remains the Scale Positions tab's signature feature and is out of scope here.
+positions share frets (e.g., P1 `[0,3]` and P2 `[2,5]` share frets 2–3), the
+view computes the overlap range explicitly and emits an `overlapZones` entry
+to the Fretboard. The Fretboard renders the overlap with a brighter fill
+plus visible border so the transition zone reads clearly — reinforcing that
+the CAGED shapes are connected pieces of one continuous map. Pairwise
+overlap is sufficient for adjacent CAGED positions in any key (3-way and
+higher overlaps don't occur with the ≤4-fret-wide windows defined here, but
+the implementation handles them correctly via per-pair computation).
 
 ## Testing
 
@@ -254,6 +271,12 @@ remains the Scale Positions tab's signature feature and is out of scope here.
 - `isInPositionWindow` boundary cases (low edge, high edge, just outside).
 - Exhaustive sanity: for every `(key, position)` pair (12 × 5 = 60), assert
   `0 ≤ low ≤ high ≤ FRET_COUNT`.
+- `computeOverlapZones(key, positions)`:
+  - `['P1','P2']` in C → returns `[{ low: 2, high: 3 }]` (the shared frets).
+  - `['P1','P3']` in C → returns `[]` (non-overlapping).
+  - `['P1','P2','P3']` in C → returns 2 entries (P1∩P2 and P2∩P3).
+  - Single-position selection → returns `[]`.
+  - Empty positions → returns `[]`.
 
 **`src/theory/chordTones.test.ts`:**
 
@@ -301,13 +324,12 @@ so we test the pure marker output instead of mounting the view):
 
 ## What's Explicitly Not in This Spec
 
-- Scale Positions tab (build order #4). Stays "Coming soon."
-- Explicit overlap-zone (transition) highlighting between adjacent positions
-  (this is the Scale Positions tab's signature feature; here, overlapping
-  windows simply stack via translucency).
 - Per-string CAGED fret-offset encoding (the simpler fret-window encoding is
   sufficient for visible correctness).
 - Persistence of position / context toggle across tab switches.
+- Three-way+ overlap-zone visual differentiation (pairwise overlap rendering
+  handles the only cases that occur with the current CAGED window widths;
+  adding per-N-overlap distinct treatment is out of scope).
 
 ## References
 

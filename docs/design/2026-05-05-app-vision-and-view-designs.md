@@ -22,18 +22,16 @@ This document captures the initial design intent for Fretlab.
 
 ## Build priority order
 
-The tab-bar order (Note Map → Scale Positions → Chord Tones → Diatonic Chords →
-Shell Voicings → Triad Shapes) is **not** the build order. Build priority is by
+The tab-bar order (Note Map → Scale Positions → Diatonic Chords → Shell
+Voicings → Triad Shapes) is **not** the build order. Build priority is by
 practice value:
 
 1. **Fretboard + key selector** — done as Step 1, with Note Map as the proof view.
-2. **Chord Tones in Scale Positions** — highest practice value (target-tone
-   soloing reference).
+2. **Scale Positions** — CAGED boxes with chord-tone targeting *and* transition-zone visualization in one view (originally split across "Chord Tones in Scale Positions" and "Scale Positions"; consolidated once the multi-position implementation made the split redundant).
 3. **Diatonic Chord Reference** — quick scannable harmony reference.
-4. **Scale Positions** — CAGED boxes and transition-zone visualization.
-5. **Shell Voicing Diagrams** — comping reference with neck mapping.
-6. **Diatonic Triad Shapes** — triad inversions across string groups.
-7. **Note Map** — lowest priority; partially superseded by the Step 1
+4. **Shell Voicing Diagrams** — comping reference with neck mapping.
+5. **Diatonic Triad Shapes** — triad inversions across string groups.
+6. **Note Map** — lowest priority; partially superseded by the Step 1
    implementation already on screen.
 
 ---
@@ -55,17 +53,47 @@ practice value:
 - Scope-wise this view is a superset of what the dedicated tabs need; later
   tabs slice it down (chord-tones-only, position-only, etc.).
 
-### Scale Positions
+### Scale Positions *(highest practice value)*
 
-- Shows the **5 CAGED major-scale positions** for the selected key.
-- A position selector lets the user pick position 1–5, or overlay all. The user can
-  select any combination of positions and the selected are highlighted.
-- All the notes of the scale are still visible, however they are shown in a muted and
-  secondary color scheme, to indicate that these notes are still available to the
-  player.
-- When **two adjacent positions are selected, the overlap zone is highlighted**
-  (the shared notes between boxes). This is the explicit transition-practice
-  feature.
+A consolidated view that handles both CAGED-box exploration *and* chord-tone
+targeting within a box. Originally split across two planned tabs; merged once
+the multi-position toggle + box-annotation implementation made the split
+redundant — the same data and controls serve both practice intents.
+
+- **The view's identity is the box.** Note Map answers *where are the notes?*
+  globally; this view answers *inside this box, what's my hand doing?*
+  Without a position selected the view becomes a degenerate Note Map, so a
+  position must always be picked.
+- Inputs: global key + a set of CAGED positions (P1–P5, independently
+  toggleable; default just **P1**, no "All" option) + an optional chord
+  degree (I, ii, iii, IV, V, vi, vii°).
+- The fretboard renders a soft tinted rectangle behind each selected
+  position's fret window with a compact label (e.g., `P1 — E`) above it. The
+  box is a visible artifact, not just inferred from where markers happen to
+  appear.
+- **Overlap zones get explicit emphasis** when two or more selected positions
+  share frets — a brighter fill plus a defined border highlights the
+  transition area. Reinforces that the CAGED shapes are connected pieces of
+  one continuous musical map, not isolated islands.
+- **Chord-tone mode (chord selected):** the chord's R / 3 / 5 / 7 light up
+  inside the union of selected position windows, against the in-key scale
+  tones (faint). The Legend's R / 3 / 5 / 7 toggles control which chord-tone
+  roles light up.
+- **Scale-position mode (no chord selected):** the major scale's 1 / 3 / 5 / 7
+  light up — same visual contract, with the I chord tones effectively
+  serving as scale-degree highlights. Same controls, same visualization, just
+  no chord-aware re-mapping.
+- A **"Show context notes"** toggle (off by default) renders in-key notes
+  outside the selected positions with role `muted` (very faint context).
+  Default off keeps the box visually focused.
+- **Zero positions toggled** → empty-state message ("Toggle a position to
+  begin"). The position toggles stay visible above the message so the user
+  can re-enable.
+- **"All Notes" key** → empty-state message ("Select a key to view scale
+  positions"). The view requires a key.
+- Layout matches Note Map: fretboard, then Legend below it, then the
+  diatonic chord row. View-specific controls (position toggles, context
+  toggle) sit inside the view above the fretboard.
 - CAGED encoding is anchored to C major, with shapes shifting by key:
   - P1 (E shape) ≈ frets 0–3
   - P2 (D shape) ≈ frets 2–5
@@ -73,41 +101,11 @@ practice value:
   - P4 (A shape) ≈ frets 7–10
   - P5 (G shape) ≈ frets 9–13
   - The interval *shape* stays constant; only the fret offset moves with key.
-
-### Chord Tones in Scale Positions *(highest practice value)*
-
-- **The view's identity is the box.** Note Map answers *where are the notes?*
-  globally; this view answers *inside this box, what are my chord-tone
-  targets?* Without a position selected the view becomes a degenerate Note
-  Map, so a position must always be picked.
-- Inputs: global key + chord degree (I, ii, iii, IV, V, vi, vii°) + a set of
-  CAGED positions (P1–P5, independently toggleable). Default: just **P1**.
-  No "All" option.
-- The fretboard renders a soft tinted rectangle behind each selected
-  position's fret window with a compact label (e.g., `P1 — E`) above it. The
-  box is a visible artifact, not just inferred from where markers happen to
-  appear. Multiple selected positions' windows stack via translucency where
-  they overlap; explicit transition-zone highlighting is reserved for the
-  Scale Positions tab.
-- The selected chord's **R / 3 / 5 / 7** light up in interval colors inside
-  the union of selected position windows, against in-key scale tones (faint).
-  The Legend's existing R / 3 / 5 / 7 toggles control which roles light up —
-  same control as Note Map.
-- A **"Show context notes"** toggle (off by default) renders in-key notes
-  outside the selected positions with role `muted` (very faint context).
-  Default off keeps the box visually focused.
-- **Zero positions toggled** → empty-state message ("Toggle a position to
-  begin"). The position toggles stay visible above the message so the user
-  can re-enable.
-- **"All Notes" key** → empty-state message ("Select a key to view chord
-  tones"). The chord-tones concept requires a key.
-- Layout matches Note Map: fretboard, then Legend below it, then the
-  diatonic chord row. View-specific controls (position toggles, context
-  toggle) sit inside the view above the fretboard.
 - Worked example: in G major, ii (Am7), with P1 selected, the notes A / C /
   E are highlighted as R / 3 / 5; toggling the 7 in the Legend adds G as ♭7.
-- Answers the question: *"I'm soloing over ii in G in position 3 — which notes do
-  I target?"*
+- Answers two questions in one view: *"What does the C-shape (P3) box look
+  like in this key, and where does it overlap with the A-shape (P4)?"* and
+  *"I'm soloing over ii in G in position 3 — which notes do I target?"*.
 - Implementation spec:
   `docs/superpowers/specs/2026-05-05-chord-tones-in-scale-positions-design.md`.
 
@@ -174,17 +172,16 @@ practice value:
 Several views depend on building blocks that don't exist yet. Identifying these
 keeps work efficient:
 
-- **CAGED position model** — used by Scale Positions and Chord Tones in Scale
-  Positions. Build once, share. Encoded as 5 fret-windows anchored to C major
-  (one per CAGED shape) plus a per-key wrap rule that prefers high-neck
-  placement and only octave-wraps when the natural window is entirely past
-  `FRET_COUNT`. First built and validated by the Chord Tones view.
+- **CAGED position model** — built and validated by the Scale Positions
+  view. Encoded as 5 fret-windows anchored to C major (one per CAGED shape)
+  plus a per-key wrap rule that prefers high-neck placement and only
+  octave-wraps when the natural window is entirely past `FRET_COUNT`.
 - **`FRET_COUNT` constant** — global single source of truth for the highest
   fret rendered (currently 15). Replaces the inline literals in
   `NoteMapView.tsx` and `Fretboard.tsx`.
 - **`roleFromChordTone` helper** — extracted from the chord-tone-resolution
-  block currently inline in `NoteMapView.tsx`. Same logic reused by Chord
-  Tones in Scale Positions.
+  block currently inline in `NoteMapView.tsx`. Same logic reused by the
+  Scale Positions view.
 - **Vertical chord-diagram box component** — used by Shell Voicings and Triad
   Shapes. A natural shared subcomponent.
 - **Chord-degree → chord-tone computation** — partially present already in the
@@ -198,8 +195,6 @@ keeps work efficient:
 
 ## Dependencies between views
 
-- **Scale Positions → Chord Tones in Scale Positions:** the CAGED model and
-  position selector built for Scale Positions are reused.
 - **Shell Voicings ↔ Triad Shapes:** share the chord-diagram-box component and
   the "ascending up the neck" rendering pattern.
 - **Diatonic Chord Reference:** standalone — least dependency on existing code.
@@ -209,14 +204,13 @@ keeps work efficient:
 
 ## View completion map
 
-| View                            | Status      | Notes                                                                          |
-| ------------------------------- | ----------- | ------------------------------------------------------------------------------ |
-| Note Map                        | Done        | Step 1 proof view; rendered by [NoteMapView.tsx](src/views/NoteMapView.tsx).   |
-| Chord Tones in Scale Positions  | In design   | Spec: [2026-05-05-chord-tones-in-scale-positions-design.md](../superpowers/specs/2026-05-05-chord-tones-in-scale-positions-design.md). Bundles CAGED model. |
-| Diatonic Chord Reference        | Not started | Standalone; reference-table version of the chord row already in Note Map.     |
-| Scale Positions                 | Not started | Requires the CAGED position model and a position selector.                     |
-| Shell Voicing Diagrams          | Not started | Needs a vertical chord-diagram box and the ascending-up-the-neck view.         |
-| Diatonic Triad Shapes           | Not started | Shares the chord-diagram box and ascending-up-the-neck view with Shell Voicings. |
+| View                     | Status      | Notes                                                                          |
+| ------------------------ | ----------- | ------------------------------------------------------------------------------ |
+| Note Map                 | Done        | Step 1 proof view; rendered by [NoteMapView.tsx](src/views/NoteMapView.tsx).   |
+| Scale Positions          | Done        | Consolidated CAGED-box + chord-tone view; rendered by [ScalePositionsView.tsx](src/views/ScalePositionsView.tsx). Spec: [design](../superpowers/specs/2026-05-05-chord-tones-in-scale-positions-design.md). |
+| Diatonic Chord Reference | Not started | Standalone; reference-table version of the chord row already in Note Map.      |
+| Shell Voicing Diagrams   | Not started | Needs a vertical chord-diagram box and the ascending-up-the-neck view.         |
+| Diatonic Triad Shapes    | Not started | Shares the chord-diagram box and ascending-up-the-neck view with Shell Voicings. |
 
 ---
 
