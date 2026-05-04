@@ -1,16 +1,34 @@
 @import "tailwindcss";
 
-:root {
-  --color-root: #3B82F6;
-  --color-third: #F59E0B;
-  --color-fifth: #10B981;
-  --color-seventh: #8B5CF6;
-  --color-scale: #6B7280;
-  --color-muted: #374151;
+@theme {
+  /* Surfaces — backgrounds, dark to active */
+  --color-surface:         #111827;
+  --color-surface-raised:  #1F2937;
+  --color-surface-active:  #374151;
 
-  --color-bg: #111827;
-  --color-text: #F9FAFB;
-  --color-fretboard: #292524;
-  --color-string: #9CA3AF;
-  --color-fret: #6B7280;
+  /* Borders — subtle to strong */
+  --color-border:          #374151;
+  --color-border-emphasis: #4B5563;
+  --color-border-hover:    #6B7280;
+  --color-border-selected: rgb(255 255 255 / 0.9);
+
+  /* Foreground (text) — emphasis to faint */
+  --color-fg-primary:      #F9FAFB;
+  --color-fg-secondary:    #D1D5DB;
+  --color-fg-muted:        #9CA3AF;
+  --color-fg-faint:        #6B7280;
+  --color-fg-emphasis:     #FFFFFF;
+
+  /* Theory roles — chord/scale interval colors */
+  --color-root:            #3B82F6;
+  --color-third:           #F59E0B;
+  --color-fifth:           #10B981;
+  --color-seventh:         #8B5CF6;
+  --color-scale:           #6B7280;
+  --color-muted:           #374151;
+
+  /* Fretboard render */
+  --color-fretboard:       #292524;
+  --color-string:          #9CA3AF;
+  --color-fret:            #6B7280;
 }
