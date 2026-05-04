@@ -63,7 +63,7 @@ export function Fretboard({ markers, fretCount = 15 }: FretboardProps) {
         y1={boardTop - 10}
         x2={nutX}
         y2={boardBottom + 10}
-        stroke="var(--color-text)"
+        stroke="var(--color-fg-primary)"
         strokeWidth={4}
       />
 
