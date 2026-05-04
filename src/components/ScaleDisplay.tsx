@@ -27,9 +27,9 @@ export function ScaleDisplay({ selectedKey, accidentalStyle }: ScaleDisplayProps
           </div>
           {i < notes.length - 1 && (
             <span
-              className={`px-2 py-0.5 rounded text-xs font-medium tracking-wide border ${
+              className={`px-2 py-0.5 rounded text-sm font-medium tracking-wide border ${
                 MAJOR_SCALE_STEPS[i] === 'half'
-                  ? 'bg-amber-900/25 text-amber-300/80 border-amber-800/40'
+                  ? 'bg-blue-900/25 text-blue-300/80 border-blue-800/40'
                   : 'bg-emerald-900/25 text-emerald-300/80 border-emerald-800/40'
               }`}
               title={MAJOR_SCALE_STEPS[i] === 'half' ? 'Half step' : 'Whole step'}
