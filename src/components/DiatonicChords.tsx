@@ -5,6 +5,8 @@ import { ALL_NOTES_KEY } from './KeySelector'
 type DiatonicChordsProps = {
   selectedKey: string
   accidentalStyle: AccidentalStyle
+  selectedDegree: number | null
+  onSelectDegree: (degree: number) => void
 }
 
 const QUALITY_ACCENT: Record<ChordQuality, string> = {
@@ -14,7 +16,12 @@ const QUALITY_ACCENT: Record<ChordQuality, string> = {
   m7b5: 'border-gray-700 bg-gray-800/80',
 }
 
-export function DiatonicChords({ selectedKey, accidentalStyle }: DiatonicChordsProps) {
+export function DiatonicChords({
+  selectedKey,
+  accidentalStyle,
+  selectedDegree,
+  onSelectDegree,
+}: DiatonicChordsProps) {
   if (selectedKey === ALL_NOTES_KEY) return null
 
   const chords = getDiatonicChords(selectedKey, accidentalStyle)
@@ -25,22 +32,32 @@ export function DiatonicChords({ selectedKey, accidentalStyle }: DiatonicChordsP
         Diatonic chords
       </h2>
       <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-4">
-        {chords.map((chord) => (
-          <div
-            key={chord.degree}
-            className={`flex flex-col items-center justify-center gap-3 px-4 py-8 min-h-[10rem] rounded-xl border-2 shadow-lg ${QUALITY_ACCENT[chord.quality]}`}
-          >
-            <span className="text-lg text-gray-400 font-mono font-semibold">
-              {chord.romanNumeral}
-            </span>
-            <span className="text-3xl font-bold text-white leading-none">
-              {chord.symbol}
-            </span>
-            <span className="text-lg text-gray-200 tracking-wider font-medium">
-              {chord.notes.join(' – ')}
-            </span>
-          </div>
-        ))}
+        {chords.map((chord) => {
+          const isSelected = selectedDegree === chord.degree
+          return (
+            <button
+              key={chord.degree}
+              type="button"
+              onClick={() => onSelectDegree(chord.degree)}
+              aria-pressed={isSelected}
+              className={`flex flex-col items-center justify-center gap-3 px-4 py-8 min-h-[10rem] rounded-xl border-2 shadow-lg cursor-pointer transition-colors ${
+                isSelected
+                  ? 'border-white/90 bg-gray-700'
+                  : `${QUALITY_ACCENT[chord.quality]} hover:border-gray-500`
+              }`}
+            >
+              <span className="text-lg text-gray-400 font-mono font-semibold">
+                {chord.romanNumeral}
+              </span>
+              <span className="text-3xl font-bold text-white leading-none">
+                {chord.symbol}
+              </span>
+              <span className="text-lg text-gray-200 tracking-wider font-medium">
+                {chord.notes.join(' – ')}
+              </span>
+            </button>
+          )
+        })}
       </div>
     </section>
   )

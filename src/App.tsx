@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { AccidentalToggle } from './components/AccidentalToggle'
 import { KeySelector, ALL_NOTES_KEY } from './components/KeySelector'
 import { ViewSelector } from './components/ViewSelector'
@@ -7,6 +7,7 @@ import { ScaleDisplay } from './components/ScaleDisplay'
 import { DiatonicChords } from './components/DiatonicChords'
 import { NoteMapView } from './views/NoteMapView'
 import type { AccidentalStyle } from './theory/notes'
+import { getDiatonicChords } from './theory/scales'
 
 const DEFAULT_HIGHLIGHTS: HighlightableRole[] = ['root', 'third', 'fifth', 'seventh']
 
@@ -22,6 +23,17 @@ function App() {
   const [enabledHighlights, setEnabledHighlights] = useState<Set<HighlightableRole>>(
     () => new Set(DEFAULT_HIGHLIGHTS),
   )
+  const [selectedChordDegree, setSelectedChordDegree] = useState<number | null>(null)
+
+  const selectedChord = useMemo(() => {
+    if (selectedChordDegree === null || selectedKey === ALL_NOTES_KEY) return null
+    const chords = getDiatonicChords(selectedKey, accidentalStyle)
+    return chords[selectedChordDegree - 1] ?? null
+  }, [selectedChordDegree, selectedKey, accidentalStyle])
+
+  const handleChordSelect = useCallback((degree: number) => {
+    setSelectedChordDegree((prev) => (prev === degree ? null : degree))
+  }, [])
 
   const toggleHighlight = useCallback((role: HighlightableRole) => {
     setEnabledHighlights((prev) => {
@@ -70,11 +82,17 @@ function App() {
               selectedKey={selectedKey}
               accidentalStyle={accidentalStyle}
               enabledHighlights={enabledHighlights}
+              selectedChord={selectedChord}
             />
             <div className="mt-4">
               <Legend enabledRoles={enabledHighlights} onToggleRole={toggleHighlight} />
             </div>
-            <DiatonicChords selectedKey={selectedKey} accidentalStyle={accidentalStyle} />
+            <DiatonicChords
+              selectedKey={selectedKey}
+              accidentalStyle={accidentalStyle}
+              selectedDegree={selectedChordDegree}
+              onSelectDegree={handleChordSelect}
+            />
           </>
         ) : (
           <div className="text-gray-500 text-center py-20">
