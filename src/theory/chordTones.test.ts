@@ -71,20 +71,32 @@ describe('buildChordToneMarkers', () => {
       key: ALL_NOTES_KEY,
       chord: null,
       accidentalStyle: 'sharp',
-      position: 'all',
-      showOutside: false,
+      positions: ['P1'],
+      showContext: false,
       enabledHighlights: allRoles,
     })
     expect(markers).toEqual([])
   })
 
-  it('with position=P1 and showOutside=false, every marker has fret <= 3', () => {
+  it('returns an empty list when positions is empty', () => {
     const markers = buildChordToneMarkers({
       key: 'C',
       chord: cMajor_ii(),
       accidentalStyle: 'sharp',
-      position: 'P1',
-      showOutside: false,
+      positions: [],
+      showContext: false,
+      enabledHighlights: allRoles,
+    })
+    expect(markers).toEqual([])
+  })
+
+  it('with positions=[P1] and showContext=false, every marker has fret <= 3', () => {
+    const markers = buildChordToneMarkers({
+      key: 'C',
+      chord: cMajor_ii(),
+      accidentalStyle: 'sharp',
+      positions: ['P1'],
+      showContext: false,
       enabledHighlights: allRoles,
     })
     expect(markers.length).toBeGreaterThan(0)
@@ -93,13 +105,13 @@ describe('buildChordToneMarkers', () => {
     }
   })
 
-  it('with position=P1 and chord=Dm7 in C, marks D=root, F=third, A=fifth, C=seventh', () => {
+  it('with positions=[P1] and chord=Dm7 in C, marks D=root, F=third, A=fifth, C=seventh', () => {
     const markers = buildChordToneMarkers({
       key: 'C',
       chord: cMajor_ii(),
       accidentalStyle: 'sharp',
-      position: 'P1',
-      showOutside: false,
+      positions: ['P1'],
+      showContext: false,
       enabledHighlights: allRoles,
     })
     // String index convention: 0=low E, 1=A, 2=D, 3=G, 4=B, 5=high E.
@@ -122,8 +134,8 @@ describe('buildChordToneMarkers', () => {
       key: 'C',
       chord: cMajor_ii(),
       accidentalStyle: 'sharp',
-      position: 'P1',
-      showOutside: false,
+      positions: ['P1'],
+      showContext: false,
       enabledHighlights: allRoles,
     })
     // E is a C-major scale tone but not in Dm7 (D F A C).
@@ -132,13 +144,13 @@ describe('buildChordToneMarkers', () => {
     expect(e?.role).toBe('scale')
   })
 
-  it('with showOutside=true, at least one outside-window marker exists with role "muted"', () => {
+  it('with showContext=true, at least one outside-window marker exists with role "muted"', () => {
     const markers = buildChordToneMarkers({
       key: 'C',
       chord: cMajor_ii(),
       accidentalStyle: 'sharp',
-      position: 'P1',
-      showOutside: true,
+      positions: ['P1'],
+      showContext: true,
       enabledHighlights: allRoles,
     })
     const outside = markers.filter((m) => m.fret > 3)
@@ -154,8 +166,8 @@ describe('buildChordToneMarkers', () => {
       key: 'C',
       chord: cMajor_ii(),
       accidentalStyle: 'sharp',
-      position: 'P1',
-      showOutside: false,
+      positions: ['P1'],
+      showContext: false,
       enabledHighlights: without5,
     })
     // A string open = A, which would be 'fifth' of Dm7. With fifth toggled off,
@@ -164,13 +176,31 @@ describe('buildChordToneMarkers', () => {
     expect(a?.role).toBe('scale')
   })
 
-  it('with position="all", returns markers spanning the full neck', () => {
+  it('with positions=[P1, P2], renders markers across the union of both windows', () => {
+    // C major: P1 = [0,3], P2 = [2,5]. Union = [0,5]. Should see markers
+    // at fret 4 (in P2 only) and fret 1 (in P1 only).
     const markers = buildChordToneMarkers({
       key: 'C',
       chord: cMajor_ii(),
       accidentalStyle: 'sharp',
-      position: 'all',
-      showOutside: false,
+      positions: ['P1', 'P2'],
+      showContext: false,
+      enabledHighlights: allRoles,
+    })
+    for (const m of markers) {
+      expect(m.fret).toBeLessThanOrEqual(5)
+    }
+    expect(markers.some((m) => m.fret === 4)).toBe(true) // P2-only territory
+    expect(markers.some((m) => m.fret === 1)).toBe(true) // P1-only territory
+  })
+
+  it('with all 5 positions selected, renders markers spanning the full neck', () => {
+    const markers = buildChordToneMarkers({
+      key: 'C',
+      chord: cMajor_ii(),
+      accidentalStyle: 'sharp',
+      positions: ['P1', 'P2', 'P3', 'P4', 'P5'],
+      showContext: false,
       enabledHighlights: allRoles,
     })
     const maxFret = Math.max(...markers.map((m) => m.fret))

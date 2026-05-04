@@ -60,30 +60,36 @@ export function roleFromChordTone(
   return 'scale'
 }
 
-export type PositionSelection = PositionId | 'all'
-
 export type BuildChordToneMarkersInput = {
   key: string
   chord: DiatonicChord | null
   accidentalStyle: AccidentalStyle
-  position: PositionSelection
-  showOutside: boolean
+  positions: ReadonlyArray<PositionId>
+  showContext: boolean
   enabledHighlights: Set<HighlightableRole>
 }
 
 // Pure function: given the Chord-Tones view's full input, returns the
 // NoteMarker[] that the Fretboard should render. Mirrors the pipeline
-// described in the spec under "Marker Computation". Returns [] for the
-// "All Notes" key (the chord-tones concept requires a key).
+// described in the spec under "Marker Computation".
+//
+// Returns [] when:
+// - key is the "All Notes" sentinel (the chord-tones concept requires a key)
+// - positions is empty (the view's identity is the box; no box, no markers)
+//
+// A fret is "in window" if it falls in ANY of the selected positions. When
+// showContext=true, in-key notes outside the union of windows render with
+// role 'muted' (faint context); when false, they're dropped entirely.
 export function buildChordToneMarkers({
   key,
   chord,
   accidentalStyle,
-  position,
-  showOutside,
+  positions,
+  showContext,
   enabledHighlights,
 }: BuildChordToneMarkersInput): NoteMarker[] {
   if (key === ALL_NOTES_KEY) return []
+  if (positions.length === 0) return []
 
   const result: NoteMarker[] = []
 
@@ -94,16 +100,15 @@ export function buildChordToneMarkers({
       const interval = getIntervalRole(key, note)
       if (interval === null) continue // out of key — drop entirely
 
-      const inWindow =
-        position === 'all' ? true : isInPositionWindow(key, position, fret)
-      if (!inWindow && !showOutside) continue // hide outside (focus mode)
+      const inWindow = positions.some((p) => isInPositionWindow(key, p, fret))
+      if (!inWindow && !showContext) continue // hide outside-position notes
 
       let role = roleFromChordTone(note, chord, interval)
       if (HIGHLIGHTABLE.has(role) && !enabledHighlights.has(role as HighlightableRole)) {
         role = 'scale' // Legend toggle off → demote
       }
       if (!inWindow) {
-        role = 'muted' // outside-window override (showOutside=true case)
+        role = 'muted' // outside-window context override
       }
 
       result.push({

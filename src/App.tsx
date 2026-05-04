@@ -98,23 +98,21 @@ function App() {
         )}
         {selectedView === 'chord-tones' && (
           <>
+            <ChordTonesView
+              selectedKey={selectedKey}
+              accidentalStyle={accidentalStyle}
+              enabledHighlights={enabledHighlights}
+              selectedChord={selectedChord}
+            />
+            <div className="mt-4">
+              <Legend enabledRoles={enabledHighlights} onToggleRole={toggleHighlight} />
+            </div>
             <DiatonicChords
               selectedKey={selectedKey}
               accidentalStyle={accidentalStyle}
               selectedDegree={selectedChordDegree}
               onSelectDegree={handleChordSelect}
             />
-            <div className="mt-4">
-              <ChordTonesView
-                selectedKey={selectedKey}
-                accidentalStyle={accidentalStyle}
-                enabledHighlights={enabledHighlights}
-                selectedChord={selectedChord}
-              />
-            </div>
-            <div className="mt-4">
-              <Legend enabledRoles={enabledHighlights} onToggleRole={toggleHighlight} />
-            </div>
           </>
         )}
         {selectedView !== 'note-map' && selectedView !== 'chord-tones' && (
