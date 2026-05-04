@@ -4,7 +4,7 @@ A key-aware fretboard reference for guitarists. Sits next to you during practice
 
 Fretlab is a **reference tool, not a tutorial.** It is aimed at intermediate and advanced players who already know what they want to practice and need a clean visual lookup.
 
-![Hero screenshot — the Scale Positions tab in C major. P1 and P2 are toggled, each framed with corner brackets and labeled (P1 — E, P2 — D) above the board. The shared frets between them render as a brighter outlined overlap rectangle. The I chord (Cmaj7) is selected, lighting up C / E / G / B in interval colors against the rest of the C major scale.](docs/images/hero.png)
+![Hero screenshot — the Note Map tab in C major with the I chord (Cmaj7) selected. The fretboard shows all in-key notes across 16 frets: C is highlighted as the root (blue), E as the 3rd (orange), G as the 5th (green), B as the 7th (purple); the rest of the scale (D, F, A) renders in muted gray. The diatonic chord row sits below the fretboard with Cmaj7 highlighted, and the C major scale display above the board shows whole/half step intervals between scale degrees.](docs/images/hero.png)
 
 ## About
 
