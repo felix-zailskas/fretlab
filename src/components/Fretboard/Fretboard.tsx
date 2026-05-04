@@ -4,16 +4,33 @@ import { FretboardString } from './FretboardString'
 import { FretMarkers } from './FretMarkers'
 import { NoteCircle } from './NoteCircle'
 
+export type PositionWindow = {
+  id: string
+  low: number
+  high: number
+  label: string
+}
+
 type FretboardProps = {
   markers: NoteMarker[]
   fretCount?: number
+  positionWindows?: ReadonlyArray<PositionWindow>
 }
 
 const PADDING = { top: 20, bottom: 40, left: 50, right: 20 }
 const STRING_SPACING = 30
 const NUM_STRINGS = 6
 
-export function Fretboard({ markers, fretCount = FRET_COUNT }: FretboardProps) {
+// Visual tint applied to position-window rectangles. Stacked translucency
+// naturally darkens overlap zones between adjacent CAGED positions.
+const POSITION_FILL = 'rgba(255, 255, 255, 0.06)'
+const POSITION_STROKE = 'rgba(255, 255, 255, 0.22)'
+
+export function Fretboard({
+  markers,
+  fretCount = FRET_COUNT,
+  positionWindows,
+}: FretboardProps) {
   const boardTop = PADDING.top
   const boardBottom = PADDING.top + (NUM_STRINGS - 1) * STRING_SPACING
   const boardWidth = 900
@@ -39,6 +56,16 @@ export function Fretboard({ markers, fretCount = FRET_COUNT }: FretboardProps) {
     return boardBottom - stringIndex * STRING_SPACING
   }
 
+  // Position-window rectangle bounds. Fret-0 windows are extended pre-nut so
+  // the rectangle visually contains open-note markers (which render at
+  // nutX - 20 with radius ~13).
+  function windowLeftX(low: number): number {
+    return low === 0 ? nutX - 35 : nutX + (low - 1) * fretSpacing
+  }
+  function windowRightX(high: number): number {
+    return nutX + high * fretSpacing
+  }
+
   return (
     <svg
       viewBox={`0 0 ${totalWidth} ${totalHeight}`}
@@ -54,6 +81,25 @@ export function Fretboard({ markers, fretCount = FRET_COUNT }: FretboardProps) {
         rx={4}
         fill="var(--color-fretboard)"
       />
+
+      {/* Position-window highlights — rendered behind fret markers and notes */}
+      {positionWindows?.map((win) => {
+        const leftX = windowLeftX(win.low)
+        const rightX = windowRightX(win.high)
+        return (
+          <rect
+            key={`window-${win.id}`}
+            x={leftX}
+            y={boardTop - 10}
+            width={rightX - leftX}
+            height={boardBottom - boardTop + 20}
+            rx={3}
+            fill={POSITION_FILL}
+            stroke={POSITION_STROKE}
+            strokeWidth={1}
+          />
+        )
+      })}
 
       {/* Fret markers (dots) — rendered behind strings and notes */}
       <FretMarkers fretX={fretX} boardTop={boardTop} boardBottom={boardBottom} />
@@ -117,6 +163,26 @@ export function Fretboard({ markers, fretCount = FRET_COUNT }: FretboardProps) {
           role={marker.role}
         />
       ))}
+
+      {/* Position-window labels — rendered last so they sit on top */}
+      {positionWindows?.map((win) => {
+        const leftX = windowLeftX(win.low)
+        const rightX = windowRightX(win.high)
+        const centerX = (leftX + rightX) / 2
+        return (
+          <text
+            key={`label-${win.id}`}
+            x={centerX}
+            y={12}
+            textAnchor="middle"
+            fontSize={11}
+            fontFamily="system-ui, sans-serif"
+            fill="var(--color-fg-secondary)"
+          >
+            {win.label}
+          </text>
+        )
+      })}
     </svg>
   )
 }
