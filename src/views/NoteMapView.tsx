@@ -2,6 +2,7 @@ import { useMemo } from 'react'
 import { Fretboard } from '../components/Fretboard/Fretboard'
 import { ALL_NOTES_KEY } from '../components/KeySelector'
 import type { HighlightableRole } from '../components/Legend'
+import { FRET_COUNT } from '../theory/constants'
 import {
   STANDARD_TUNING,
   getNoteAtFret,
@@ -18,8 +19,6 @@ type NoteMapViewProps = {
   enabledHighlights: Set<HighlightableRole>
   selectedChord: DiatonicChord | null
 }
-
-const FRET_COUNT = 15
 
 const INTERVAL_TO_DISPLAY_ROLE: Record<IntervalRole, NoteDisplayRole> = {
   root: 'root',

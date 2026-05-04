@@ -1,4 +1,5 @@
 import type { NoteMarker } from '../../theory/types'
+import { FRET_COUNT } from '../../theory/constants'
 import { FretboardString } from './FretboardString'
 import { FretMarkers } from './FretMarkers'
 import { NoteCircle } from './NoteCircle'
@@ -12,7 +13,7 @@ const PADDING = { top: 20, bottom: 40, left: 50, right: 20 }
 const STRING_SPACING = 30
 const NUM_STRINGS = 6
 
-export function Fretboard({ markers, fretCount = 15 }: FretboardProps) {
+export function Fretboard({ markers, fretCount = FRET_COUNT }: FretboardProps) {
   const boardTop = PADDING.top
   const boardBottom = PADDING.top + (NUM_STRINGS - 1) * STRING_SPACING
   const boardWidth = 900
