@@ -23,12 +23,12 @@ All tokens live inside a single `@theme {}` block in `src/index.css`. Tailwind v
   --color-border-hover:    #6B7280;
   --color-border-selected: rgb(255 255 255 / 0.9);
 
-  /* Text — emphasis to faint */
-  --color-text-primary:    #F9FAFB;
-  --color-text-secondary:  #D1D5DB;
-  --color-text-muted:      #9CA3AF;
-  --color-text-faint:      #6B7280;
-  --color-text-emphasis:   #FFFFFF;
+  /* Foreground (text) — emphasis to faint */
+  --color-fg-primary:    #F9FAFB;
+  --color-fg-secondary:  #D1D5DB;
+  --color-fg-muted:      #9CA3AF;
+  --color-fg-faint:      #6B7280;
+  --color-fg-emphasis:   #FFFFFF;
 
   /* Theory roles — chord/scale interval colors (existing) */
   --color-root:    #3B82F6;
@@ -45,7 +45,7 @@ All tokens live inside a single `@theme {}` block in `src/index.css`. Tailwind v
 }
 ```
 
-Total: 17 tokens. The `--color-bg` token is renamed to `--color-surface`. The `--color-text` token is renamed to `--color-text-primary` (for symmetry with `text-secondary` / `text-muted` / `text-faint` / `text-emphasis`).
+Total: 17 tokens. The `--color-bg` token is renamed to `--color-surface`. The `--color-text` token is renamed to `--color-fg-primary` (foreground convention; produces clean `text-fg-primary` / `text-fg-muted` utilities without the `text-text-…` doubling).
 
 ## Replacement Mapping
 
@@ -63,11 +63,11 @@ Mechanical class replacements applied across `src/`:
 | `border-gray-600` | `border-emphasis` |
 | `hover:border-gray-500` | `hover:border-hover` |
 | `border-white/90` | `border-selected` |
-| `text-[var(--color-text)]` | `text-text-primary` |
-| `text-gray-100`, `text-gray-200`, `text-gray-300` | `text-text-secondary` |
-| `text-gray-400` | `text-text-muted` |
-| `text-gray-500` | `text-text-faint` |
-| `text-white` | `text-text-emphasis` |
+| `text-[var(--color-text)]` | `text-fg-primary` |
+| `text-gray-100`, `text-gray-200`, `text-gray-300` | `text-fg-secondary` |
+| `text-gray-400` | `text-fg-muted` |
+| `text-gray-500` | `text-fg-faint` |
+| `text-white` | `text-fg-emphasis` |
 | `bg-blue-900/25 text-blue-300/80 border-blue-800/40` (half-step pill) | `bg-root/25 text-root/80 border-root/40` |
 | `bg-emerald-900/25 text-emerald-300/80 border-emerald-800/40` (whole-step pill) | `bg-fifth/25 text-fifth/80 border-fifth/40` |
 
@@ -78,6 +78,8 @@ The `gray-800/80` shade variant collapses into solid `surface-raised`, and `gray
 1. **`gray-800/80` → solid `surface-raised`**: minor (`m7`, `7`, `m7b5`) chord-card backgrounds become identical to major (`maj7`) backgrounds. Quality distinction lives entirely in the border now.
 2. **Step indicator pills**: instead of three distinct `blue-300/800/900` shades the pill uses a single `--color-root` value at 25% / 80% / 40% alpha. Lightness gradient flattens slightly — visually near-identical, not pixel-identical.
 3. **`gray-100/200/300` text**: shades collapse to `#D1D5DB` (the gray-300 value). The brightest text usages (note name in scale chip, chord notes line) lose ~10% perceived brightness.
+
+> Note: per-call-site `text-fg-primary` (`#F9FAFB`) is still available — used wherever the spec explicitly maps to it. Only the gray-100/200 → secondary collapse is the visual change above; `--color-fg-primary` and `--color-fg-secondary` remain distinct tokens.
 
 ## Files Touched
 
