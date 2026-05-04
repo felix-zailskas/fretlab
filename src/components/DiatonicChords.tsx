@@ -10,10 +10,10 @@ type DiatonicChordsProps = {
 }
 
 const QUALITY_ACCENT: Record<ChordQuality, string> = {
-  maj7: 'border-emphasis bg-surface-raised',
-  m7: 'border-default bg-surface-raised',
-  '7': 'border-default bg-surface-raised',
-  m7b5: 'border-default bg-surface-raised',
+  maj7: 'border-line-emphasis bg-surface-raised',
+  m7: 'border-line bg-surface-raised',
+  '7': 'border-line bg-surface-raised',
+  m7b5: 'border-line bg-surface-raised',
 }
 
 export function DiatonicChords({
@@ -42,8 +42,8 @@ export function DiatonicChords({
               aria-pressed={isSelected}
               className={`flex flex-col items-center justify-center gap-3 px-4 py-8 min-h-[10rem] rounded-xl border-2 shadow-lg cursor-pointer transition-colors ${
                 isSelected
-                  ? 'border-selected bg-surface-active'
-                  : `${QUALITY_ACCENT[chord.quality]} hover:border-hover`
+                  ? 'border-line-selected bg-surface-active'
+                  : `${QUALITY_ACCENT[chord.quality]} hover:border-line-hover`
               }`}
             >
               <span className="text-lg text-fg-muted font-mono font-semibold">

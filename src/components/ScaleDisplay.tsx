@@ -21,7 +21,7 @@ export function ScaleDisplay({ selectedKey, accidentalStyle }: ScaleDisplayProps
       </span>
       {notes.map((note, i) => (
         <div key={`${i}-${note}`} className="flex items-center gap-2">
-          <div className="flex items-baseline gap-1 px-2 py-1 rounded bg-surface-raised border border-default">
+          <div className="flex items-baseline gap-1 px-2 py-1 rounded bg-surface-raised border border-line">
             <span className="text-xs text-fg-muted">{DEGREE_LABELS[i]}</span>
             <span className="text-fg-secondary font-semibold">{note}</span>
           </div>

@@ -17,11 +17,11 @@ All tokens live inside a single `@theme {}` block in `src/index.css`. Tailwind v
   --color-surface-raised:  #1F2937;
   --color-surface-active:  #374151;
 
-  /* Borders — subtle to strong */
-  --color-border:          #374151;
-  --color-border-emphasis: #4B5563;
-  --color-border-hover:    #6B7280;
-  --color-border-selected: rgb(255 255 255 / 0.9);
+  /* Borders — subtle to strong. Named "line" so utilities don't double up the border- prefix. */
+  --color-line:          #374151;
+  --color-line-emphasis: #4B5563;
+  --color-line-hover:    #6B7280;
+  --color-line-selected: rgb(255 255 255 / 0.9);
 
   /* Foreground (text) — emphasis to faint */
   --color-fg-primary:    #F9FAFB;
@@ -59,10 +59,10 @@ Mechanical class replacements applied across `src/`:
 | `bg-gray-700` | `bg-surface-active` |
 | `hover:bg-gray-700` | `hover:bg-surface-active` |
 | `hover:bg-gray-800` | `hover:bg-surface-raised` |
-| `border-gray-700` | `border-default` |
-| `border-gray-600` | `border-emphasis` |
-| `hover:border-gray-500` | `hover:border-hover` |
-| `border-white/90` | `border-selected` |
+| `border-gray-700` | `border-line` |
+| `border-gray-600` | `border-line-emphasis` |
+| `hover:border-gray-500` | `hover:border-line-hover` |
+| `border-white/90` | `border-line-selected` |
 | `text-[var(--color-text)]` | `text-fg-primary` |
 | `text-gray-100`, `text-gray-200`, `text-gray-300` | `text-fg-secondary` |
 | `text-gray-400` | `text-fg-muted` |

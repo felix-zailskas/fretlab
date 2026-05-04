@@ -31,11 +31,11 @@ These two are migrated atomically because `App.tsx` is the only consumer of the 
   --color-surface-raised:  #1F2937;
   --color-surface-active:  #374151;
 
-  /* Borders — subtle to strong */
-  --color-border:          #374151;
-  --color-border-emphasis: #4B5563;
-  --color-border-hover:    #6B7280;
-  --color-border-selected: rgb(255 255 255 / 0.9);
+  /* Borders — subtle to strong. Named "line" so utilities don't double up the border- prefix. */
+  --color-line:          #374151;
+  --color-line-emphasis: #4B5563;
+  --color-line-hover:    #6B7280;
+  --color-line-selected: rgb(255 255 255 / 0.9);
 
   /* Foreground (text) — emphasis to faint */
   --color-fg-primary:      #F9FAFB;
@@ -266,7 +266,7 @@ git commit -m "refactor(KeySelector): migrate to color tokens"
 - Modify: `src/components/AccidentalToggle.tsx`
 
 Color changes:
-- `border-gray-700` → `border-default`
+- `border-gray-700` → `border-line`
 - `bg-gray-700` → `bg-surface-active`
 - `text-white` → `text-fg-emphasis`
 - `bg-gray-900` → `bg-surface`
@@ -290,7 +290,7 @@ type AccidentalToggleProps = {
 
 export function AccidentalToggle({ accidentalStyle, onChange }: AccidentalToggleProps) {
   return (
-    <div className="inline-flex rounded overflow-hidden border border-default">
+    <div className="inline-flex rounded overflow-hidden border border-line">
       {OPTIONS.map((opt) => (
         <button
           key={opt.value}
@@ -473,7 +473,7 @@ git commit -m "refactor(Legend): migrate to color tokens"
 Color changes:
 - `text-gray-400` → `text-fg-muted` (two occurrences: section label and degree number)
 - `bg-gray-800` → `bg-surface-raised`
-- `border-gray-700` → `border-default`
+- `border-gray-700` → `border-line`
 - `text-gray-100` → `text-fg-secondary`
 - Half-step pill: `bg-blue-900/25 text-blue-300/80 border-blue-800/40` → `bg-root/25 text-root/80 border-root/40`
 - Whole-step pill: `bg-emerald-900/25 text-emerald-300/80 border-emerald-800/40` → `bg-fifth/25 text-fifth/80 border-fifth/40`
@@ -504,7 +504,7 @@ export function ScaleDisplay({ selectedKey, accidentalStyle }: ScaleDisplayProps
       </span>
       {notes.map((note, i) => (
         <div key={`${i}-${note}`} className="flex items-center gap-2">
-          <div className="flex items-baseline gap-1 px-2 py-1 rounded bg-surface-raised border border-default">
+          <div className="flex items-baseline gap-1 px-2 py-1 rounded bg-surface-raised border border-line">
             <span className="text-xs text-fg-muted">{DEGREE_LABELS[i]}</span>
             <span className="text-fg-secondary font-semibold">{note}</span>
           </div>
@@ -550,13 +550,13 @@ git commit -m "refactor(ScaleDisplay): migrate to color tokens"
 - Modify: `src/components/DiatonicChords.tsx`
 
 Color changes:
-- `border-gray-600` → `border-emphasis`
-- `border-gray-700` → `border-default`
+- `border-gray-600` → `border-line-emphasis`
+- `border-gray-700` → `border-line`
 - `bg-gray-800`, `bg-gray-800/80` → `bg-surface-raised` (the `/80` shade collapses per spec)
 - `text-gray-300` → `text-fg-secondary`
-- `border-white/90` → `border-selected`
+- `border-white/90` → `border-line-selected`
 - `bg-gray-700` → `bg-surface-active`
-- `hover:border-gray-500` → `hover:border-hover`
+- `hover:border-gray-500` → `hover:border-line-hover`
 - `text-gray-400` → `text-fg-muted`
 - `text-white` → `text-fg-emphasis`
 - `text-gray-200` → `text-fg-secondary`
@@ -576,10 +576,10 @@ type DiatonicChordsProps = {
 }
 
 const QUALITY_ACCENT: Record<ChordQuality, string> = {
-  maj7: 'border-emphasis bg-surface-raised',
-  m7: 'border-default bg-surface-raised',
-  '7': 'border-default bg-surface-raised',
-  m7b5: 'border-default bg-surface-raised',
+  maj7: 'border-line-emphasis bg-surface-raised',
+  m7: 'border-line bg-surface-raised',
+  '7': 'border-line bg-surface-raised',
+  m7b5: 'border-line bg-surface-raised',
 }
 
 export function DiatonicChords({
@@ -608,8 +608,8 @@ export function DiatonicChords({
               aria-pressed={isSelected}
               className={`flex flex-col items-center justify-center gap-3 px-4 py-8 min-h-[10rem] rounded-xl border-2 shadow-lg cursor-pointer transition-colors ${
                 isSelected
-                  ? 'border-selected bg-surface-active'
-                  : `${QUALITY_ACCENT[chord.quality]} hover:border-hover`
+                  ? 'border-line-selected bg-surface-active'
+                  : `${QUALITY_ACCENT[chord.quality]} hover:border-line-hover`
               }`}
             >
               <span className="text-lg text-fg-muted font-mono font-semibold">

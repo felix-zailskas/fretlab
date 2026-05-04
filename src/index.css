@@ -6,11 +6,11 @@
   --color-surface-raised:  #1F2937;
   --color-surface-active:  #374151;
 
-  /* Borders — subtle to strong */
-  --color-border:          #374151;
-  --color-border-emphasis: #4B5563;
-  --color-border-hover:    #6B7280;
-  --color-border-selected: rgb(255 255 255 / 0.9);
+  /* Borders — subtle to strong. Named "line" to avoid Tailwind's border-* prefix collision. */
+  --color-line:          #374151;
+  --color-line-emphasis: #4B5563;
+  --color-line-hover:    #6B7280;
+  --color-line-selected: rgb(255 255 255 / 0.9);
 
   /* Foreground (text) — emphasis to faint */
   --color-fg-primary:      #F9FAFB;

@@ -12,7 +12,7 @@ type AccidentalToggleProps = {
 
 export function AccidentalToggle({ accidentalStyle, onChange }: AccidentalToggleProps) {
   return (
-    <div className="inline-flex rounded overflow-hidden border border-default">
+    <div className="inline-flex rounded overflow-hidden border border-line">
       {OPTIONS.map((opt) => (
         <button
           key={opt.value}
