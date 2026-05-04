@@ -8,9 +8,9 @@ type DiatonicChordsProps = {
 }
 
 const QUALITY_ACCENT: Record<ChordQuality, string> = {
-  major: 'border-gray-700',
-  minor: 'border-gray-700',
-  diminished: 'border-rose-900/60',
+  major: 'border-gray-600 bg-gray-800',
+  minor: 'border-gray-700 bg-gray-800/80',
+  diminished: 'border-rose-700/70 bg-gray-800/80',
 }
 
 export function DiatonicChords({ selectedKey, accidentalStyle }: DiatonicChordsProps) {
@@ -19,19 +19,23 @@ export function DiatonicChords({ selectedKey, accidentalStyle }: DiatonicChordsP
   const chords = getDiatonicChords(selectedKey, accidentalStyle)
 
   return (
-    <section className="mt-6">
-      <h2 className="text-xs text-gray-400 uppercase tracking-wide mb-2">
+    <section className="mt-8">
+      <h2 className="text-sm text-gray-300 uppercase tracking-wider font-semibold mb-3">
         Diatonic chords
       </h2>
-      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2">
+      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
         {chords.map((chord) => (
           <div
             key={chord.degree}
-            className={`flex flex-col items-center gap-1 px-3 py-3 rounded bg-gray-900 border ${QUALITY_ACCENT[chord.quality]}`}
+            className={`flex flex-col items-center gap-2 px-4 py-5 rounded-lg border-2 shadow-lg ${QUALITY_ACCENT[chord.quality]}`}
           >
-            <span className="text-xs text-gray-500 font-mono">{chord.romanNumeral}</span>
-            <span className="text-2xl font-bold text-gray-100">{chord.symbol}</span>
-            <span className="text-xs text-gray-400 tracking-wider">
+            <span className="text-sm text-gray-400 font-mono font-semibold">
+              {chord.romanNumeral}
+            </span>
+            <span className="text-4xl font-bold text-white leading-none">
+              {chord.symbol}
+            </span>
+            <span className="text-sm text-gray-300 tracking-wider font-medium">
               {chord.notes.join(' – ')}
             </span>
           </div>
