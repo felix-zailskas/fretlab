@@ -3,7 +3,39 @@ import type { IntervalRole } from './types'
 
 export const MAJOR_SCALE_INTERVALS = [0, 2, 4, 5, 7, 9, 11] as const
 
+// Step pattern between consecutive notes of the major scale: 1→2, 2→3, …, 7→1(octave).
+export type ScaleStep = 'whole' | 'half'
+export const MAJOR_SCALE_STEPS: readonly ScaleStep[] = [
+  'whole', 'whole', 'half', 'whole', 'whole', 'whole', 'half',
+] as const
+
 const INTERVAL_NAMES: IntervalRole[] = ['root', 'second', 'third', 'fourth', 'fifth', 'sixth', 'seventh']
+
+export type ChordQuality = 'major' | 'minor' | 'diminished'
+
+export type DiatonicChord = {
+  degree: number             // 1-7
+  romanNumeral: string       // 'I', 'ii', 'iii', 'IV', 'V', 'vi', 'vii°'
+  quality: ChordQuality
+  symbol: string             // 'C', 'Dm', 'Bdim'
+  notes: [string, string, string]
+}
+
+const DIATONIC_TEMPLATE: { numeral: string; quality: ChordQuality }[] = [
+  { numeral: 'I',    quality: 'major' },
+  { numeral: 'ii',   quality: 'minor' },
+  { numeral: 'iii',  quality: 'minor' },
+  { numeral: 'IV',   quality: 'major' },
+  { numeral: 'V',    quality: 'major' },
+  { numeral: 'vi',   quality: 'minor' },
+  { numeral: 'vii°', quality: 'diminished' },
+]
+
+const QUALITY_SUFFIX: Record<ChordQuality, string> = {
+  major: '',
+  minor: 'm',
+  diminished: 'dim',
+}
 
 export function getMajorScaleNotes(key: string, accidentalStyle?: AccidentalStyle): string[] {
   const rootIndex = getNoteIndex(key)
@@ -11,6 +43,22 @@ export function getMajorScaleNotes(key: string, accidentalStyle?: AccidentalStyl
     const noteIndex = (rootIndex + interval) % 12
     const sharpName = CHROMATIC_SCALE[noteIndex]
     return getDisplayName(sharpName, key, accidentalStyle)
+  })
+}
+
+export function getDiatonicChords(key: string, accidentalStyle?: AccidentalStyle): DiatonicChord[] {
+  const scale = getMajorScaleNotes(key, accidentalStyle)
+  return DIATONIC_TEMPLATE.map(({ numeral, quality }, i) => {
+    const root = scale[i]
+    const third = scale[(i + 2) % 7]
+    const fifth = scale[(i + 4) % 7]
+    return {
+      degree: i + 1,
+      romanNumeral: numeral,
+      quality,
+      symbol: root + QUALITY_SUFFIX[quality],
+      notes: [root, third, fifth],
+    }
   })
 }
 

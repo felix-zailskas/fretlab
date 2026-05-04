@@ -1,5 +1,11 @@
 import { describe, it, expect } from 'vitest'
-import { getMajorScaleNotes, getIntervalRole, MAJOR_SCALE_INTERVALS } from './scales'
+import {
+  getMajorScaleNotes,
+  getIntervalRole,
+  getDiatonicChords,
+  MAJOR_SCALE_INTERVALS,
+  MAJOR_SCALE_STEPS,
+} from './scales'
 
 describe('MAJOR_SCALE_INTERVALS', () => {
   it('has correct semitone pattern', () => {
@@ -51,6 +57,66 @@ describe('getMajorScaleNotes', () => {
 
   it('respects flat accidentalStyle for a sharp-keyed scale', () => {
     expect(getMajorScaleNotes('G', 'flat')).toEqual(['G', 'A', 'B', 'C', 'D', 'E', 'Gb'])
+  })
+})
+
+describe('MAJOR_SCALE_STEPS', () => {
+  it('matches the W W H W W W H pattern', () => {
+    expect(MAJOR_SCALE_STEPS).toEqual([
+      'whole', 'whole', 'half', 'whole', 'whole', 'whole', 'half',
+    ])
+  })
+})
+
+describe('getDiatonicChords', () => {
+  it('returns the 7 diatonic chords for C major', () => {
+    const chords = getDiatonicChords('C')
+    expect(chords).toHaveLength(7)
+    expect(chords[0]).toMatchObject({
+      romanNumeral: 'I',
+      quality: 'major',
+      symbol: 'C',
+      notes: ['C', 'E', 'G'],
+    })
+    expect(chords[1]).toMatchObject({
+      romanNumeral: 'ii',
+      quality: 'minor',
+      symbol: 'Dm',
+      notes: ['D', 'F', 'A'],
+    })
+    expect(chords[5]).toMatchObject({
+      romanNumeral: 'vi',
+      quality: 'minor',
+      symbol: 'Am',
+      notes: ['A', 'C', 'E'],
+    })
+    expect(chords[6]).toMatchObject({
+      romanNumeral: 'vii°',
+      quality: 'diminished',
+      symbol: 'Bdim',
+      notes: ['B', 'D', 'F'],
+    })
+  })
+
+  it('returns correct chords for G major (sharps)', () => {
+    const chords = getDiatonicChords('G')
+    expect(chords[0].symbol).toBe('G')
+    expect(chords[0].notes).toEqual(['G', 'B', 'D'])
+    expect(chords[6].symbol).toBe('F#dim')
+    expect(chords[6].notes).toEqual(['F#', 'A', 'C'])
+  })
+
+  it('returns correct chords for F major (flats)', () => {
+    const chords = getDiatonicChords('F')
+    expect(chords[0].symbol).toBe('F')
+    expect(chords[3].symbol).toBe('Bb')
+    expect(chords[3].notes).toEqual(['Bb', 'D', 'F'])
+  })
+
+  it('respects accidentalStyle override', () => {
+    const chords = getDiatonicChords('F', 'sharp')
+    expect(chords[3].symbol).toBe('A#')
+    expect(chords[3].notes).toEqual(['A#', 'D', 'F'])
   })
 })
 

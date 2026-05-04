@@ -4,6 +4,7 @@ import { KeySelector, ALL_NOTES_KEY } from './components/KeySelector'
 import { ViewSelector } from './components/ViewSelector'
 import { Legend, type HighlightableRole } from './components/Legend'
 import { ScaleDisplay } from './components/ScaleDisplay'
+import { DiatonicChords } from './components/DiatonicChords'
 import { NoteMapView } from './views/NoteMapView'
 import type { AccidentalStyle } from './theory/notes'
 
@@ -65,11 +66,14 @@ function App() {
 
       <main className="max-w-6xl mx-auto">
         {selectedView === 'note-map' ? (
-          <NoteMapView
-            selectedKey={selectedKey}
-            accidentalStyle={accidentalStyle}
-            enabledHighlights={enabledHighlights}
-          />
+          <>
+            <NoteMapView
+              selectedKey={selectedKey}
+              accidentalStyle={accidentalStyle}
+              enabledHighlights={enabledHighlights}
+            />
+            <DiatonicChords selectedKey={selectedKey} accidentalStyle={accidentalStyle} />
+          </>
         ) : (
           <div className="text-gray-500 text-center py-20">
             Coming soon
