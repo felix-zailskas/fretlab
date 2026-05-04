@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+/* Don't scan documentation markdown for utility classes — example class names
+   in spec/plan tables would otherwise emit dead CSS for unused utilities. */
+@source not "../docs";
+
 @theme {
   /* Surfaces — backgrounds, dark to active */
   --color-surface:         #111827;
