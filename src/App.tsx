@@ -6,7 +6,7 @@ import { Legend, type HighlightableRole } from './components/Legend'
 import { ScaleDisplay } from './components/ScaleDisplay'
 import { DiatonicChords } from './components/DiatonicChords'
 import { NoteMapView } from './views/NoteMapView'
-import { ChordTonesView } from './views/ChordTonesView'
+import { ScalePositionsView } from './views/ScalePositionsView'
 import type { AccidentalStyle } from './theory/notes'
 import { getDiatonicChords } from './theory/scales'
 
@@ -96,9 +96,9 @@ function App() {
             />
           </>
         )}
-        {selectedView === 'chord-tones' && (
+        {selectedView === 'scale-positions' && (
           <>
-            <ChordTonesView
+            <ScalePositionsView
               selectedKey={selectedKey}
               accidentalStyle={accidentalStyle}
               enabledHighlights={enabledHighlights}
@@ -115,7 +115,7 @@ function App() {
             />
           </>
         )}
-        {selectedView !== 'note-map' && selectedView !== 'chord-tones' && (
+        {selectedView !== 'note-map' && selectedView !== 'scale-positions' && (
           <div className="text-fg-faint text-center py-20">
             Coming soon
           </div>

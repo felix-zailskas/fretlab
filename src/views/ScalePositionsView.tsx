@@ -13,21 +13,25 @@ import {
 import type { AccidentalStyle } from '../theory/notes'
 import type { DiatonicChord } from '../theory/scales'
 
-type ChordTonesViewProps = {
+type ScalePositionsViewProps = {
   selectedKey: string
   accidentalStyle: AccidentalStyle
   enabledHighlights: Set<HighlightableRole>
   selectedChord: DiatonicChord | null
 }
 
+// Wider, neutral phrasing — the view serves both pure scale-position study
+// and chord-tone targeting.
+const EMPTY_KEY_MESSAGE = 'Select a key to view scale positions.'
+
 const DEFAULT_POSITIONS: PositionId[] = ['P1']
 
-export function ChordTonesView({
+export function ScalePositionsView({
   selectedKey,
   accidentalStyle,
   enabledHighlights,
   selectedChord,
-}: ChordTonesViewProps) {
+}: ScalePositionsViewProps) {
   const [selectedPositions, setSelectedPositions] = useState<Set<PositionId>>(
     () => new Set(DEFAULT_POSITIONS),
   )
@@ -79,7 +83,7 @@ export function ChordTonesView({
   if (selectedKey === ALL_NOTES_KEY) {
     return (
       <div className="text-fg-faint text-center py-20">
-        Select a key to view chord tones.
+        {EMPTY_KEY_MESSAGE}
       </div>
     )
   }
