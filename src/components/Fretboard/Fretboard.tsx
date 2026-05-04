@@ -28,16 +28,19 @@ const PADDING = { top: 20, bottom: 40, left: 50, right: 20 }
 const STRING_SPACING = 30
 const NUM_STRINGS = 6
 
-// Visual tint applied to position-window rectangles. Subtle by design — the
-// box is a backdrop, not the focus.
+// Visual tint applied to position-window rectangles. Subtle fill keeps the
+// box as a backdrop, but the border is opaque enough that adjacent or
+// disconnected boxes (e.g., P1 and P3 in C major) read as distinct regions.
 const POSITION_FILL = 'rgba(255, 255, 255, 0.06)'
-const POSITION_STROKE = 'rgba(255, 255, 255, 0.22)'
+const POSITION_STROKE = 'rgba(255, 255, 255, 0.42)'
+const POSITION_STROKE_WIDTH = 1.25
 
 // Brighter tint applied to overlap zones so the transition between two
 // adjacent CAGED boxes reads clearly — the boxes are connected pieces of one
 // continuous map, not isolated islands.
 const OVERLAP_FILL = 'rgba(255, 255, 255, 0.12)'
-const OVERLAP_STROKE = 'rgba(255, 255, 255, 0.55)'
+const OVERLAP_STROKE = 'rgba(255, 255, 255, 0.7)'
+const OVERLAP_STROKE_WIDTH = 1.5
 
 export function Fretboard({
   markers,
@@ -110,7 +113,7 @@ export function Fretboard({
             rx={3}
             fill={POSITION_FILL}
             stroke={POSITION_STROKE}
-            strokeWidth={1}
+            strokeWidth={POSITION_STROKE_WIDTH}
           />
         )
       })}
@@ -130,7 +133,7 @@ export function Fretboard({
             rx={3}
             fill={OVERLAP_FILL}
             stroke={OVERLAP_STROKE}
-            strokeWidth={1.5}
+            strokeWidth={OVERLAP_STROKE_WIDTH}
           />
         )
       })}
