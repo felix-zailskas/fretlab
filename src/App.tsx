@@ -23,7 +23,7 @@ function App() {
   const [enabledHighlights, setEnabledHighlights] = useState<Set<HighlightableRole>>(
     () => new Set(DEFAULT_HIGHLIGHTS),
   )
-  const [selectedChordDegree, setSelectedChordDegree] = useState<number | null>(null)
+  const [selectedChordDegree, setSelectedChordDegree] = useState<number | null>(1)
 
   const selectedChord = useMemo(() => {
     if (selectedChordDegree === null || selectedKey === ALL_NOTES_KEY) return null
