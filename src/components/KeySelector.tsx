@@ -26,8 +26,8 @@ export function KeySelector({ selectedKey, accidentalStyle, onKeyChange }: KeySe
           onClick={() => onKeyChange(key)}
           className={`px-3 py-1.5 rounded text-sm font-semibold transition-colors cursor-pointer ${
             selectedKey === key
-              ? 'bg-[var(--color-root)] text-white'
-              : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+              ? 'bg-root text-fg-emphasis'
+              : 'bg-surface-raised text-fg-secondary hover:bg-surface-active'
           }`}
         >
           {KEY_LABELS[key] ?? key}
