@@ -69,54 +69,63 @@ describe('MAJOR_SCALE_STEPS', () => {
 })
 
 describe('getDiatonicChords', () => {
-  it('returns the 7 diatonic chords for C major', () => {
+  it('returns the 7 diatonic seventh chords for C major', () => {
     const chords = getDiatonicChords('C')
     expect(chords).toHaveLength(7)
     expect(chords[0]).toMatchObject({
-      romanNumeral: 'I',
-      quality: 'major',
-      symbol: 'C',
-      notes: ['C', 'E', 'G'],
+      romanNumeral: 'Imaj7',
+      quality: 'maj7',
+      symbol: 'Cmaj7',
+      notes: ['C', 'E', 'G', 'B'],
     })
     expect(chords[1]).toMatchObject({
-      romanNumeral: 'ii',
-      quality: 'minor',
-      symbol: 'Dm',
-      notes: ['D', 'F', 'A'],
+      romanNumeral: 'ii7',
+      quality: 'm7',
+      symbol: 'Dm7',
+      notes: ['D', 'F', 'A', 'C'],
+    })
+    expect(chords[4]).toMatchObject({
+      romanNumeral: 'V7',
+      quality: '7',
+      symbol: 'G7',
+      notes: ['G', 'B', 'D', 'F'],
     })
     expect(chords[5]).toMatchObject({
-      romanNumeral: 'vi',
-      quality: 'minor',
-      symbol: 'Am',
-      notes: ['A', 'C', 'E'],
+      romanNumeral: 'vi7',
+      quality: 'm7',
+      symbol: 'Am7',
+      notes: ['A', 'C', 'E', 'G'],
     })
     expect(chords[6]).toMatchObject({
-      romanNumeral: 'vii°',
-      quality: 'diminished',
-      symbol: 'Bdim',
-      notes: ['B', 'D', 'F'],
+      romanNumeral: 'viiø7',
+      quality: 'm7b5',
+      symbol: 'Bm7b5',
+      notes: ['B', 'D', 'F', 'A'],
     })
   })
 
-  it('returns correct chords for G major (sharps)', () => {
+  it('returns correct seventh chords for G major (sharps)', () => {
     const chords = getDiatonicChords('G')
-    expect(chords[0].symbol).toBe('G')
-    expect(chords[0].notes).toEqual(['G', 'B', 'D'])
-    expect(chords[6].symbol).toBe('F#dim')
-    expect(chords[6].notes).toEqual(['F#', 'A', 'C'])
+    expect(chords[0].symbol).toBe('Gmaj7')
+    expect(chords[0].notes).toEqual(['G', 'B', 'D', 'F#'])
+    expect(chords[4].symbol).toBe('D7')
+    expect(chords[6].symbol).toBe('F#m7b5')
+    expect(chords[6].notes).toEqual(['F#', 'A', 'C', 'E'])
   })
 
-  it('returns correct chords for F major (flats)', () => {
+  it('returns correct seventh chords for F major (flats)', () => {
     const chords = getDiatonicChords('F')
-    expect(chords[0].symbol).toBe('F')
-    expect(chords[3].symbol).toBe('Bb')
-    expect(chords[3].notes).toEqual(['Bb', 'D', 'F'])
+    expect(chords[0].symbol).toBe('Fmaj7')
+    expect(chords[3].symbol).toBe('Bbmaj7')
+    expect(chords[3].notes).toEqual(['Bb', 'D', 'F', 'A'])
+    expect(chords[4].symbol).toBe('C7')
+    expect(chords[6].symbol).toBe('Em7b5')
   })
 
   it('respects accidentalStyle override', () => {
     const chords = getDiatonicChords('F', 'sharp')
-    expect(chords[3].symbol).toBe('A#')
-    expect(chords[3].notes).toEqual(['A#', 'D', 'F'])
+    expect(chords[3].symbol).toBe('A#maj7')
+    expect(chords[3].notes).toEqual(['A#', 'D', 'F', 'A'])
   })
 })
 

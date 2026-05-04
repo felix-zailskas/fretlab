@@ -8,9 +8,10 @@ type DiatonicChordsProps = {
 }
 
 const QUALITY_ACCENT: Record<ChordQuality, string> = {
-  major: 'border-gray-600 bg-gray-800',
-  minor: 'border-gray-700 bg-gray-800/80',
-  diminished: 'border-rose-700/70 bg-gray-800/80',
+  maj7: 'border-gray-600 bg-gray-800',
+  m7: 'border-gray-700 bg-gray-800/80',
+  '7': 'border-blue-700/50 bg-gray-800/80',
+  m7b5: 'border-rose-700/70 bg-gray-800/80',
 }
 
 export function DiatonicChords({ selectedKey, accidentalStyle }: DiatonicChordsProps) {
@@ -32,7 +33,7 @@ export function DiatonicChords({ selectedKey, accidentalStyle }: DiatonicChordsP
             <span className="text-lg text-gray-400 font-mono font-semibold">
               {chord.romanNumeral}
             </span>
-            <span className="text-4xl font-bold text-white leading-none">
+            <span className="text-3xl font-bold text-white leading-none">
               {chord.symbol}
             </span>
             <span className="text-lg text-gray-200 tracking-wider font-medium">

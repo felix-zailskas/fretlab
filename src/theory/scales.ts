@@ -11,30 +11,31 @@ export const MAJOR_SCALE_STEPS: readonly ScaleStep[] = [
 
 const INTERVAL_NAMES: IntervalRole[] = ['root', 'second', 'third', 'fourth', 'fifth', 'sixth', 'seventh']
 
-export type ChordQuality = 'major' | 'minor' | 'diminished'
+export type ChordQuality = 'maj7' | 'm7' | '7' | 'm7b5'
 
 export type DiatonicChord = {
   degree: number             // 1-7
-  romanNumeral: string       // 'I', 'ii', 'iii', 'IV', 'V', 'vi', 'vii°'
+  romanNumeral: string       // 'Imaj7', 'ii7', 'iii7', 'IVmaj7', 'V7', 'vi7', 'viiø7'
   quality: ChordQuality
-  symbol: string             // 'C', 'Dm', 'Bdim'
-  notes: [string, string, string]
+  symbol: string             // 'Cmaj7', 'Dm7', 'G7', 'Bm7b5'
+  notes: [string, string, string, string]
 }
 
 const DIATONIC_TEMPLATE: { numeral: string; quality: ChordQuality }[] = [
-  { numeral: 'I',    quality: 'major' },
-  { numeral: 'ii',   quality: 'minor' },
-  { numeral: 'iii',  quality: 'minor' },
-  { numeral: 'IV',   quality: 'major' },
-  { numeral: 'V',    quality: 'major' },
-  { numeral: 'vi',   quality: 'minor' },
-  { numeral: 'vii°', quality: 'diminished' },
+  { numeral: 'Imaj7',   quality: 'maj7' },
+  { numeral: 'ii7',     quality: 'm7' },
+  { numeral: 'iii7',    quality: 'm7' },
+  { numeral: 'IVmaj7',  quality: 'maj7' },
+  { numeral: 'V7',      quality: '7' },
+  { numeral: 'vi7',     quality: 'm7' },
+  { numeral: 'viiø7',   quality: 'm7b5' },
 ]
 
 const QUALITY_SUFFIX: Record<ChordQuality, string> = {
-  major: '',
-  minor: 'm',
-  diminished: 'dim',
+  maj7: 'maj7',
+  m7: 'm7',
+  '7': '7',
+  m7b5: 'm7b5',
 }
 
 export function getMajorScaleNotes(key: string, accidentalStyle?: AccidentalStyle): string[] {
@@ -52,12 +53,13 @@ export function getDiatonicChords(key: string, accidentalStyle?: AccidentalStyle
     const root = scale[i]
     const third = scale[(i + 2) % 7]
     const fifth = scale[(i + 4) % 7]
+    const seventh = scale[(i + 6) % 7]
     return {
       degree: i + 1,
       romanNumeral: numeral,
       quality,
       symbol: root + QUALITY_SUFFIX[quality],
-      notes: [root, third, fifth],
+      notes: [root, third, fifth, seventh],
     }
   })
 }
