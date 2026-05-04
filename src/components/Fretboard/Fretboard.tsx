@@ -24,22 +24,27 @@ type FretboardProps = {
   overlapZones?: ReadonlyArray<OverlapZone>
 }
 
-const PADDING = { top: 20, bottom: 40, left: 50, right: 20 }
+// PADDING.top reserves space above the board for position-window labels.
+// boardTop = PADDING.top, so increasing top padding pushes the whole board
+// down and exposes a header strip for label text.
+const PADDING = { top: 40, bottom: 40, left: 50, right: 20 }
 const STRING_SPACING = 30
 const NUM_STRINGS = 6
 
-// Visual tint applied to position-window rectangles. Subtle fill keeps the
-// box as a backdrop, but the border is opaque enough that adjacent or
-// disconnected boxes (e.g., P1 and P3 in C major) read as distinct regions.
-const POSITION_FILL = 'rgba(255, 255, 255, 0.06)'
-const POSITION_STROKE = 'rgba(255, 255, 255, 0.42)'
-const POSITION_STROKE_WIDTH = 1.25
+// Position windows use corner brackets — viewfinder/cinema-marker geometry —
+// rather than a continuous border. Brackets read as "framed region" and stay
+// distinct from the continuous-border overlap-zone treatment below, even
+// when several non-overlapping positions are selected.
+const POSITION_FILL = 'rgba(255, 255, 255, 0.04)'
+const POSITION_BRACKET_STROKE = 'rgba(255, 255, 255, 0.65)'
+const POSITION_BRACKET_WIDTH = 2
+const POSITION_BRACKET_LEN = 16
 
-// Brighter tint applied to overlap zones so the transition between two
-// adjacent CAGED boxes reads clearly — the boxes are connected pieces of one
-// continuous map, not isolated islands.
-const OVERLAP_FILL = 'rgba(255, 255, 255, 0.12)'
-const OVERLAP_STROKE = 'rgba(255, 255, 255, 0.7)'
+// Overlap zones use a continuous border + brighter fill — visually different
+// from position windows so the eye reads "joined territory" rather than just
+// "another box."
+const OVERLAP_FILL = 'rgba(255, 255, 255, 0.13)'
+const OVERLAP_STROKE = 'rgba(255, 255, 255, 0.55)'
 const OVERLAP_STROKE_WIDTH = 1.5
 
 export function Fretboard({
@@ -83,6 +88,24 @@ export function Fretboard({
     return nutX + high * fretSpacing
   }
 
+  // Generates an SVG path describing four L-shaped corner brackets at the
+  // corners of the rectangle (L,T)-(R,B). Bracket arm length is clamped so it
+  // never exceeds half the smaller dimension — single-fret windows still get
+  // sensible brackets that don't cross.
+  function bracketPath(L: number, T: number, R: number, B: number): string {
+    const k = Math.min(POSITION_BRACKET_LEN, (R - L) / 2, (B - T) / 2)
+    return [
+      // top-left:  arm tip → corner → arm tip
+      `M ${L + k},${T} L ${L},${T} L ${L},${T + k}`,
+      // top-right
+      `M ${R - k},${T} L ${R},${T} L ${R},${T + k}`,
+      // bottom-left
+      `M ${L},${B - k} L ${L},${B} L ${L + k},${B}`,
+      // bottom-right
+      `M ${R},${B - k} L ${R},${B} L ${R - k},${B}`,
+    ].join(' ')
+  }
+
   return (
     <svg
       viewBox={`0 0 ${totalWidth} ${totalHeight}`}
@@ -99,27 +122,27 @@ export function Fretboard({
         fill="var(--color-fretboard)"
       />
 
-      {/* Position-window highlights — rendered behind fret markers and notes */}
+      {/* Position windows — faint fill, no continuous border (corner brackets
+          rendered separately below for the framing geometry). */}
       {positionWindows?.map((win) => {
         const leftX = windowLeftX(win.low)
         const rightX = windowRightX(win.high)
         return (
           <rect
-            key={`window-${win.id}`}
+            key={`window-fill-${win.id}`}
             x={leftX}
             y={boardTop - 10}
             width={rightX - leftX}
             height={boardBottom - boardTop + 20}
             rx={3}
             fill={POSITION_FILL}
-            stroke={POSITION_STROKE}
-            strokeWidth={POSITION_STROKE_WIDTH}
           />
         )
       })}
 
-      {/* Overlap zones — drawn over the position windows with brighter
-          fill/stroke so transition zones between adjacent CAGED boxes pop. */}
+      {/* Overlap zones — continuous-bordered rectangles. Visually distinct from
+          the bracketed position windows: positions = framed regions, overlaps
+          = explicitly joined territory. */}
       {overlapZones?.map((zone) => {
         const leftX = windowLeftX(zone.low)
         const rightX = windowRightX(zone.high)
@@ -190,6 +213,26 @@ export function Fretboard({
         </text>
       ))}
 
+      {/* Position-window corner brackets — rendered above strings/markers so
+          they read as a frame in front of, not behind, the content. */}
+      {positionWindows?.map((win) => {
+        const leftX = windowLeftX(win.low)
+        const rightX = windowRightX(win.high)
+        const T = boardTop - 10
+        const B = boardBottom + 10
+        return (
+          <path
+            key={`brackets-${win.id}`}
+            d={bracketPath(leftX, T, rightX, B)}
+            fill="none"
+            stroke={POSITION_BRACKET_STROKE}
+            strokeWidth={POSITION_BRACKET_WIDTH}
+            strokeLinecap="round"
+            strokeLinejoin="miter"
+          />
+        )
+      })}
+
       {/* Note markers */}
       {markers.map((marker) => (
         <NoteCircle
@@ -201,7 +244,8 @@ export function Fretboard({
         />
       ))}
 
-      {/* Position-window labels — rendered last so they sit on top */}
+      {/* Position-window labels — placed in the dedicated header strip above
+          the board (the boardTop padding reserves this space). */}
       {positionWindows?.map((win) => {
         const leftX = windowLeftX(win.low)
         const rightX = windowRightX(win.high)
@@ -210,11 +254,13 @@ export function Fretboard({
           <text
             key={`label-${win.id}`}
             x={centerX}
-            y={12}
+            y={22}
             textAnchor="middle"
-            fontSize={11}
+            fontSize={12}
+            fontWeight={500}
             fontFamily="system-ui, sans-serif"
-            fill="var(--color-fg-secondary)"
+            fill="var(--color-fg-primary)"
+            style={{ letterSpacing: '0.04em' }}
           >
             {win.label}
           </text>
