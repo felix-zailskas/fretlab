@@ -21,8 +21,8 @@ export function ViewSelector({ selectedView, onViewChange }: ViewSelectorProps) 
           onClick={() => onViewChange(view.id)}
           className={`px-3 py-1.5 rounded text-sm font-medium transition-colors cursor-pointer ${
             selectedView === view.id
-              ? 'bg-gray-700 text-white'
-              : 'bg-transparent text-gray-400 hover:text-gray-200'
+              ? 'bg-surface-active text-fg-emphasis'
+              : 'bg-transparent text-fg-muted hover:text-fg-secondary'
           }`}
         >
           {view.label}
