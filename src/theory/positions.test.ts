@@ -43,15 +43,15 @@ describe('getPositionWindow', () => {
     expect(getPositionWindow('D', 'P5')).toEqual([11, 15])
   })
 
-  it('clips a straddling window at FRET_COUNT (G major P4: [14,17] -> [14,15])', () => {
-    expect(getPositionWindow('G', 'P4')).toEqual([14, 15])
+  it('wraps -12 when a window does not fully fit (G major P4: [14,17] -> [2,5])', () => {
+    expect(getPositionWindow('G', 'P4')).toEqual([2, 5])
   })
 
-  it('clips to a single fret when only the low edge is on the neck (B major P3: [15,19] -> [15,15])', () => {
-    expect(getPositionWindow('B', 'P3')).toEqual([15, 15])
+  it('wraps -12 even when only the high edge is past the neck (B major P3: [15,19] -> [3,7])', () => {
+    expect(getPositionWindow('B', 'P3')).toEqual([3, 7])
   })
 
-  it('wraps -12 when the window is entirely past FRET_COUNT (G major P5: [16,20] -> [4,8])', () => {
+  it('wraps -12 for fully-off windows (G major P5: [16,20] -> [4,8])', () => {
     expect(getPositionWindow('G', 'P5')).toEqual([4, 8])
   })
 
@@ -61,6 +61,12 @@ describe('getPositionWindow', () => {
 
   it('wraps -12 for B major P5 ([20,24] -> [8,12])', () => {
     expect(getPositionWindow('B', 'P5')).toEqual([8, 12])
+  })
+
+  it('wraps Gb major P5 ([15,19] -> [3,7]) — exposes the lower neck', () => {
+    // Gb major (offset 6): P1 [6,9] and P2 [8,11] live mid-neck, so without
+    // wrapping P5 down the lower neck would be entirely empty.
+    expect(getPositionWindow('Gb', 'P5')).toEqual([3, 7])
   })
 
   it('produces a window with 0 <= low <= high <= FRET_COUNT for every (key, position) pair', () => {

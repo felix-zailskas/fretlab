@@ -40,8 +40,19 @@ function lookup(position: PositionId): PositionDef {
 }
 
 // Computes the visible fret window for a given key and CAGED position by
-// applying the wrap rule: fits as-is, straddle-clip at FRET_COUNT, or -12
-// octave wrap when the natural window is entirely past the visible neck.
+// applying the wrap rule: if the natural shifted window fits on the visible
+// neck, use it as-is; otherwise wrap by −12 to bring it back into range.
+//
+// An earlier version had a third "straddle-clip" case that kept partially
+// off-board windows at the high end of the neck. In practice that produced
+// useless slivers (e.g., Gb major P5 clipped to a single fret at 15) AND
+// abandoned the lower neck where the wrapped octave-equivalent would have
+// rendered cleanly. The two-case rule below keeps every position fully on
+// the visible neck and uses the lower frets when nothing else lives there.
+//
+// Soundness: the C-major windows are at most 4 frets wide, and key offsets
+// are in [0, 11]. When wrapping, the resulting low fret is always ≥ 0 and
+// the high fret is always ≤ FRET_COUNT, so the wrap is always valid.
 export function getPositionWindow(key: string, position: PositionId): FretWindow {
   const { cMajorWindow } = lookup(position)
   const offset = getKeyOffset(key)
@@ -50,9 +61,6 @@ export function getPositionWindow(key: string, position: PositionId): FretWindow
 
   if (naturalHigh <= FRET_COUNT) {
     return [naturalLow, naturalHigh]
-  }
-  if (naturalLow <= FRET_COUNT) {
-    return [naturalLow, FRET_COUNT]
   }
   return [naturalLow - 12, naturalHigh - 12]
 }

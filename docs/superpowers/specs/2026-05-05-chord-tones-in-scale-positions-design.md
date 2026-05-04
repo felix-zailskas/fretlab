@@ -126,27 +126,33 @@ For each `(key, position)`, compute the natural shifted window
 `offset = chromaticIndex(key) - chromaticIndex('C')` in `[0, 11]`.
 
 1. **`high ≤ FRET_COUNT`** — fits → use as-is.
-2. **`low ≤ FRET_COUNT < high`** — straddles → keep the natural window, clip
-   the rendered fret-range to `[low, FRET_COUNT]`. The user sees the box at
-   its real high-fret location, partially cut off at the end of the visible
-   neck.
-3. **`low > FRET_COUNT`** — entirely past the end → wrap once by `-12` to
-   `[low - 12, high - 12]`.
+2. **Otherwise** — wrap once by `-12` to `[low - 12, high - 12]`.
 
-This rule favors the high neck where possible and only wraps when the box would
-otherwise be invisible. Same scale tones either way — wrapping is musically
-equivalent.
+An earlier draft of this rule had a third "straddle-clip" case for windows
+that started on the visible neck but extended past `FRET_COUNT`. In practice
+that produced useless slivers (e.g., Gb major P5 clipped to a single fret at
+15) AND abandoned the lower neck where the wrapped octave-equivalent would
+have rendered cleanly. The two-case rule keeps every position fully on the
+visible neck and uses the lower frets when nothing else lives there.
+
+**Soundness:** the C-major windows are at most 4 frets wide and key offsets
+are in `[0, 11]`. When wrap is triggered (`high > FRET_COUNT`), the wrapped
+low fret is always `≥ 0` and the wrapped high fret is always `≤ FRET_COUNT`,
+so the result is always a valid on-board window. Same scale tones as the
+natural window — wrapping is musically equivalent.
 
 Worked examples (`FRET_COUNT = 15`):
 
 | Key | Position | Natural | Result | Case |
 | --- | -------- | ------- | ------ | ---- |
-| C | P5 | `[9, 13]`  | `[9, 13]`  | fits |
-| G | P4 | `[14, 17]` | `[14, 15]` | straddle clip |
+| C | P5 | `[9, 13]`  | `[9, 13]` | fits |
+| G | P3 | `[11, 15]` | `[11, 15]` | fits |
+| G | P4 | `[14, 17]` | `[2, 5]`   | wrap |
 | G | P5 | `[16, 20]` | `[4, 8]`   | wrap |
 | A | P5 | `[18, 22]` | `[6, 10]`  | wrap |
-| B | P3 | `[15, 19]` | `[15, 15]` | straddle clip (single fret) |
+| B | P3 | `[15, 19]` | `[3, 7]`   | wrap |
 | B | P5 | `[20, 24]` | `[8, 12]`  | wrap |
+| Gb | P5 | `[15, 19]` | `[3, 7]`   | wrap (exposes lower neck) |
 
 ### API
 
