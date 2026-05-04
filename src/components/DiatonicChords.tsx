@@ -29,13 +29,13 @@ export function DiatonicChords({ selectedKey, accidentalStyle }: DiatonicChordsP
             key={chord.degree}
             className={`flex flex-col items-center justify-center gap-3 px-4 py-8 min-h-[10rem] rounded-xl border-2 shadow-lg ${QUALITY_ACCENT[chord.quality]}`}
           >
-            <span className="text-base text-gray-400 font-mono font-semibold">
+            <span className="text-lg text-gray-400 font-mono font-semibold">
               {chord.romanNumeral}
             </span>
-            <span className="text-5xl font-bold text-white leading-none">
+            <span className="text-4xl font-bold text-white leading-none">
               {chord.symbol}
             </span>
-            <span className="text-base text-gray-200 tracking-wider font-medium">
+            <span className="text-lg text-gray-200 tracking-wider font-medium">
               {chord.notes.join(' – ')}
             </span>
           </div>
