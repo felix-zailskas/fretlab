@@ -10,8 +10,8 @@ type DiatonicChordsProps = {
 const QUALITY_ACCENT: Record<ChordQuality, string> = {
   maj7: 'border-gray-600 bg-gray-800',
   m7: 'border-gray-700 bg-gray-800/80',
-  '7': 'border-blue-700/50 bg-gray-800/80',
-  m7b5: 'border-rose-700/70 bg-gray-800/80',
+  '7': 'border-gray-700 bg-gray-800/80',
+  m7b5: 'border-gray-700 bg-gray-800/80',
 }
 
 export function DiatonicChords({ selectedKey, accidentalStyle }: DiatonicChordsProps) {
