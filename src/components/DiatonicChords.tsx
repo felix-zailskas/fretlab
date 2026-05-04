@@ -23,19 +23,19 @@ export function DiatonicChords({ selectedKey, accidentalStyle }: DiatonicChordsP
       <h2 className="text-sm text-gray-300 uppercase tracking-wider font-semibold mb-3">
         Diatonic chords
       </h2>
-      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-4">
         {chords.map((chord) => (
           <div
             key={chord.degree}
-            className={`flex flex-col items-center gap-2 px-4 py-5 rounded-lg border-2 shadow-lg ${QUALITY_ACCENT[chord.quality]}`}
+            className={`flex flex-col items-center justify-center gap-3 px-4 py-8 min-h-[10rem] rounded-xl border-2 shadow-lg ${QUALITY_ACCENT[chord.quality]}`}
           >
-            <span className="text-sm text-gray-400 font-mono font-semibold">
+            <span className="text-base text-gray-400 font-mono font-semibold">
               {chord.romanNumeral}
             </span>
-            <span className="text-4xl font-bold text-white leading-none">
+            <span className="text-5xl font-bold text-white leading-none">
               {chord.symbol}
             </span>
-            <span className="text-sm text-gray-300 tracking-wider font-medium">
+            <span className="text-base text-gray-200 tracking-wider font-medium">
               {chord.notes.join(' – ')}
             </span>
           </div>
