@@ -12,7 +12,7 @@ type AccidentalToggleProps = {
 
 export function AccidentalToggle({ accidentalStyle, onChange }: AccidentalToggleProps) {
   return (
-    <div className="inline-flex rounded overflow-hidden border border-gray-700">
+    <div className="inline-flex rounded overflow-hidden border border-default">
       {OPTIONS.map((opt) => (
         <button
           key={opt.value}
@@ -20,8 +20,8 @@ export function AccidentalToggle({ accidentalStyle, onChange }: AccidentalToggle
           aria-pressed={accidentalStyle === opt.value}
           className={`px-3 py-1.5 text-sm font-semibold transition-colors cursor-pointer ${
             accidentalStyle === opt.value
-              ? 'bg-gray-700 text-white'
-              : 'bg-gray-900 text-gray-400 hover:bg-gray-800'
+              ? 'bg-surface-active text-fg-emphasis'
+              : 'bg-surface text-fg-muted hover:bg-surface-raised'
           }`}
         >
           {opt.label}
