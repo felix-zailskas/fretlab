@@ -10,10 +10,10 @@ type DiatonicChordsProps = {
 }
 
 const QUALITY_ACCENT: Record<ChordQuality, string> = {
-  maj7: 'border-gray-600 bg-gray-800',
-  m7: 'border-gray-700 bg-gray-800/80',
-  '7': 'border-gray-700 bg-gray-800/80',
-  m7b5: 'border-gray-700 bg-gray-800/80',
+  maj7: 'border-emphasis bg-surface-raised',
+  m7: 'border-default bg-surface-raised',
+  '7': 'border-default bg-surface-raised',
+  m7b5: 'border-default bg-surface-raised',
 }
 
 export function DiatonicChords({
@@ -28,7 +28,7 @@ export function DiatonicChords({
 
   return (
     <section className="mt-8">
-      <h2 className="text-sm text-gray-300 uppercase tracking-wider font-semibold mb-3">
+      <h2 className="text-sm text-fg-secondary uppercase tracking-wider font-semibold mb-3">
         Diatonic chords
       </h2>
       <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-4">
@@ -42,17 +42,17 @@ export function DiatonicChords({
               aria-pressed={isSelected}
               className={`flex flex-col items-center justify-center gap-3 px-4 py-8 min-h-[10rem] rounded-xl border-2 shadow-lg cursor-pointer transition-colors ${
                 isSelected
-                  ? 'border-white/90 bg-gray-700'
-                  : `${QUALITY_ACCENT[chord.quality]} hover:border-gray-500`
+                  ? 'border-selected bg-surface-active'
+                  : `${QUALITY_ACCENT[chord.quality]} hover:border-hover`
               }`}
             >
-              <span className="text-lg text-gray-400 font-mono font-semibold">
+              <span className="text-lg text-fg-muted font-mono font-semibold">
                 {chord.romanNumeral}
               </span>
-              <span className="text-3xl font-bold text-white leading-none">
+              <span className="text-3xl font-bold text-fg-emphasis leading-none">
                 {chord.symbol}
               </span>
-              <span className="text-lg text-gray-200 tracking-wider font-medium">
+              <span className="text-lg text-fg-secondary tracking-wider font-medium">
                 {chord.notes.join(' – ')}
               </span>
             </button>
