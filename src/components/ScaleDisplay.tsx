@@ -3,6 +3,7 @@ import {
   getMajorScaleNotes,
   MAJOR_SCALE_STEPS,
   type DiatonicChord,
+  type DiatonicTriad,
 } from "../theory/scales";
 import { HIGHLIGHTABLE, roleFromChordTone } from "../theory/chordTones";
 import { ALL_NOTES_KEY } from "./KeySelector";
@@ -25,7 +26,7 @@ const NEUTRAL_PILL_CLASSES = "bg-surface-raised border-line text-fg-secondary";
 type ScaleDisplayProps = {
   selectedKey: string;
   accidentalStyle: AccidentalStyle;
-  selectedChord: DiatonicChord | null;
+  selectedChord: DiatonicChord | DiatonicTriad | null;
   enabledRoles: Set<HighlightableRole>;
 };
 

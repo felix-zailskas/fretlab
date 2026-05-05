@@ -16,13 +16,13 @@ import {
   type PositionId,
 } from "../theory/positions";
 import type { AccidentalStyle } from "../theory/notes";
-import type { DiatonicChord } from "../theory/scales";
+import type { DiatonicChord, DiatonicTriad } from "../theory/scales";
 
 type ScalePositionsViewProps = {
   selectedKey: string;
   accidentalStyle: AccidentalStyle;
   enabledHighlights: Set<HighlightableRole>;
-  selectedChord: DiatonicChord | null;
+  selectedChord: DiatonicChord | DiatonicTriad | null;
 };
 
 // Wider, neutral phrasing — the view serves both pure scale-position study

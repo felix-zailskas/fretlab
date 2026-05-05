@@ -4,11 +4,11 @@ import { KeySelector, ALL_NOTES_KEY } from "./components/KeySelector";
 import { ViewSelector } from "./components/ViewSelector";
 import { Legend, type HighlightableRole } from "./components/Legend";
 import { ScaleDisplay } from "./components/ScaleDisplay";
-import { DiatonicChords } from "./components/DiatonicChords";
+import { DiatonicChords, type ChordRowMode } from "./components/DiatonicChords";
 import { NoteMapView } from "./views/NoteMapView";
 import { ScalePositionsView } from "./views/ScalePositionsView";
 import type { AccidentalStyle } from "./theory/notes";
-import { getDiatonicChords } from "./theory/scales";
+import { getDiatonicChords, getDiatonicTriads } from "./theory/scales";
 
 const DEFAULT_HIGHLIGHTS: HighlightableRole[] = ["root", "third", "fifth", "seventh"];
 
@@ -33,12 +33,16 @@ function App() {
     () => new Set(DEFAULT_HIGHLIGHTS),
   );
   const [selectedChordDegree, setSelectedChordDegree] = useState<number | null>(1);
+  const [chordRowMode, setChordRowMode] = useState<ChordRowMode>("sevenths");
 
   const selectedChord = useMemo(() => {
     if (selectedChordDegree === null || selectedKey === ALL_NOTES_KEY) return null;
-    const chords = getDiatonicChords(selectedKey, accidentalStyle);
+    const chords =
+      chordRowMode === "sevenths"
+        ? getDiatonicChords(selectedKey, accidentalStyle)
+        : getDiatonicTriads(selectedKey, accidentalStyle);
     return chords[selectedChordDegree - 1] ?? null;
-  }, [selectedChordDegree, selectedKey, accidentalStyle]);
+  }, [selectedChordDegree, chordRowMode, selectedKey, accidentalStyle]);
 
   const handleChordSelect = useCallback((degree: number) => {
     setSelectedChordDegree((prev) => (prev === degree ? null : degree));
@@ -113,6 +117,8 @@ function App() {
               accidentalStyle={accidentalStyle}
               selectedDegree={selectedChordDegree}
               onSelectDegree={handleChordSelect}
+              mode={chordRowMode}
+              onModeChange={setChordRowMode}
             />
           </>
         )}
@@ -132,6 +138,8 @@ function App() {
               accidentalStyle={accidentalStyle}
               selectedDegree={selectedChordDegree}
               onSelectDegree={handleChordSelect}
+              mode={chordRowMode}
+              onModeChange={setChordRowMode}
             />
           </>
         )}

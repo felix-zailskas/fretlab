@@ -10,14 +10,18 @@ import {
   getDisplayName,
   type AccidentalStyle,
 } from "../theory/notes";
-import { getIntervalRole, type DiatonicChord } from "../theory/scales";
+import {
+  getIntervalRole,
+  type DiatonicChord,
+  type DiatonicTriad,
+} from "../theory/scales";
 import type { NoteMarker, NoteDisplayRole } from "../theory/types";
 
 type NoteMapViewProps = {
   selectedKey: string;
   accidentalStyle: AccidentalStyle;
   enabledHighlights: Set<HighlightableRole>;
-  selectedChord: DiatonicChord | null;
+  selectedChord: DiatonicChord | DiatonicTriad | null;
 };
 
 export function NoteMapView({
