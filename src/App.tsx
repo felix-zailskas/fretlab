@@ -73,7 +73,12 @@ function App() {
           <AccidentalToggle accidentalStyle={accidentalStyle} onChange={handleAccidentalChange} />
         </div>
         <ViewSelector selectedView={selectedView} onViewChange={setSelectedView} />
-        <ScaleDisplay selectedKey={selectedKey} accidentalStyle={accidentalStyle} />
+        <ScaleDisplay
+          selectedKey={selectedKey}
+          accidentalStyle={accidentalStyle}
+          selectedChord={selectedChord}
+          enabledRoles={enabledHighlights}
+        />
       </header>
 
       <main className="max-w-6xl mx-auto">
