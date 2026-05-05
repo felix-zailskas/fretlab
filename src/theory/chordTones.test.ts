@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { roleFromChordTone, HIGHLIGHTABLE, buildChordToneMarkers } from "./chordTones";
-import { getDiatonicChords } from "./scales";
+import { getDiatonicChords, getDiatonicTriads } from "./scales";
 import type { HighlightableRole } from "../components/Legend";
 import { ALL_NOTES_KEY } from "../components/KeySelector";
 
@@ -219,5 +219,92 @@ describe("buildChordToneMarkers", () => {
     });
     const maxFret = Math.max(...markers.map((m) => m.fret));
     expect(maxFret).toBeGreaterThan(10); // covers higher-neck cells
+  });
+});
+
+describe("roleFromChordTone with triads", () => {
+  it("resolves root/third/fifth correctly for a triad input (C major, ii = Dm)", () => {
+    const triad = getDiatonicTriads("C")[1]; // ii = Dm — notes [D, F, A]
+    expect(roleFromChordTone("D", triad)).toBe("root");
+    expect(roleFromChordTone("F", triad)).toBe("third");
+    expect(roleFromChordTone("A", triad)).toBe("fifth");
+  });
+
+  it('never returns "seventh" for a triad input', () => {
+    // C is the seventh of Dm7 in sevenths mode, but is not a chord tone of
+    // the Dm triad. Should fall back to 'scale'.
+    const triad = getDiatonicTriads("C")[1];
+    expect(roleFromChordTone("C", triad)).toBe("scale");
+  });
+
+  it('returns "scale" for in-key non-chord-tone notes (E in Dm triad, C major)', () => {
+    const triad = getDiatonicTriads("C")[1];
+    expect(roleFromChordTone("E", triad)).toBe("scale");
+  });
+
+  it("handles enharmonic equivalence in triad mode (F# triad in G major, Gb)", () => {
+    // vii° in G is F#° = F# A C. F# and Gb are enharmonic — Gb input should
+    // resolve as the chord's root, mirroring the existing flat/sharp handling
+    // for sevenths.
+    const triad = getDiatonicTriads("G")[6];
+    expect(roleFromChordTone("F#", triad)).toBe("root");
+    expect(roleFromChordTone("Gb", triad)).toBe("root");
+  });
+});
+
+describe("buildChordToneMarkers with triads", () => {
+  const cMajor_ii_triad = () => getDiatonicTriads("C")[1]; // Dm — notes [D, F, A]
+  const allRoles: Set<HighlightableRole> = new Set([
+    "root",
+    "third",
+    "fifth",
+    "seventh",
+  ]);
+
+  it('produces no markers with role "seventh" when the chord is a triad', () => {
+    const markers = buildChordToneMarkers({
+      key: "C",
+      chord: cMajor_ii_triad(),
+      accidentalStyle: "sharp",
+      positions: ["P1"],
+      showContext: false,
+      enabledHighlights: allRoles,
+    });
+    expect(markers.length).toBeGreaterThan(0);
+    for (const m of markers) {
+      expect(m.role).not.toBe("seventh");
+    }
+  });
+
+  it("marks the triad notes correctly (D=root, F=third, A=fifth in C major P1)", () => {
+    const markers = buildChordToneMarkers({
+      key: "C",
+      chord: cMajor_ii_triad(),
+      accidentalStyle: "sharp",
+      positions: ["P1"],
+      showContext: false,
+      enabledHighlights: allRoles,
+    });
+    // String index convention: 0=low E, 1=A, 2=D, 3=G, 4=B, 5=high E.
+    const find = (string: number, fret: number) =>
+      markers.find((m) => m.string === string && m.fret === fret);
+    expect(find(2, 0)?.role).toBe("root"); // D string open = D
+    expect(find(0, 1)?.role).toBe("third"); // low E + 1 = F
+    expect(find(1, 0)?.role).toBe("fifth"); // A string open = A
+  });
+
+  it("treats C (the would-be seventh) as scale tone in triad mode", () => {
+    const markers = buildChordToneMarkers({
+      key: "C",
+      chord: cMajor_ii_triad(),
+      accidentalStyle: "sharp",
+      positions: ["P1"],
+      showContext: false,
+      enabledHighlights: allRoles,
+    });
+    // A string + fret 3 = C. In sevenths mode this would be 'seventh' of Dm7;
+    // in triads mode it should be 'scale'.
+    const c = markers.find((m) => m.string === 1 && m.fret === 3);
+    expect(c?.role).toBe("scale");
   });
 });

@@ -9,7 +9,7 @@ import {
   type AccidentalStyle,
 } from "./notes";
 import { isInPositionWindow, type PositionId } from "./positions";
-import { getIntervalRole, type DiatonicChord } from "./scales";
+import { getIntervalRole, type DiatonicChord, type DiatonicTriad } from "./scales";
 import type { NoteDisplayRole, NoteMarker } from "./types";
 
 // Roles the Legend can toggle off (demoted to 'scale' when their toggle is
@@ -30,25 +30,22 @@ export const HIGHLIGHTABLE: ReadonlySet<NoteDisplayRole> = new Set<NoteDisplayRo
 // Caller is responsible for filtering out-of-key notes upstream.
 export function roleFromChordTone(
   note: string,
-  chord: DiatonicChord | null,
+  chord: DiatonicChord | DiatonicTriad | null,
 ): NoteDisplayRole {
   if (!chord) return "scale";
   const noteIdx = getNoteIndex(note);
-  const rootIdx = getNoteIndex(chord.notes[0]);
-  const thirdIdx = getNoteIndex(chord.notes[1]);
-  const fifthIdx = getNoteIndex(chord.notes[2]);
-  const seventhIdx = getNoteIndex(chord.notes[3]);
-
-  if (noteIdx === rootIdx) return "root";
-  if (noteIdx === thirdIdx) return "third";
-  if (noteIdx === fifthIdx) return "fifth";
-  if (noteIdx === seventhIdx) return "seventh";
+  if (noteIdx === getNoteIndex(chord.notes[0])) return "root";
+  if (noteIdx === getNoteIndex(chord.notes[1])) return "third";
+  if (noteIdx === getNoteIndex(chord.notes[2])) return "fifth";
+  if (chord.notes.length === 4 && noteIdx === getNoteIndex(chord.notes[3])) {
+    return "seventh";
+  }
   return "scale";
 }
 
 export type BuildChordToneMarkersInput = {
   key: string;
-  chord: DiatonicChord | null;
+  chord: DiatonicChord | DiatonicTriad | null;
   accidentalStyle: AccidentalStyle;
   positions: ReadonlyArray<PositionId>;
   showContext: boolean;
