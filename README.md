@@ -24,7 +24,7 @@ by default). The Legend stays on screen so you always know what each color means
 ## Views
 
 Each tab in Fretlab answers a different practice question. Two views are implemented
-today; more are planned (see the
+today; one more is planned (see the
 [vision document](docs/design/2026-05-05-app-vision-and-view-designs.md) for the full
 roadmap).
 
@@ -47,7 +47,7 @@ highlights so every in-key note renders as a plain scale tone.
 - 12-key selector plus an "All Notes" mode that disables key filtering
 - Sharp / flat accidental toggle (with automatic enharmonic key swap so you stay on the
   same scale)
-- 7 diatonic chord cards (triads + sevenths)
+- 7 diatonic chord cards with a triads / sevenths toggle (R/3/5 or R/3/5/7 highlighting)
 - Legend with R / 3 / 5 / 7 toggles to selectively show or hide chord-tone roles
 
 **During practice**
@@ -98,16 +98,20 @@ The view supports two complementary practice modes via the same controls:
 
 ### Coming soon
 
-Three additional views are on the roadmap — see the
-[vision document](docs/design/2026-05-05-app-vision-and-view-designs.md) for full
-descriptions:
+One additional view is on the roadmap — see the
+[vision document](docs/design/2026-05-05-app-vision-and-view-designs.md) for the full
+description:
 
-- **Diatonic Chord Reference** — scannable card layout of the 7 triads and 7 seventh
-  chords in the selected key (Roman numerals, qualities, spelled notes).
-- **Shell Voicing Diagrams** — root + 3 + 7 voicings on the 6th and 5th strings (maj7,
-  m7, dom7, m7♭5), plus the diatonic shell-voicing scale ascending up the neck.
-- **Diatonic Triad Shapes** — major / minor / diminished triad inversions across four
-  string groups, plus the diatonic-triad scale ascending up the neck.
+- **Chord Shapes** — vertical chord-diagram boxes on top with a Shells / Triads
+  selector, and an ascending-up-the-neck fretboard on the bottom that maps the 7
+  diatonic shapes in the selected key. Shells mode covers root + 3 + 7 voicings on the
+  6th and 5th strings (maj7, m7, dom7, m7♭5); Triads mode covers major / minor /
+  diminished triad inversions across four string groups. One tab, one mental model:
+  _look up a shape, see it ascend the neck._
+
+The originally-planned _Diatonic Chord Reference_ tab has been folded into the existing
+diatonic chord row's triads / sevenths toggle, so the reference content is available
+directly in Note Map and Scale Positions without an extra tab.
 
 ## Getting started
 
