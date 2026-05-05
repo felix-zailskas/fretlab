@@ -6,33 +6,33 @@
 
 @theme {
   /* Surfaces — backgrounds, dark to active */
-  --color-surface:         #111827;
-  --color-surface-raised:  #1F2937;
-  --color-surface-active:  #374151;
+  --color-surface: #111827;
+  --color-surface-raised: #1f2937;
+  --color-surface-active: #374151;
 
   /* Borders — subtle to strong. Named "line" to avoid Tailwind's border-* prefix collision. */
-  --color-line:          #374151;
-  --color-line-emphasis: #4B5563;
-  --color-line-hover:    #6B7280;
+  --color-line: #374151;
+  --color-line-emphasis: #4b5563;
+  --color-line-hover: #6b7280;
   --color-line-selected: rgb(255 255 255 / 0.9);
 
   /* Foreground (text) — emphasis to faint */
-  --color-fg-primary:      #F9FAFB;
-  --color-fg-secondary:    #D1D5DB;
-  --color-fg-muted:        #9CA3AF;
-  --color-fg-faint:        #6B7280;
-  --color-fg-emphasis:     #FFFFFF;
+  --color-fg-primary: #f9fafb;
+  --color-fg-secondary: #d1d5db;
+  --color-fg-muted: #9ca3af;
+  --color-fg-faint: #6b7280;
+  --color-fg-emphasis: #ffffff;
 
   /* Theory roles — chord/scale interval colors */
-  --color-root:            #3B82F6;
-  --color-third:           #F59E0B;
-  --color-fifth:           #10B981;
-  --color-seventh:         #8B5CF6;
-  --color-scale:           #6B7280;
-  --color-muted:           #374151;
+  --color-root: #3b82f6;
+  --color-third: #f59e0b;
+  --color-fifth: #10b981;
+  --color-seventh: #8b5cf6;
+  --color-scale: #6b7280;
+  --color-muted: #374151;
 
   /* Fretboard render */
-  --color-fretboard:       #292524;
-  --color-string:          #9CA3AF;
-  --color-fret:            #6B7280;
+  --color-fretboard: #292524;
+  --color-string: #9ca3af;
+  --color-fret: #6b7280;
 }

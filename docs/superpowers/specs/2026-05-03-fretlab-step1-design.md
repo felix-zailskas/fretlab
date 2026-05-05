@@ -2,7 +2,9 @@
 
 ## Overview
 
-Fretlab is a web-based interactive guitar practice reference tool. This spec covers the foundational step: project scaffolding, the reusable SVG fretboard component, key selector, and a basic major scale view to prove the system works end-to-end.
+Fretlab is a web-based interactive guitar practice reference tool. This spec covers the
+foundational step: project scaffolding, the reusable SVG fretboard component, key
+selector, and a basic major scale view to prove the system works end-to-end.
 
 ## Tech Stack
 
@@ -45,37 +47,68 @@ Pure functions with no React dependency. All music theory computation lives here
 ### Types (`types.ts`)
 
 ```ts
-type NoteName = 'C' | 'C#' | 'Db' | 'D' | 'D#' | 'Eb' | 'E' | 'F' |
-                'F#' | 'Gb' | 'G' | 'G#' | 'Ab' | 'A' | 'A#' | 'Bb' | 'B'
+type NoteName =
+  | "C"
+  | "C#"
+  | "Db"
+  | "D"
+  | "D#"
+  | "Eb"
+  | "E"
+  | "F"
+  | "F#"
+  | "Gb"
+  | "G"
+  | "G#"
+  | "Ab"
+  | "A"
+  | "A#"
+  | "Bb"
+  | "B";
 
-type IntervalRole = 'root' | 'second' | 'third' | 'fourth' | 'fifth' | 'sixth' | 'seventh'
+type IntervalRole =
+  | "root"
+  | "second"
+  | "third"
+  | "fourth"
+  | "fifth"
+  | "sixth"
+  | "seventh";
 
-type NoteDisplayRole = 'root' | 'third' | 'fifth' | 'seventh' | 'scale' | 'muted'
+type NoteDisplayRole = "root" | "third" | "fifth" | "seventh" | "scale" | "muted";
 
 type NoteMarker = {
-  string: number       // 0 = low E, 5 = high E
-  fret: number         // 0 = open, up to 15
-  note: string         // Display name (e.g., "C", "F#", "Bb")
-  role: NoteDisplayRole
-}
+  string: number; // 0 = low E, 5 = high E
+  fret: number; // 0 = open, up to 15
+  note: string; // Display name (e.g., "C", "F#", "Bb")
+  role: NoteDisplayRole;
+};
 ```
 
 ### Notes (`notes.ts`)
 
 - `CHROMATIC_SCALE`: `['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']`
-- `STANDARD_TUNING`: `['E', 'A', 'D', 'G', 'B', 'E']` (index 0 = low E, index 5 = high E)
-- `FLAT_KEYS`: `['F', 'Bb', 'Eb', 'Ab', 'Db', 'Gb']` — these keys display with flats instead of sharps
+- `STANDARD_TUNING`: `['E', 'A', 'D', 'G', 'B', 'E']` (index 0 = low E, index 5 = high
+  E)
+- `FLAT_KEYS`: `['F', 'Bb', 'Eb', 'Ab', 'Db', 'Gb']` — these keys display with flats
+  instead of sharps
 - `ENHARMONIC_MAP`: `{ 'C#': 'Db', 'D#': 'Eb', 'F#': 'Gb', 'G#': 'Ab', 'A#': 'Bb' }`
-- `getNoteAtFret(openString: string, fret: number): string` — returns the note name at a given string/fret position using chromatic calculation
-- `getNoteIndex(note: string): number` — maps any note name (sharp or flat) to its chromatic index (0-11)
-- `getDisplayName(note: string, key: string): string` — returns sharp or flat spelling based on whether the key is a flat key
+- `getNoteAtFret(openString: string, fret: number): string` — returns the note name at a
+  given string/fret position using chromatic calculation
+- `getNoteIndex(note: string): number` — maps any note name (sharp or flat) to its
+  chromatic index (0-11)
+- `getDisplayName(note: string, key: string): string` — returns sharp or flat spelling
+  based on whether the key is a flat key
 
 ### Scales (`scales.ts`)
 
 - `MAJOR_SCALE_INTERVALS`: `[0, 2, 4, 5, 7, 9, 11]` (semitones from root)
 - `INTERVAL_NAMES`: `['root', 'second', 'third', 'fourth', 'fifth', 'sixth', 'seventh']`
-- `getMajorScaleNotes(key: string): string[]` — returns 7 notes of the major scale in the given key
-- `getIntervalRole(key: string, note: string): IntervalRole | null` — returns the interval of a note relative to the key's major scale, or null if the note is not in the scale
+- `getMajorScaleNotes(key: string): string[]` — returns 7 notes of the major scale in
+  the given key
+- `getIntervalRole(key: string, note: string): IntervalRole | null` — returns the
+  interval of a note relative to the key's major scale, or null if the note is not in
+  the scale
 
 ## Fretboard Component
 
@@ -84,7 +117,8 @@ type NoteMarker = {
 The core reusable component. Renders an SVG fretboard with:
 
 - **Dimensions**: Horizontal layout, 6 strings, frets 0-15
-- **Orientation**: Nut on the left, higher frets to the right. Low E (string 0) at the bottom, high E (string 5) at the top.
+- **Orientation**: Nut on the left, higher frets to the right. Low E (string 0) at the
+  bottom, high E (string 5) at the top.
 - **Props**:
   - `markers: NoteMarker[]` — what notes to display and how
   - `fretCount?: number` — defaults to 15
@@ -95,11 +129,14 @@ The core reusable component. Renders an SVG fretboard with:
   - Fret spacing can be uniform (simpler) — no need to simulate real fret taper
   - Fret numbers displayed below the fretboard
 
-The fretboard is a "dumb" renderer. It does not compute which notes to show — it receives `NoteMarker[]` from the parent and renders them. Each view will compute its own markers using the theory layer.
+The fretboard is a "dumb" renderer. It does not compute which notes to show — it
+receives `NoteMarker[]` from the parent and renders them. Each view will compute its own
+markers using the theory layer.
 
 ### `FretMarkers.tsx`
 
 Renders dot markers at standard positions:
+
 - Single dots at frets 3, 5, 7, 9, 15
 - Double dot at fret 12
 - Dots placed between strings (centered vertically) in a muted color
@@ -107,6 +144,7 @@ Renders dot markers at standard positions:
 ### `NoteCircle.tsx`
 
 Renders a single note on the fretboard:
+
 - Circle with note name text inside
 - Color determined by the `role` prop
 - Size large enough to read the note name at arm's length
@@ -114,20 +152,21 @@ Renders a single note on the fretboard:
 
 ### `FretboardString.tsx`
 
-Renders one horizontal string line across the fretboard. Thickness varies slightly (lower strings thicker) for visual realism.
+Renders one horizontal string line across the fretboard. Thickness varies slightly
+(lower strings thicker) for visual realism.
 
 ## Color System
 
 Defined as CSS custom properties on `:root` for easy theming:
 
-| Role    | Color   | Hex       |
-|---------|---------|-----------|
-| Root    | Blue    | `#3B82F6` |
-| 3rd     | Amber   | `#F59E0B` |
-| 5th     | Green   | `#10B981` |
-| 7th     | Purple  | `#8B5CF6` |
-| Scale   | Gray    | `#6B7280` |
-| Muted   | Dark    | `#374151` at 40% opacity |
+| Role  | Color  | Hex                      |
+| ----- | ------ | ------------------------ |
+| Root  | Blue   | `#3B82F6`                |
+| 3rd   | Amber  | `#F59E0B`                |
+| 5th   | Green  | `#10B981`                |
+| 7th   | Purple | `#8B5CF6`                |
+| Scale | Gray   | `#6B7280`                |
+| Muted | Dark   | `#374151` at 40% opacity |
 
 These colors are used consistently across ALL views.
 
@@ -145,7 +184,8 @@ These colors are used consistently across ALL views.
 - Tab bar with 6 tabs matching the views from the full spec
 - For step 1, only the first view-like display is functional (major scale on fretboard)
 - Other tabs show a "Coming soon" placeholder
-- Tab labels: Note Map, Scale Positions, Chord Tones, Diatonic Chords, Shell Voicings, Triad Shapes
+- Tab labels: Note Map, Scale Positions, Chord Tones, Diatonic Chords, Shell Voicings,
+  Triad Shapes
 
 ### `Legend.tsx`
 
@@ -155,6 +195,7 @@ These colors are used consistently across ALL views.
 ## App State
 
 Simple `useState` in `App.tsx`:
+
 - `selectedKey: string` (default: `'C'`)
 - `selectedView: string` (default: `'note-map'`)
 
@@ -163,6 +204,7 @@ No state management library needed. State is lifted to App and passed down as pr
 ## Initial View Behavior
 
 For step 1, the fretboard displays the major scale of the selected key:
+
 - All 7 scale notes shown across all 6 strings, frets 0-15
 - Root notes colored blue (root role)
 - All other scale tones colored gray (scale role)

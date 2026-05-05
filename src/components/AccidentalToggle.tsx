@@ -1,14 +1,14 @@
-import type { AccidentalStyle } from '../theory/notes'
+import type { AccidentalStyle } from "../theory/notes";
 
 const OPTIONS: { value: AccidentalStyle; label: string }[] = [
-  { value: 'flat', label: '♭' },
-  { value: 'sharp', label: '♯' },
-]
+  { value: "flat", label: "♭" },
+  { value: "sharp", label: "♯" },
+];
 
 type AccidentalToggleProps = {
-  accidentalStyle: AccidentalStyle
-  onChange: (style: AccidentalStyle) => void
-}
+  accidentalStyle: AccidentalStyle;
+  onChange: (style: AccidentalStyle) => void;
+};
 
 export function AccidentalToggle({ accidentalStyle, onChange }: AccidentalToggleProps) {
   return (
@@ -20,13 +20,13 @@ export function AccidentalToggle({ accidentalStyle, onChange }: AccidentalToggle
           aria-pressed={accidentalStyle === opt.value}
           className={`px-3 py-1.5 text-sm font-semibold transition-colors cursor-pointer ${
             accidentalStyle === opt.value
-              ? 'bg-surface-active text-fg-emphasis'
-              : 'bg-surface text-fg-muted hover:bg-surface-raised'
+              ? "bg-surface-active text-fg-emphasis"
+              : "bg-surface text-fg-muted hover:bg-surface-raised"
           }`}
         >
           {opt.label}
         </button>
       ))}
     </div>
-  )
+  );
 }

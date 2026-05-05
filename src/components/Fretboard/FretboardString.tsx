@@ -1,13 +1,18 @@
 type FretboardStringProps = {
-  stringIndex: number  // 0 = low E (bottom), 5 = high E (top)
-  y: number
-  xStart: number
-  xEnd: number
-}
+  stringIndex: number; // 0 = low E (bottom), 5 = high E (top)
+  y: number;
+  xStart: number;
+  xEnd: number;
+};
 
-export function FretboardString({ stringIndex, y, xStart, xEnd }: FretboardStringProps) {
+export function FretboardString({
+  stringIndex,
+  y,
+  xStart,
+  xEnd,
+}: FretboardStringProps) {
   // Lower strings (index 0) are thicker, higher strings (index 5) are thinner
-  const strokeWidth = 2.5 - stringIndex * 0.3
+  const strokeWidth = 2.5 - stringIndex * 0.3;
 
   return (
     <line
@@ -18,5 +23,5 @@ export function FretboardString({ stringIndex, y, xStart, xEnd }: FretboardStrin
       stroke="var(--color-string)"
       strokeWidth={strokeWidth}
     />
-  )
+  );
 }

@@ -1,10 +1,17 @@
 # Color Token Refactor Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use
+> superpowers:subagent-driven-development (recommended) or superpowers:executing-plans
+> to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Replace every hardcoded Tailwind palette color in React components with semantic tokens defined in a Tailwind v4 `@theme` block, so call sites read as `bg-surface-raised`, `text-fg-muted`, etc.
+**Goal:** Replace every hardcoded Tailwind palette color in React components with
+semantic tokens defined in a Tailwind v4 `@theme` block, so call sites read as
+`bg-surface-raised`, `text-fg-muted`, etc.
 
-**Architecture:** All tokens live in a single `@theme {}` block in `src/index.css`. Tailwind v4 emits both CSS custom properties (used by SVG attributes) and utility classes (used by JSX className). Migration is a mechanical, file-by-file class swap — no logic, type, or test changes.
+**Architecture:** All tokens live in a single `@theme {}` block in `src/index.css`.
+Tailwind v4 emits both CSS custom properties (used by SVG attributes) and utility
+classes (used by JSX className). Migration is a mechanical, file-by-file class swap — no
+logic, type, or test changes.
 
 **Tech Stack:** Tailwind CSS v4, React 19, TypeScript, Vite, Vitest
 
@@ -15,10 +22,13 @@
 ### Task 1: Define tokens and migrate App.tsx
 
 **Files:**
+
 - Modify: `src/index.css`
 - Modify: `src/App.tsx`
 
-These two are migrated atomically because `App.tsx` is the only consumer of the `--color-bg` and `--color-text` tokens that get renamed. Splitting the change would leave the build referencing names that no longer exist.
+These two are migrated atomically because `App.tsx` is the only consumer of the
+`--color-bg` and `--color-text` tokens that get renamed. Splitting the change would
+leave the build referencing names that no longer exist.
 
 - [ ] **Step 1: Replace `src/index.css` with the full `@theme` token set**
 
@@ -27,98 +37,108 @@ These two are migrated atomically because `App.tsx` is the only consumer of the 
 
 @theme {
   /* Surfaces — backgrounds, dark to active */
-  --color-surface:         #111827;
-  --color-surface-raised:  #1F2937;
-  --color-surface-active:  #374151;
+  --color-surface: #111827;
+  --color-surface-raised: #1f2937;
+  --color-surface-active: #374151;
 
   /* Borders — subtle to strong. Named "line" so utilities don't double up the border- prefix. */
-  --color-line:          #374151;
-  --color-line-emphasis: #4B5563;
-  --color-line-hover:    #6B7280;
+  --color-line: #374151;
+  --color-line-emphasis: #4b5563;
+  --color-line-hover: #6b7280;
   --color-line-selected: rgb(255 255 255 / 0.9);
 
   /* Foreground (text) — emphasis to faint */
-  --color-fg-primary:      #F9FAFB;
-  --color-fg-secondary:    #D1D5DB;
-  --color-fg-muted:        #9CA3AF;
-  --color-fg-faint:        #6B7280;
-  --color-fg-emphasis:     #FFFFFF;
+  --color-fg-primary: #f9fafb;
+  --color-fg-secondary: #d1d5db;
+  --color-fg-muted: #9ca3af;
+  --color-fg-faint: #6b7280;
+  --color-fg-emphasis: #ffffff;
 
   /* Theory roles — chord/scale interval colors */
-  --color-root:            #3B82F6;
-  --color-third:           #F59E0B;
-  --color-fifth:           #10B981;
-  --color-seventh:         #8B5CF6;
-  --color-scale:           #6B7280;
-  --color-muted:           #374151;
+  --color-root: #3b82f6;
+  --color-third: #f59e0b;
+  --color-fifth: #10b981;
+  --color-seventh: #8b5cf6;
+  --color-scale: #6b7280;
+  --color-muted: #374151;
 
   /* Fretboard render */
-  --color-fretboard:       #292524;
-  --color-string:          #9CA3AF;
-  --color-fret:            #6B7280;
+  --color-fretboard: #292524;
+  --color-string: #9ca3af;
+  --color-fret: #6b7280;
 }
 ```
 
 - [ ] **Step 2: Replace `src/App.tsx`**
 
 ```tsx
-import { useCallback, useMemo, useState } from 'react'
-import { AccidentalToggle } from './components/AccidentalToggle'
-import { KeySelector, ALL_NOTES_KEY } from './components/KeySelector'
-import { ViewSelector } from './components/ViewSelector'
-import { Legend, type HighlightableRole } from './components/Legend'
-import { ScaleDisplay } from './components/ScaleDisplay'
-import { DiatonicChords } from './components/DiatonicChords'
-import { NoteMapView } from './views/NoteMapView'
-import type { AccidentalStyle } from './theory/notes'
-import { getDiatonicChords } from './theory/scales'
+import { useCallback, useMemo, useState } from "react";
+import { AccidentalToggle } from "./components/AccidentalToggle";
+import { KeySelector, ALL_NOTES_KEY } from "./components/KeySelector";
+import { ViewSelector } from "./components/ViewSelector";
+import { Legend, type HighlightableRole } from "./components/Legend";
+import { ScaleDisplay } from "./components/ScaleDisplay";
+import { DiatonicChords } from "./components/DiatonicChords";
+import { NoteMapView } from "./views/NoteMapView";
+import type { AccidentalStyle } from "./theory/notes";
+import { getDiatonicChords } from "./theory/scales";
 
-const DEFAULT_HIGHLIGHTS: HighlightableRole[] = ['root', 'third', 'fifth', 'seventh']
+const DEFAULT_HIGHLIGHTS: HighlightableRole[] = ["root", "third", "fifth", "seventh"];
 
 const ENHARMONIC_KEY_SWAP: Record<string, string> = {
-  'Db': 'C#', 'Eb': 'D#', 'Gb': 'F#', 'Ab': 'G#', 'Bb': 'A#',
-  'C#': 'Db', 'D#': 'Eb', 'F#': 'Gb', 'G#': 'Ab', 'A#': 'Bb',
-}
+  Db: "C#",
+  Eb: "D#",
+  Gb: "F#",
+  Ab: "G#",
+  Bb: "A#",
+  "C#": "Db",
+  "D#": "Eb",
+  "F#": "Gb",
+  "G#": "Ab",
+  "A#": "Bb",
+};
 
 function App() {
-  const [selectedKey, setSelectedKey] = useState('C')
-  const [selectedView, setSelectedView] = useState('note-map')
-  const [accidentalStyle, setAccidentalStyle] = useState<AccidentalStyle>('flat')
+  const [selectedKey, setSelectedKey] = useState("C");
+  const [selectedView, setSelectedView] = useState("note-map");
+  const [accidentalStyle, setAccidentalStyle] = useState<AccidentalStyle>("flat");
   const [enabledHighlights, setEnabledHighlights] = useState<Set<HighlightableRole>>(
     () => new Set(DEFAULT_HIGHLIGHTS),
-  )
-  const [selectedChordDegree, setSelectedChordDegree] = useState<number | null>(1)
+  );
+  const [selectedChordDegree, setSelectedChordDegree] = useState<number | null>(1);
 
   const selectedChord = useMemo(() => {
-    if (selectedChordDegree === null || selectedKey === ALL_NOTES_KEY) return null
-    const chords = getDiatonicChords(selectedKey, accidentalStyle)
-    return chords[selectedChordDegree - 1] ?? null
-  }, [selectedChordDegree, selectedKey, accidentalStyle])
+    if (selectedChordDegree === null || selectedKey === ALL_NOTES_KEY) return null;
+    const chords = getDiatonicChords(selectedKey, accidentalStyle);
+    return chords[selectedChordDegree - 1] ?? null;
+  }, [selectedChordDegree, selectedKey, accidentalStyle]);
 
   const handleChordSelect = useCallback((degree: number) => {
-    setSelectedChordDegree((prev) => (prev === degree ? null : degree))
-  }, [])
+    setSelectedChordDegree((prev) => (prev === degree ? null : degree));
+  }, []);
 
   const toggleHighlight = useCallback((role: HighlightableRole) => {
     setEnabledHighlights((prev) => {
-      const next = new Set(prev)
-      if (next.has(role)) next.delete(role)
-      else next.add(role)
-      return next
-    })
-  }, [])
+      const next = new Set(prev);
+      if (next.has(role)) next.delete(role);
+      else next.add(role);
+      return next;
+    });
+  }, []);
 
   const handleAccidentalChange = useCallback((next: AccidentalStyle) => {
     setAccidentalStyle((prev) => {
       if (prev !== next) {
         // Swap the selected key to its enharmonic equivalent so we stay on the same scale.
         setSelectedKey((prevKey) =>
-          prevKey === ALL_NOTES_KEY ? prevKey : ENHARMONIC_KEY_SWAP[prevKey] ?? prevKey,
-        )
+          prevKey === ALL_NOTES_KEY
+            ? prevKey
+            : (ENHARMONIC_KEY_SWAP[prevKey] ?? prevKey),
+        );
       }
-      return next
-    })
-  }, [])
+      return next;
+    });
+  }, []);
 
   return (
     <div className="min-h-screen bg-surface text-fg-primary p-4">
@@ -126,21 +146,26 @@ function App() {
         <h1 className="text-2xl font-bold">Fretlab</h1>
         <div className="flex flex-col sm:flex-row sm:items-end gap-4">
           <div>
-            <label className="text-xs text-fg-muted uppercase tracking-wide block mb-1">Key</label>
+            <label className="text-xs text-fg-muted uppercase tracking-wide block mb-1">
+              Key
+            </label>
             <KeySelector
               selectedKey={selectedKey}
               accidentalStyle={accidentalStyle}
               onKeyChange={setSelectedKey}
             />
           </div>
-          <AccidentalToggle accidentalStyle={accidentalStyle} onChange={handleAccidentalChange} />
+          <AccidentalToggle
+            accidentalStyle={accidentalStyle}
+            onChange={handleAccidentalChange}
+          />
         </div>
         <ViewSelector selectedView={selectedView} onViewChange={setSelectedView} />
         <ScaleDisplay selectedKey={selectedKey} accidentalStyle={accidentalStyle} />
       </header>
 
       <main className="max-w-6xl mx-auto">
-        {selectedView === 'note-map' ? (
+        {selectedView === "note-map" ? (
           <>
             <NoteMapView
               selectedKey={selectedKey}
@@ -159,16 +184,14 @@ function App() {
             />
           </>
         ) : (
-          <div className="text-fg-faint text-center py-20">
-            Coming soon
-          </div>
+          <div className="text-fg-faint text-center py-20">Coming soon</div>
         )}
       </main>
     </div>
-  )
+  );
 }
 
-export default App
+export default App;
 ```
 
 - [ ] **Step 3: Verify build, lint, and tests pass**
@@ -191,9 +214,11 @@ git commit -m "refactor: introduce semantic color tokens via @theme and migrate 
 ### Task 2: Migrate KeySelector
 
 **Files:**
+
 - Modify: `src/components/KeySelector.tsx`
 
 Color changes:
+
 - `bg-[var(--color-root)]` → `bg-root`
 - `text-white` → `text-fg-emphasis`
 - `bg-gray-800` → `bg-surface-raised`
@@ -203,25 +228,57 @@ Color changes:
 - [ ] **Step 1: Replace `src/components/KeySelector.tsx`**
 
 ```tsx
-import type { AccidentalStyle } from '../theory/notes'
+import type { AccidentalStyle } from "../theory/notes";
 
-export const ALL_NOTES_KEY = 'all'
+export const ALL_NOTES_KEY = "all";
 
-const FLAT_STYLE_KEYS = [ALL_NOTES_KEY, 'C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B']
-const SHARP_STYLE_KEYS = [ALL_NOTES_KEY, 'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
+const FLAT_STYLE_KEYS = [
+  ALL_NOTES_KEY,
+  "C",
+  "Db",
+  "D",
+  "Eb",
+  "E",
+  "F",
+  "Gb",
+  "G",
+  "Ab",
+  "A",
+  "Bb",
+  "B",
+];
+const SHARP_STYLE_KEYS = [
+  ALL_NOTES_KEY,
+  "C",
+  "C#",
+  "D",
+  "D#",
+  "E",
+  "F",
+  "F#",
+  "G",
+  "G#",
+  "A",
+  "A#",
+  "B",
+];
 
 const KEY_LABELS: Record<string, string> = {
-  [ALL_NOTES_KEY]: 'All',
-}
+  [ALL_NOTES_KEY]: "All",
+};
 
 type KeySelectorProps = {
-  selectedKey: string
-  accidentalStyle: AccidentalStyle
-  onKeyChange: (key: string) => void
-}
+  selectedKey: string;
+  accidentalStyle: AccidentalStyle;
+  onKeyChange: (key: string) => void;
+};
 
-export function KeySelector({ selectedKey, accidentalStyle, onKeyChange }: KeySelectorProps) {
-  const keys = accidentalStyle === 'sharp' ? SHARP_STYLE_KEYS : FLAT_STYLE_KEYS
+export function KeySelector({
+  selectedKey,
+  accidentalStyle,
+  onKeyChange,
+}: KeySelectorProps) {
+  const keys = accidentalStyle === "sharp" ? SHARP_STYLE_KEYS : FLAT_STYLE_KEYS;
 
   return (
     <div className="flex flex-wrap gap-1">
@@ -231,15 +288,15 @@ export function KeySelector({ selectedKey, accidentalStyle, onKeyChange }: KeySe
           onClick={() => onKeyChange(key)}
           className={`px-3 py-1.5 rounded text-sm font-semibold transition-colors cursor-pointer ${
             selectedKey === key
-              ? 'bg-root text-fg-emphasis'
-              : 'bg-surface-raised text-fg-secondary hover:bg-surface-active'
+              ? "bg-root text-fg-emphasis"
+              : "bg-surface-raised text-fg-secondary hover:bg-surface-active"
           }`}
         >
           {KEY_LABELS[key] ?? key}
         </button>
       ))}
     </div>
-  )
+  );
 }
 ```
 
@@ -263,9 +320,11 @@ git commit -m "refactor(KeySelector): migrate to color tokens"
 ### Task 3: Migrate AccidentalToggle
 
 **Files:**
+
 - Modify: `src/components/AccidentalToggle.tsx`
 
 Color changes:
+
 - `border-gray-700` → `border-line`
 - `bg-gray-700` → `bg-surface-active`
 - `text-white` → `text-fg-emphasis`
@@ -276,17 +335,17 @@ Color changes:
 - [ ] **Step 1: Replace `src/components/AccidentalToggle.tsx`**
 
 ```tsx
-import type { AccidentalStyle } from '../theory/notes'
+import type { AccidentalStyle } from "../theory/notes";
 
 const OPTIONS: { value: AccidentalStyle; label: string }[] = [
-  { value: 'flat', label: '♭' },
-  { value: 'sharp', label: '♯' },
-]
+  { value: "flat", label: "♭" },
+  { value: "sharp", label: "♯" },
+];
 
 type AccidentalToggleProps = {
-  accidentalStyle: AccidentalStyle
-  onChange: (style: AccidentalStyle) => void
-}
+  accidentalStyle: AccidentalStyle;
+  onChange: (style: AccidentalStyle) => void;
+};
 
 export function AccidentalToggle({ accidentalStyle, onChange }: AccidentalToggleProps) {
   return (
@@ -298,15 +357,15 @@ export function AccidentalToggle({ accidentalStyle, onChange }: AccidentalToggle
           aria-pressed={accidentalStyle === opt.value}
           className={`px-3 py-1.5 text-sm font-semibold transition-colors cursor-pointer ${
             accidentalStyle === opt.value
-              ? 'bg-surface-active text-fg-emphasis'
-              : 'bg-surface text-fg-muted hover:bg-surface-raised'
+              ? "bg-surface-active text-fg-emphasis"
+              : "bg-surface text-fg-muted hover:bg-surface-raised"
           }`}
         >
           {opt.label}
         </button>
       ))}
     </div>
-  )
+  );
 }
 ```
 
@@ -330,9 +389,11 @@ git commit -m "refactor(AccidentalToggle): migrate to color tokens"
 ### Task 4: Migrate ViewSelector
 
 **Files:**
+
 - Modify: `src/components/ViewSelector.tsx`
 
 Color changes:
+
 - `bg-gray-700` → `bg-surface-active`
 - `text-white` → `text-fg-emphasis`
 - `text-gray-400` → `text-fg-muted`
@@ -342,18 +403,18 @@ Color changes:
 
 ```tsx
 const VIEWS = [
-  { id: 'note-map', label: 'Note Map' },
-  { id: 'scale-positions', label: 'Scale Positions' },
-  { id: 'chord-tones', label: 'Chord Tones' },
-  { id: 'diatonic-chords', label: 'Diatonic Chords' },
-  { id: 'shell-voicings', label: 'Shell Voicings' },
-  { id: 'triad-shapes', label: 'Triad Shapes' },
-]
+  { id: "note-map", label: "Note Map" },
+  { id: "scale-positions", label: "Scale Positions" },
+  { id: "chord-tones", label: "Chord Tones" },
+  { id: "diatonic-chords", label: "Diatonic Chords" },
+  { id: "shell-voicings", label: "Shell Voicings" },
+  { id: "triad-shapes", label: "Triad Shapes" },
+];
 
 type ViewSelectorProps = {
-  selectedView: string
-  onViewChange: (view: string) => void
-}
+  selectedView: string;
+  onViewChange: (view: string) => void;
+};
 
 export function ViewSelector({ selectedView, onViewChange }: ViewSelectorProps) {
   return (
@@ -364,15 +425,15 @@ export function ViewSelector({ selectedView, onViewChange }: ViewSelectorProps) 
           onClick={() => onViewChange(view.id)}
           className={`px-3 py-1.5 rounded text-sm font-medium transition-colors cursor-pointer ${
             selectedView === view.id
-              ? 'bg-surface-active text-fg-emphasis'
-              : 'bg-transparent text-fg-muted hover:text-fg-secondary'
+              ? "bg-surface-active text-fg-emphasis"
+              : "bg-transparent text-fg-muted hover:text-fg-secondary"
           }`}
         >
           {view.label}
         </button>
       ))}
     </div>
-  )
+  );
 }
 ```
 
@@ -396,42 +457,47 @@ git commit -m "refactor(ViewSelector): migrate to color tokens"
 ### Task 5: Migrate Legend
 
 **Files:**
+
 - Modify: `src/components/Legend.tsx`
 
 Color changes:
+
 - `hover:bg-gray-800` → `hover:bg-surface-raised`
 - `text-gray-300` → `text-fg-secondary`
 
 - [ ] **Step 1: Replace `src/components/Legend.tsx`**
 
 ```tsx
-import type { NoteDisplayRole } from '../theory/types'
+import type { NoteDisplayRole } from "../theory/types";
 
-export type HighlightableRole = Extract<NoteDisplayRole, 'root' | 'third' | 'fifth' | 'seventh'>
+export type HighlightableRole = Extract<
+  NoteDisplayRole,
+  "root" | "third" | "fifth" | "seventh"
+>;
 
 const LEGEND_ITEMS: { label: string; role: HighlightableRole; color: string }[] = [
-  { label: 'Root', role: 'root', color: 'var(--color-root)' },
-  { label: '3rd', role: 'third', color: 'var(--color-third)' },
-  { label: '5th', role: 'fifth', color: 'var(--color-fifth)' },
-  { label: '7th', role: 'seventh', color: 'var(--color-seventh)' },
-]
+  { label: "Root", role: "root", color: "var(--color-root)" },
+  { label: "3rd", role: "third", color: "var(--color-third)" },
+  { label: "5th", role: "fifth", color: "var(--color-fifth)" },
+  { label: "7th", role: "seventh", color: "var(--color-seventh)" },
+];
 
 type LegendProps = {
-  enabledRoles: Set<HighlightableRole>
-  onToggleRole: (role: HighlightableRole) => void
-}
+  enabledRoles: Set<HighlightableRole>;
+  onToggleRole: (role: HighlightableRole) => void;
+};
 
 export function Legend({ enabledRoles, onToggleRole }: LegendProps) {
   return (
     <div className="flex gap-3 text-sm">
       {LEGEND_ITEMS.map((item) => {
-        const isEnabled = enabledRoles.has(item.role)
+        const isEnabled = enabledRoles.has(item.role);
         return (
           <button
             key={item.label}
             onClick={() => onToggleRole(item.role)}
             className={`flex items-center gap-1.5 px-2 py-1 rounded transition-opacity cursor-pointer hover:bg-surface-raised ${
-              isEnabled ? 'opacity-100' : 'opacity-40'
+              isEnabled ? "opacity-100" : "opacity-40"
             }`}
             aria-pressed={isEnabled}
           >
@@ -441,10 +507,10 @@ export function Legend({ enabledRoles, onToggleRole }: LegendProps) {
             />
             <span className="text-fg-secondary">{item.label}</span>
           </button>
-        )
+        );
       })}
     </div>
-  )
+  );
 }
 ```
 
@@ -468,34 +534,38 @@ git commit -m "refactor(Legend): migrate to color tokens"
 ### Task 6: Migrate ScaleDisplay
 
 **Files:**
+
 - Modify: `src/components/ScaleDisplay.tsx`
 
 Color changes:
+
 - `text-gray-400` → `text-fg-muted` (two occurrences: section label and degree number)
 - `bg-gray-800` → `bg-surface-raised`
 - `border-gray-700` → `border-line`
 - `text-gray-100` → `text-fg-secondary`
-- Half-step pill: `bg-blue-900/25 text-blue-300/80 border-blue-800/40` → `bg-root/25 text-root/80 border-root/40`
-- Whole-step pill: `bg-emerald-900/25 text-emerald-300/80 border-emerald-800/40` → `bg-fifth/25 text-fifth/80 border-fifth/40`
+- Half-step pill: `bg-blue-900/25 text-blue-300/80 border-blue-800/40` →
+  `bg-root/25 text-root/80 border-root/40`
+- Whole-step pill: `bg-emerald-900/25 text-emerald-300/80 border-emerald-800/40` →
+  `bg-fifth/25 text-fifth/80 border-fifth/40`
 
 - [ ] **Step 1: Replace `src/components/ScaleDisplay.tsx`**
 
 ```tsx
-import type { AccidentalStyle } from '../theory/notes'
-import { getMajorScaleNotes, MAJOR_SCALE_STEPS } from '../theory/scales'
-import { ALL_NOTES_KEY } from './KeySelector'
+import type { AccidentalStyle } from "../theory/notes";
+import { getMajorScaleNotes, MAJOR_SCALE_STEPS } from "../theory/scales";
+import { ALL_NOTES_KEY } from "./KeySelector";
 
-const DEGREE_LABELS = ['1', '2', '3', '4', '5', '6', '7']
+const DEGREE_LABELS = ["1", "2", "3", "4", "5", "6", "7"];
 
 type ScaleDisplayProps = {
-  selectedKey: string
-  accidentalStyle: AccidentalStyle
-}
+  selectedKey: string;
+  accidentalStyle: AccidentalStyle;
+};
 
 export function ScaleDisplay({ selectedKey, accidentalStyle }: ScaleDisplayProps) {
-  if (selectedKey === ALL_NOTES_KEY) return null
+  if (selectedKey === ALL_NOTES_KEY) return null;
 
-  const notes = getMajorScaleNotes(selectedKey, accidentalStyle)
+  const notes = getMajorScaleNotes(selectedKey, accidentalStyle);
 
   return (
     <div className="flex flex-wrap items-center gap-2 text-sm">
@@ -511,19 +581,19 @@ export function ScaleDisplay({ selectedKey, accidentalStyle }: ScaleDisplayProps
           {i < notes.length - 1 && (
             <span
               className={`px-2 py-0.5 rounded text-sm font-medium tracking-wide border ${
-                MAJOR_SCALE_STEPS[i] === 'half'
-                  ? 'bg-root/25 text-root/80 border-root/40'
-                  : 'bg-fifth/25 text-fifth/80 border-fifth/40'
+                MAJOR_SCALE_STEPS[i] === "half"
+                  ? "bg-root/25 text-root/80 border-root/40"
+                  : "bg-fifth/25 text-fifth/80 border-fifth/40"
               }`}
-              title={MAJOR_SCALE_STEPS[i] === 'half' ? 'Half step' : 'Whole step'}
+              title={MAJOR_SCALE_STEPS[i] === "half" ? "Half step" : "Whole step"}
             >
-              {MAJOR_SCALE_STEPS[i] === 'half' ? 'H' : 'F'}
+              {MAJOR_SCALE_STEPS[i] === "half" ? "H" : "F"}
             </span>
           )}
         </div>
       ))}
     </div>
-  )
+  );
 }
 ```
 
@@ -547,12 +617,15 @@ git commit -m "refactor(ScaleDisplay): migrate to color tokens"
 ### Task 7: Migrate DiatonicChords
 
 **Files:**
+
 - Modify: `src/components/DiatonicChords.tsx`
 
 Color changes:
+
 - `border-gray-600` → `border-line-emphasis`
 - `border-gray-700` → `border-line`
-- `bg-gray-800`, `bg-gray-800/80` → `bg-surface-raised` (the `/80` shade collapses per spec)
+- `bg-gray-800`, `bg-gray-800/80` → `bg-surface-raised` (the `/80` shade collapses per
+  spec)
 - `text-gray-300` → `text-fg-secondary`
 - `border-white/90` → `border-line-selected`
 - `bg-gray-700` → `bg-surface-active`
@@ -564,23 +637,23 @@ Color changes:
 - [ ] **Step 1: Replace `src/components/DiatonicChords.tsx`**
 
 ```tsx
-import type { AccidentalStyle } from '../theory/notes'
-import { getDiatonicChords, type ChordQuality } from '../theory/scales'
-import { ALL_NOTES_KEY } from './KeySelector'
+import type { AccidentalStyle } from "../theory/notes";
+import { getDiatonicChords, type ChordQuality } from "../theory/scales";
+import { ALL_NOTES_KEY } from "./KeySelector";
 
 type DiatonicChordsProps = {
-  selectedKey: string
-  accidentalStyle: AccidentalStyle
-  selectedDegree: number | null
-  onSelectDegree: (degree: number) => void
-}
+  selectedKey: string;
+  accidentalStyle: AccidentalStyle;
+  selectedDegree: number | null;
+  onSelectDegree: (degree: number) => void;
+};
 
 const QUALITY_ACCENT: Record<ChordQuality, string> = {
-  maj7: 'border-line-emphasis bg-surface-raised',
-  m7: 'border-line bg-surface-raised',
-  '7': 'border-line bg-surface-raised',
-  m7b5: 'border-line bg-surface-raised',
-}
+  maj7: "border-line-emphasis bg-surface-raised",
+  m7: "border-line bg-surface-raised",
+  "7": "border-line bg-surface-raised",
+  m7b5: "border-line bg-surface-raised",
+};
 
 export function DiatonicChords({
   selectedKey,
@@ -588,9 +661,9 @@ export function DiatonicChords({
   selectedDegree,
   onSelectDegree,
 }: DiatonicChordsProps) {
-  if (selectedKey === ALL_NOTES_KEY) return null
+  if (selectedKey === ALL_NOTES_KEY) return null;
 
-  const chords = getDiatonicChords(selectedKey, accidentalStyle)
+  const chords = getDiatonicChords(selectedKey, accidentalStyle);
 
   return (
     <section className="mt-8">
@@ -599,7 +672,7 @@ export function DiatonicChords({
       </h2>
       <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-4">
         {chords.map((chord) => {
-          const isSelected = selectedDegree === chord.degree
+          const isSelected = selectedDegree === chord.degree;
           return (
             <button
               key={chord.degree}
@@ -608,7 +681,7 @@ export function DiatonicChords({
               aria-pressed={isSelected}
               className={`flex flex-col items-center justify-center gap-3 px-4 py-8 min-h-[10rem] rounded-xl border-2 shadow-lg cursor-pointer transition-colors ${
                 isSelected
-                  ? 'border-line-selected bg-surface-active'
+                  ? "border-line-selected bg-surface-active"
                   : `${QUALITY_ACCENT[chord.quality]} hover:border-line-hover`
               }`}
             >
@@ -619,14 +692,14 @@ export function DiatonicChords({
                 {chord.symbol}
               </span>
               <span className="text-lg text-fg-secondary tracking-wider font-medium">
-                {chord.notes.join(' – ')}
+                {chord.notes.join(" – ")}
               </span>
             </button>
-          )
+          );
         })}
       </div>
     </section>
-  )
+  );
 }
 ```
 
@@ -650,6 +723,7 @@ git commit -m "refactor(DiatonicChords): migrate to color tokens"
 ### Task 8: Final verification
 
 **Files:**
+
 - None modified — verification only
 
 - [ ] **Step 1: Confirm no Tailwind palette utilities remain in components or views**
@@ -658,7 +732,8 @@ git commit -m "refactor(DiatonicChords): migrate to color tokens"
 grep -rEn '(bg|text|border|ring|fill|stroke|from|to|via)-(gray|slate|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose|white)(-[0-9]+)?(\/[0-9]+)?' src/components src/views src/App.tsx
 ```
 
-Expected: no output (zero matches). If any match appears, it's a missed migration — fix that file using the patterns from Tasks 2–7, re-run, then continue.
+Expected: no output (zero matches). If any match appears, it's a missed migration — fix
+that file using the patterns from Tasks 2–7, re-run, then continue.
 
 - [ ] **Step 2: Confirm old token names are fully replaced**
 
@@ -666,7 +741,8 @@ Expected: no output (zero matches). If any match appears, it's a missed migratio
 grep -rEn 'var\(--color-bg\)|var\(--color-text\)' src/
 ```
 
-Expected: no output. The old `--color-bg` and `--color-text` names should appear nowhere.
+Expected: no output. The old `--color-bg` and `--color-text` names should appear
+nowhere.
 
 - [ ] **Step 3: Run full build, lint, and test suite**
 
@@ -683,13 +759,20 @@ npm run dev
 ```
 
 Open `http://localhost:5173/` and verify:
+
 - Page background is the same dark gray as before.
-- Key selector: selected key has blue background (`--color-root`), white text. Unselected keys have raised gray bg, lighter text, hover slightly brighter.
+- Key selector: selected key has blue background (`--color-root`), white text.
+  Unselected keys have raised gray bg, lighter text, hover slightly brighter.
 - ♭/♯ toggle: same look as before.
 - View tabs: selected tab has gray-active bg + white text.
-- Scale display chips read e.g. "1 C 2 D 3 E 4 F …" with bordered chips and pill-style "F" (greenish) and "H" (bluish) indicators between them. The H pill should now have a subtle gradient flattening — visually near-identical to before.
-- Diatonic chord cards: I card highlighted with white border + active gray bg. Other cards have raised-gray bg with default borders (the `gray-800/80` shade is gone — all four quality types share the same bg). Hover lifts border color.
-- Click a chord: white border switches, fretboard highlight colors track the chord's root/3rd/5th/7th.
+- Scale display chips read e.g. "1 C 2 D 3 E 4 F …" with bordered chips and pill-style
+  "F" (greenish) and "H" (bluish) indicators between them. The H pill should now have a
+  subtle gradient flattening — visually near-identical to before.
+- Diatonic chord cards: I card highlighted with white border + active gray bg. Other
+  cards have raised-gray bg with default borders (the `gray-800/80` shade is gone — all
+  four quality types share the same bg). Hover lifts border color.
+- Click a chord: white border switches, fretboard highlight colors track the chord's
+  root/3rd/5th/7th.
 - Toggle Legend items: same on/off behavior.
 - Stop the dev server (Ctrl-C).
 
@@ -701,14 +784,14 @@ Task 8 is verification only. If everything passes, the refactor is complete.
 
 ## Coverage Summary
 
-| Spec section | Implemented in |
-|---|---|
-| Token taxonomy (`@theme` block, 17 tokens) | Task 1 |
-| Rename `--color-bg` → `--color-surface` | Task 1 |
-| Rename `--color-text` → `--color-fg-primary` | Task 1 |
-| Replacement mapping table (every row) | Tasks 2–7 |
-| `gray-800/80` collapse to solid `surface-raised` | Task 7 |
-| `gray-100`/`200`/`300` text collapse to `fg-secondary` | Tasks 6 (gray-100), 7 (gray-200, gray-300), 5 (gray-300), 4 (gray-200) |
-| Step-pill recolor (blue → root, emerald → fifth) | Task 6 |
-| SVG attributes unchanged (Fretboard*.tsx, NoteCircle.tsx, FretMarkers.tsx, FretboardString.tsx) | n/a — none referenced renamed tokens |
-| Verification: grep, build, lint, tests, manual smoke | Task 8 |
+| Spec section                                                                                     | Implemented in                                                         |
+| ------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------- |
+| Token taxonomy (`@theme` block, 17 tokens)                                                       | Task 1                                                                 |
+| Rename `--color-bg` → `--color-surface`                                                          | Task 1                                                                 |
+| Rename `--color-text` → `--color-fg-primary`                                                     | Task 1                                                                 |
+| Replacement mapping table (every row)                                                            | Tasks 2–7                                                              |
+| `gray-800/80` collapse to solid `surface-raised`                                                 | Task 7                                                                 |
+| `gray-100`/`200`/`300` text collapse to `fg-secondary`                                           | Tasks 6 (gray-100), 7 (gray-200, gray-300), 5 (gray-300), 4 (gray-200) |
+| Step-pill recolor (blue → root, emerald → fifth)                                                 | Task 6                                                                 |
+| SVG attributes unchanged (Fretboard\*.tsx, NoteCircle.tsx, FretMarkers.tsx, FretboardString.tsx) | n/a — none referenced renamed tokens                                   |
+| Verification: grep, build, lint, tests, manual smoke                                             | Task 8                                                                 |

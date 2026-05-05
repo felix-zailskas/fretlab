@@ -1,15 +1,15 @@
 type FretMarkersProps = {
-  fretX: (fret: number) => number
-  boardTop: number
-  boardBottom: number
-}
+  fretX: (fret: number) => number;
+  boardTop: number;
+  boardBottom: number;
+};
 
-const SINGLE_DOT_FRETS = [3, 5, 7, 9, 15]
-const DOUBLE_DOT_FRET = 12
+const SINGLE_DOT_FRETS = [3, 5, 7, 9, 15];
+const DOUBLE_DOT_FRET = 12;
 
 export function FretMarkers({ fretX, boardTop, boardBottom }: FretMarkersProps) {
-  const midY = (boardTop + boardBottom) / 2
-  const dotOffset = (boardBottom - boardTop) / 5
+  const midY = (boardTop + boardBottom) / 2;
+  const dotOffset = (boardBottom - boardTop) / 5;
 
   return (
     <g>
@@ -39,5 +39,5 @@ export function FretMarkers({ fretX, boardTop, boardBottom }: FretMarkersProps) 
         opacity={0.4}
       />
     </g>
-  )
+  );
 }

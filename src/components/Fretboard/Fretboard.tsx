@@ -1,51 +1,51 @@
-import type { NoteMarker } from '../../theory/types'
-import { FRET_COUNT } from '../../theory/constants'
-import { FretboardString } from './FretboardString'
-import { FretMarkers } from './FretMarkers'
-import { NoteCircle } from './NoteCircle'
+import type { NoteMarker } from "../../theory/types";
+import { FRET_COUNT } from "../../theory/constants";
+import { FretboardString } from "./FretboardString";
+import { FretMarkers } from "./FretMarkers";
+import { NoteCircle } from "./NoteCircle";
 
 export type PositionWindow = {
-  id: string
-  low: number
-  high: number
-  label: string
-}
+  id: string;
+  low: number;
+  high: number;
+  label: string;
+};
 
 export type OverlapZone = {
-  id: string
-  low: number
-  high: number
-}
+  id: string;
+  low: number;
+  high: number;
+};
 
 type FretboardProps = {
-  markers: NoteMarker[]
-  fretCount?: number
-  positionWindows?: ReadonlyArray<PositionWindow>
-  overlapZones?: ReadonlyArray<OverlapZone>
-}
+  markers: NoteMarker[];
+  fretCount?: number;
+  positionWindows?: ReadonlyArray<PositionWindow>;
+  overlapZones?: ReadonlyArray<OverlapZone>;
+};
 
 // PADDING.top reserves space above the board for position-window labels.
 // boardTop = PADDING.top, so increasing top padding pushes the whole board
 // down and exposes a header strip for label text.
-const PADDING = { top: 40, bottom: 40, left: 50, right: 20 }
-const STRING_SPACING = 30
-const NUM_STRINGS = 6
+const PADDING = { top: 40, bottom: 40, left: 50, right: 20 };
+const STRING_SPACING = 30;
+const NUM_STRINGS = 6;
 
 // Position windows use corner brackets — viewfinder/cinema-marker geometry —
 // rather than a continuous border. Brackets read as "framed region" and stay
 // distinct from the continuous-border overlap-zone treatment below, even
 // when several non-overlapping positions are selected.
-const POSITION_FILL = 'rgba(255, 255, 255, 0.04)'
-const POSITION_BRACKET_STROKE = 'rgba(255, 255, 255, 0.65)'
-const POSITION_BRACKET_WIDTH = 2
-const POSITION_BRACKET_LEN = 16
+const POSITION_FILL = "rgba(255, 255, 255, 0.04)";
+const POSITION_BRACKET_STROKE = "rgba(255, 255, 255, 0.65)";
+const POSITION_BRACKET_WIDTH = 2;
+const POSITION_BRACKET_LEN = 16;
 
 // Overlap zones use a continuous border + brighter fill — visually different
 // from position windows so the eye reads "joined territory" rather than just
 // "another box."
-const OVERLAP_FILL = 'rgba(255, 255, 255, 0.13)'
-const OVERLAP_STROKE = 'rgba(255, 255, 255, 0.55)'
-const OVERLAP_STROKE_WIDTH = 1.5
+const OVERLAP_FILL = "rgba(255, 255, 255, 0.13)";
+const OVERLAP_STROKE = "rgba(255, 255, 255, 0.55)";
+const OVERLAP_STROKE_WIDTH = 1.5;
 
 export function Fretboard({
   markers,
@@ -53,39 +53,39 @@ export function Fretboard({
   positionWindows,
   overlapZones,
 }: FretboardProps) {
-  const boardTop = PADDING.top
-  const boardBottom = PADDING.top + (NUM_STRINGS - 1) * STRING_SPACING
-  const boardWidth = 900
-  const fretSpacing = boardWidth / fretCount
-  const nutX = PADDING.left
-  const totalWidth = PADDING.left + boardWidth + PADDING.right
-  const totalHeight = boardBottom + PADDING.bottom
+  const boardTop = PADDING.top;
+  const boardBottom = PADDING.top + (NUM_STRINGS - 1) * STRING_SPACING;
+  const boardWidth = 900;
+  const fretSpacing = boardWidth / fretCount;
+  const nutX = PADDING.left;
+  const totalWidth = PADDING.left + boardWidth + PADDING.right;
+  const totalHeight = boardBottom + PADDING.bottom;
 
   // Returns the x position at the center of a fret (between fret n-1 and fret n).
   // For fret 0 (open), returns a position to the left of the nut.
   function fretCenterX(fret: number): number {
-    if (fret === 0) return nutX - 20
-    return nutX + (fret - 0.5) * fretSpacing
+    if (fret === 0) return nutX - 20;
+    return nutX + (fret - 0.5) * fretSpacing;
   }
 
   // Returns the x position of the fret wire itself (for dot markers).
   function fretX(fret: number): number {
-    return nutX + (fret - 0.5) * fretSpacing
+    return nutX + (fret - 0.5) * fretSpacing;
   }
 
   // String index 0 = low E = bottom, index 5 = high E = top
   function stringY(stringIndex: number): number {
-    return boardBottom - stringIndex * STRING_SPACING
+    return boardBottom - stringIndex * STRING_SPACING;
   }
 
   // Position-window rectangle bounds. Fret-0 windows are extended pre-nut so
   // the rectangle visually contains open-note markers (which render at
   // nutX - 20 with radius ~13).
   function windowLeftX(low: number): number {
-    return low === 0 ? nutX - 35 : nutX + (low - 1) * fretSpacing
+    return low === 0 ? nutX - 35 : nutX + (low - 1) * fretSpacing;
   }
   function windowRightX(high: number): number {
-    return nutX + high * fretSpacing
+    return nutX + high * fretSpacing;
   }
 
   // Generates an SVG path describing four L-shaped corner brackets at the
@@ -93,7 +93,7 @@ export function Fretboard({
   // never exceeds half the smaller dimension — single-fret windows still get
   // sensible brackets that don't cross.
   function bracketPath(L: number, T: number, R: number, B: number): string {
-    const k = Math.min(POSITION_BRACKET_LEN, (R - L) / 2, (B - T) / 2)
+    const k = Math.min(POSITION_BRACKET_LEN, (R - L) / 2, (B - T) / 2);
     return [
       // top-left:  arm tip → corner → arm tip
       `M ${L + k},${T} L ${L},${T} L ${L},${T + k}`,
@@ -103,7 +103,7 @@ export function Fretboard({
       `M ${L},${B - k} L ${L},${B} L ${L + k},${B}`,
       // bottom-right
       `M ${R},${B - k} L ${R},${B} L ${R - k},${B}`,
-    ].join(' ')
+    ].join(" ");
   }
 
   return (
@@ -125,8 +125,8 @@ export function Fretboard({
       {/* Position windows — faint fill, no continuous border (corner brackets
           rendered separately below for the framing geometry). */}
       {positionWindows?.map((win) => {
-        const leftX = windowLeftX(win.low)
-        const rightX = windowRightX(win.high)
+        const leftX = windowLeftX(win.low);
+        const rightX = windowRightX(win.high);
         return (
           <rect
             key={`window-fill-${win.id}`}
@@ -137,15 +137,15 @@ export function Fretboard({
             rx={3}
             fill={POSITION_FILL}
           />
-        )
+        );
       })}
 
       {/* Overlap zones — continuous-bordered rectangles. Visually distinct from
           the bracketed position windows: positions = framed regions, overlaps
           = explicitly joined territory. */}
       {overlapZones?.map((zone) => {
-        const leftX = windowLeftX(zone.low)
-        const rightX = windowRightX(zone.high)
+        const leftX = windowLeftX(zone.low);
+        const rightX = windowRightX(zone.high);
         return (
           <rect
             key={`overlap-${zone.id}`}
@@ -158,7 +158,7 @@ export function Fretboard({
             stroke={OVERLAP_STROKE}
             strokeWidth={OVERLAP_STROKE_WIDTH}
           />
-        )
+        );
       })}
 
       {/* Fret markers (dots) — rendered behind strings and notes */}
@@ -216,10 +216,10 @@ export function Fretboard({
       {/* Position-window corner brackets — rendered above strings/markers so
           they read as a frame in front of, not behind, the content. */}
       {positionWindows?.map((win) => {
-        const leftX = windowLeftX(win.low)
-        const rightX = windowRightX(win.high)
-        const T = boardTop - 10
-        const B = boardBottom + 10
+        const leftX = windowLeftX(win.low);
+        const rightX = windowRightX(win.high);
+        const T = boardTop - 10;
+        const B = boardBottom + 10;
         return (
           <path
             key={`brackets-${win.id}`}
@@ -230,7 +230,7 @@ export function Fretboard({
             strokeLinecap="round"
             strokeLinejoin="miter"
           />
-        )
+        );
       })}
 
       {/* Note markers */}
@@ -247,9 +247,9 @@ export function Fretboard({
       {/* Position-window labels — placed in the dedicated header strip above
           the board (the boardTop padding reserves this space). */}
       {positionWindows?.map((win) => {
-        const leftX = windowLeftX(win.low)
-        const rightX = windowRightX(win.high)
-        const centerX = (leftX + rightX) / 2
+        const leftX = windowLeftX(win.low);
+        const rightX = windowRightX(win.high);
+        const centerX = (leftX + rightX) / 2;
         return (
           <text
             key={`label-${win.id}`}
@@ -260,12 +260,12 @@ export function Fretboard({
             fontWeight={500}
             fontFamily="system-ui, sans-serif"
             fill="var(--color-fg-primary)"
-            style={{ letterSpacing: '0.04em' }}
+            style={{ letterSpacing: "0.04em" }}
           >
             {win.label}
           </text>
-        )
+        );
       })}
     </svg>
-  )
+  );
 }
