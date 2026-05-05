@@ -89,6 +89,51 @@ export function getDiatonicChords(
   });
 }
 
+export type TriadQuality = "maj" | "min" | "dim";
+
+export type DiatonicTriad = {
+  degree: number; // 1-7
+  romanNumeral: string; // 'I', 'ii', 'iii', 'IV', 'V', 'vi', 'vii°'
+  quality: TriadQuality;
+  symbol: string; // 'C', 'Dm', 'Em', 'F', 'G', 'Am', 'B°'
+  notes: [string, string, string];
+};
+
+const DIATONIC_TRIAD_TEMPLATE: { numeral: string; quality: TriadQuality }[] = [
+  { numeral: "I", quality: "maj" },
+  { numeral: "ii", quality: "min" },
+  { numeral: "iii", quality: "min" },
+  { numeral: "IV", quality: "maj" },
+  { numeral: "V", quality: "maj" },
+  { numeral: "vi", quality: "min" },
+  { numeral: "vii°", quality: "dim" },
+];
+
+const TRIAD_QUALITY_SUFFIX: Record<TriadQuality, string> = {
+  maj: "",
+  min: "m",
+  dim: "°",
+};
+
+export function getDiatonicTriads(
+  key: string,
+  accidentalStyle?: AccidentalStyle,
+): DiatonicTriad[] {
+  const scale = getMajorScaleNotes(key, accidentalStyle);
+  return DIATONIC_TRIAD_TEMPLATE.map(({ numeral, quality }, i) => {
+    const root = scale[i];
+    const third = scale[(i + 2) % 7];
+    const fifth = scale[(i + 4) % 7];
+    return {
+      degree: i + 1,
+      romanNumeral: numeral,
+      quality,
+      symbol: root + TRIAD_QUALITY_SUFFIX[quality],
+      notes: [root, third, fifth],
+    };
+  });
+}
+
 export function getIntervalRole(key: string, note: string): IntervalRole | null {
   const noteIndex = getNoteIndex(note);
   const rootIndex = getNoteIndex(key);

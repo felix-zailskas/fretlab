@@ -3,6 +3,7 @@ import {
   getMajorScaleNotes,
   getIntervalRole,
   getDiatonicChords,
+  getDiatonicTriads,
   MAJOR_SCALE_INTERVALS,
   MAJOR_SCALE_STEPS,
 } from "./scales";
@@ -182,5 +183,91 @@ describe("getIntervalRole", () => {
   it("handles enharmonic equivalents", () => {
     // F# in G major = seventh, should also work if passed as Gb
     expect(getIntervalRole("G", "Gb")).toBe("seventh");
+  });
+});
+
+describe("getDiatonicTriads", () => {
+  it("returns the 7 diatonic triads for C major", () => {
+    const triads = getDiatonicTriads("C");
+    expect(triads).toHaveLength(7);
+    expect(triads[0]).toMatchObject({
+      degree: 1,
+      romanNumeral: "I",
+      quality: "maj",
+      symbol: "C",
+      notes: ["C", "E", "G"],
+    });
+    expect(triads[1]).toMatchObject({
+      degree: 2,
+      romanNumeral: "ii",
+      quality: "min",
+      symbol: "Dm",
+      notes: ["D", "F", "A"],
+    });
+    expect(triads[2]).toMatchObject({
+      degree: 3,
+      romanNumeral: "iii",
+      quality: "min",
+      symbol: "Em",
+      notes: ["E", "G", "B"],
+    });
+    expect(triads[3]).toMatchObject({
+      degree: 4,
+      romanNumeral: "IV",
+      quality: "maj",
+      symbol: "F",
+      notes: ["F", "A", "C"],
+    });
+    expect(triads[4]).toMatchObject({
+      degree: 5,
+      romanNumeral: "V",
+      quality: "maj",
+      symbol: "G",
+      notes: ["G", "B", "D"],
+    });
+    expect(triads[5]).toMatchObject({
+      degree: 6,
+      romanNumeral: "vi",
+      quality: "min",
+      symbol: "Am",
+      notes: ["A", "C", "E"],
+    });
+    expect(triads[6]).toMatchObject({
+      degree: 7,
+      romanNumeral: "vii°",
+      quality: "dim",
+      symbol: "B°",
+      notes: ["B", "D", "F"],
+    });
+  });
+
+  it("returns correct triads for G major (sharps)", () => {
+    const triads = getDiatonicTriads("G");
+    expect(triads[0].symbol).toBe("G");
+    expect(triads[0].notes).toEqual(["G", "B", "D"]);
+    expect(triads[4].symbol).toBe("D");
+    expect(triads[6].symbol).toBe("F#°");
+    expect(triads[6].notes).toEqual(["F#", "A", "C"]);
+  });
+
+  it("returns correct triads for F major (flats)", () => {
+    const triads = getDiatonicTriads("F");
+    expect(triads[0].symbol).toBe("F");
+    expect(triads[3].symbol).toBe("Bb");
+    expect(triads[3].notes).toEqual(["Bb", "D", "F"]);
+    expect(triads[6].symbol).toBe("E°");
+    expect(triads[6].notes).toEqual(["E", "G", "Bb"]);
+  });
+
+  it("respects accidentalStyle override (sharp on a flat-keyed scale)", () => {
+    const triads = getDiatonicTriads("F", "sharp");
+    expect(triads[3].symbol).toBe("A#");
+    expect(triads[3].notes).toEqual(["A#", "D", "F"]);
+  });
+
+  it("respects accidentalStyle override (flat on a sharp-keyed scale)", () => {
+    const triads = getDiatonicTriads("G", "flat");
+    expect(triads[6].symbol).toBe("Gb°");
+    expect(triads[6].notes).toEqual(["Gb", "A", "C"]);
   });
 });
