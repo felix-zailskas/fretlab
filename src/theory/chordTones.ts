@@ -10,20 +10,10 @@ import {
 } from './notes'
 import { isInPositionWindow, type PositionId } from './positions'
 import { getIntervalRole, type DiatonicChord } from './scales'
-import type { IntervalRole, NoteDisplayRole, NoteMarker } from './types'
-
-const INTERVAL_TO_DISPLAY_ROLE: Record<IntervalRole, NoteDisplayRole> = {
-  root: 'root',
-  second: 'scale',
-  third: 'third',
-  fourth: 'scale',
-  fifth: 'fifth',
-  sixth: 'scale',
-  seventh: 'seventh',
-}
+import type { NoteDisplayRole, NoteMarker } from './types'
 
 // Roles the Legend can toggle off (demoted to 'scale' when their toggle is
-// disabled). Both NoteMapView and ChordTonesView read from this single set.
+// disabled). Both NoteMapView and ScalePositionsView read from this single set.
 export const HIGHLIGHTABLE: ReadonlySet<NoteDisplayRole> = new Set<NoteDisplayRole>([
   'root',
   'third',
@@ -34,19 +24,15 @@ export const HIGHLIGHTABLE: ReadonlySet<NoteDisplayRole> = new Set<NoteDisplayRo
 // Resolves the visual role of an in-key note given an optional chord context.
 // - With a chord: returns the chord-relative role ('root'/'third'/'fifth'/
 //   'seventh'), or 'scale' if the note is in-key but not a chord tone.
-// - Without a chord: falls back to the major-scale interval mapping where
-//   1/3/5/7 light up and 2/4/6 are muted to 'scale'.
-// Caller is responsible for filtering out-of-key notes upstream (intervalRole
-// is non-nullable here; callers pass the result of getIntervalRole and skip
-// when null).
+// - Without a chord: returns 'scale'. Deselecting the chord card is the
+//   user-facing "clear highlights" shortcut — every in-key note falls back to
+//   the plain scale role, and Legend toggles have nothing to demote.
+// Caller is responsible for filtering out-of-key notes upstream.
 export function roleFromChordTone(
   note: string,
   chord: DiatonicChord | null,
-  intervalRole: IntervalRole,
 ): NoteDisplayRole {
-  if (!chord) {
-    return INTERVAL_TO_DISPLAY_ROLE[intervalRole]
-  }
+  if (!chord) return 'scale'
   const noteIdx = getNoteIndex(note)
   const rootIdx = getNoteIndex(chord.notes[0])
   const thirdIdx = getNoteIndex(chord.notes[1])
@@ -103,18 +89,9 @@ export function buildChordToneMarkers({
       const inWindow = positions.some((p) => isInPositionWindow(key, p, fret))
       if (!inWindow && !showContext) continue // hide outside-position notes
 
-      // No-chord mode is a deliberate "clear highlights" shortcut: deselecting
-      // the chord card switches the view to box-only visualization (every
-      // in-key note renders as 'scale'), unlike NoteMapView which falls back
-      // to highlighting the major scale's 1/3/5/7 in that case.
-      let role: NoteDisplayRole
-      if (chord === null) {
-        role = 'scale'
-      } else {
-        role = roleFromChordTone(note, chord, interval)
-        if (HIGHLIGHTABLE.has(role) && !enabledHighlights.has(role as HighlightableRole)) {
-          role = 'scale' // Legend toggle off → demote
-        }
+      let role = roleFromChordTone(note, chord)
+      if (HIGHLIGHTABLE.has(role) && !enabledHighlights.has(role as HighlightableRole)) {
+        role = 'scale' // Legend toggle off → demote
       }
       if (!inWindow) {
         role = 'muted' // outside-window context override

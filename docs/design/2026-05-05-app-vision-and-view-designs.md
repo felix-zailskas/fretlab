@@ -47,7 +47,10 @@ practice value:
   muted. An "All notes" mode disables key filtering.
 - A diatonic chord row sits above the fretboard. Selecting a chord remaps the
   highlights so that chord's R / 3 / 5 / 7 light up against the muted scale
-  background — the same visual contract the other views will follow.
+  background — the same visual contract the other views will follow. Clicking
+  the selected card again deselects it; with no chord active, every in-key
+  note renders as a plain scale tone (the explicit "clear highlights"
+  shortcut, consistent with the Scale Positions view).
 - An accidental toggle switches sharp / flat spelling; the Legend is always on
   screen.
 - Scope-wise this view is a superset of what the dedicated tabs need; later

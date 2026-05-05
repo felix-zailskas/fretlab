@@ -39,9 +39,8 @@ export function NoteMapView({
         if (showAll) {
           role = 'scale'
         } else {
-          const interval = getIntervalRole(selectedKey, note)
-          if (interval === null) continue
-          role = roleFromChordTone(note, selectedChord, interval)
+          if (getIntervalRole(selectedKey, note) === null) continue
+          role = roleFromChordTone(note, selectedChord)
           if (HIGHLIGHTABLE.has(role) && !enabledHighlights.has(role as HighlightableRole)) {
             role = 'scale'
           }

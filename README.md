@@ -22,7 +22,7 @@ Each tab in Fretlab answers a different practice question. Two views are impleme
 
 The default landing view. For the selected key, all in-key notes render across frets 0–15. Root / 3rd / 5th / 7th appear in their interval colors; the rest of the scale (2nd / 4th / 6th) is muted.
 
-A row of diatonic chord cards (I through vii°) sits below the fretboard. Selecting a chord remaps the highlights so that chord's R / 3 / 5 / 7 light up against the muted scale background — useful for spotting chord tones across the entire neck at once.
+A row of diatonic chord cards (I through vii°) sits below the fretboard. Selecting a chord remaps the highlights so that chord's R / 3 / 5 / 7 light up against the muted scale background — useful for spotting chord tones across the entire neck at once. Clicking the currently-selected card again deselects it, clearing all chord-tone highlights so every in-key note renders as a plain scale tone.
 
 **Features**
 - 12-key selector plus an "All Notes" mode that disables key filtering

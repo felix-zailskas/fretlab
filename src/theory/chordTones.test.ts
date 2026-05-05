@@ -1,25 +1,16 @@
 import { describe, it, expect } from 'vitest'
 import { roleFromChordTone, HIGHLIGHTABLE, buildChordToneMarkers } from './chordTones'
-import { getDiatonicChords, getIntervalRole } from './scales'
-import type { IntervalRole, NoteDisplayRole } from './types'
+import { getDiatonicChords } from './scales'
 import type { HighlightableRole } from '../components/Legend'
 import { ALL_NOTES_KEY } from '../components/KeySelector'
 
 describe('roleFromChordTone', () => {
-  it('returns the major-scale interval mapping when no chord is given', () => {
-    // C major scale tones: 1=C(root), 2=D(scale), 3=E(third), 4=F(scale),
-    //                      5=G(fifth), 6=A(scale), 7=B(seventh).
-    const cases: Array<[string, IntervalRole, NoteDisplayRole]> = [
-      ['C', 'root', 'root'],
-      ['D', 'second', 'scale'],
-      ['E', 'third', 'third'],
-      ['F', 'fourth', 'scale'],
-      ['G', 'fifth', 'fifth'],
-      ['A', 'sixth', 'scale'],
-      ['B', 'seventh', 'seventh'],
-    ]
-    for (const [note, interval, expected] of cases) {
-      expect(roleFromChordTone(note, null, interval)).toBe(expected)
+  it('returns "scale" for any in-key note when no chord is given', () => {
+    // Deselecting the chord card is the user-facing "clear highlights"
+    // shortcut. Every in-key note falls back to the plain scale role,
+    // regardless of which scale degree it is.
+    for (const note of ['C', 'D', 'E', 'F', 'G', 'A', 'B']) {
+      expect(roleFromChordTone(note, null)).toBe('scale')
     }
   })
 
@@ -29,24 +20,24 @@ describe('roleFromChordTone', () => {
     const am7 = chords[1] // ii
     expect(am7.symbol.toLowerCase()).toContain('a')
 
-    expect(roleFromChordTone('A', am7, getIntervalRole('G', 'A')!)).toBe('root')
-    expect(roleFromChordTone('C', am7, getIntervalRole('G', 'C')!)).toBe('third')
-    expect(roleFromChordTone('E', am7, getIntervalRole('G', 'E')!)).toBe('fifth')
-    expect(roleFromChordTone('G', am7, getIntervalRole('G', 'G')!)).toBe('seventh')
+    expect(roleFromChordTone('A', am7)).toBe('root')
+    expect(roleFromChordTone('C', am7)).toBe('third')
+    expect(roleFromChordTone('E', am7)).toBe('fifth')
+    expect(roleFromChordTone('G', am7)).toBe('seventh')
   })
 
   it('returns "scale" for in-key notes that are not chord tones', () => {
     // In G major over Am7, D is in the G major scale but not in Am7.
     const am7 = getDiatonicChords('G')[1]
-    expect(roleFromChordTone('D', am7, getIntervalRole('G', 'D')!)).toBe('scale')
+    expect(roleFromChordTone('D', am7)).toBe('scale')
   })
 
   it('handles enharmonic equivalence (sharp vs flat input)', () => {
     // V7 in F major is C7 = C E G Bb. Bb and A# are enharmonic — both should
     // resolve as the chord's seventh.
     const c7 = getDiatonicChords('F')[4]
-    expect(roleFromChordTone('Bb', c7, getIntervalRole('F', 'Bb')!)).toBe('seventh')
-    expect(roleFromChordTone('A#', c7, getIntervalRole('F', 'A#')!)).toBe('seventh')
+    expect(roleFromChordTone('Bb', c7)).toBe('seventh')
+    expect(roleFromChordTone('A#', c7)).toBe('seventh')
   })
 })
 
