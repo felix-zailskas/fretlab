@@ -153,6 +153,63 @@ redundant — the same data and controls serve both practice intents.
   chosen string group, ascending up the neck — I, ii, iii, IV, V, vi, vii° as
   triads ("the triad scale").
 
+### Future: Modal practice mode
+
+The Scale Positions view today operates in what we'd call **Mode 1**: chord
+selection drives chord-tone-relative coloring (Dm7's R/3/5/7 light up as
+blue/orange/green/purple, regardless of which scale degree they happen to be
+in the key). The colors are tied to the active chord's relative tonic.
+
+A natural complement is a **modal practice mode** that re-anchors the tonic
+to the selected chord's root and reinterprets the surrounding scale notes
+as a *mode* of the original major scale. The diatonic chord row becomes a
+mode selector:
+
+| Chord degree | Mode (if treated as the new tonic) |
+| ------------ | ---------------------------------- |
+| I            | Ionian (the original major scale)  |
+| ii           | Dorian                             |
+| iii          | Phrygian                           |
+| IV           | Lydian                             |
+| V            | Mixolydian                         |
+| vi           | Aeolian (natural minor)            |
+| vii°         | Locrian                            |
+
+**Worked example.** In C major, selecting Dm7 in modal mode treats D as the
+new tonic of D Dorian. The neck still shows the same physical notes
+(C major scale = D Dorian = E Phrygian etc.), but the visual contract
+shifts: D becomes the displayed root, the scale-degree numbers in the
+ScaleDisplay relabel themselves around D (D=1, E=2, F=3, G=4, A=5, B=6,
+C=7), and any chord-tone highlighting is interpreted relative to the modal
+tonic.
+
+**Why this matters for practice.** Modal soloing is a separate skill from
+chord-tone targeting. When you're playing over a Dm7 vamp for an extended
+section, you're not just "in C major over a ii chord" — you're *in D
+Dorian*. Practicing the sound of each mode means treating its root note as
+home and feeling the characteristic intervals (Dorian's natural 6, Lydian's
+♯4, Phrygian's ♭2, etc.). A dedicated mode that re-anchors visualization
+helps internalize that.
+
+**Open design questions** (to resolve when this is scoped for
+implementation):
+
+- Is this a separate tab, or a toggle on the existing Scale Positions view?
+- How does the chord row interaction change in modal mode — does selecting
+  ii still highlight Dm7's chord tones, or does it switch into D Dorian
+  visualization with no chord highlighted?
+- Are the 7 modes shown as a separate selector, or always inferred from the
+  chord row?
+- Does the CAGED position framing change when the tonic shifts? In Dorian,
+  the "P1 / E shape" of C major becomes a different shape relative to D as
+  root.
+- A characteristic-tones overlay (e.g., highlight ♯4 in Lydian, ♭2 in
+  Phrygian) would meaningfully add to mode practice — worth scoping
+  alongside the basic re-anchor.
+
+Status: not yet designed in detail. Reach for this section when starting
+the brainstorm.
+
 ---
 
 ## Technical decisions and constraints
