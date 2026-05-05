@@ -79,10 +79,13 @@ redundant — the same data and controls serve both practice intents.
   inside the union of selected position windows, against the in-key scale
   tones (faint). The Legend's R / 3 / 5 / 7 toggles control which chord-tone
   roles light up.
-- **Scale-position mode (no chord selected):** the major scale's 1 / 3 / 5 / 7
-  light up — same visual contract, with the I chord tones effectively
-  serving as scale-degree highlights. Same controls, same visualization, just
-  no chord-aware re-mapping.
+- **Scale-position mode (no chord selected):** clicking the currently-selected
+  chord card again clears it. With no chord active, no chord-tone highlights
+  render — every in-key note inside the selected positions falls back to the
+  plain `scale` role, leaving the box framing as the dominant visual. This is
+  the explicit "clear highlights" shortcut for box-only practice. The
+  Legend's R / 3 / 5 / 7 toggles remain enabled (they're orthogonal to chord
+  selection), but with no chord context they have nothing to demote.
 - A **"Show context notes"** toggle (off by default) renders in-key notes
   outside the selected positions with role `muted` (very faint context).
   Default off keeps the box visually focused.

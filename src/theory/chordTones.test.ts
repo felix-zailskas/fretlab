@@ -194,6 +194,24 @@ describe('buildChordToneMarkers', () => {
     expect(markers.some((m) => m.fret === 1)).toBe(true) // P1-only territory
   })
 
+  it('with chord=null, every in-window in-key marker renders as "scale" (no chord-tone highlights)', () => {
+    // Deselecting the chord card sets chord to null. The view's intent is
+    // "clear highlights, just show me the box" — so no R/3/5/7 lights up,
+    // even on the major scale's 1/3/5/7 frets.
+    const markers = buildChordToneMarkers({
+      key: 'C',
+      chord: null,
+      accidentalStyle: 'sharp',
+      positions: ['P1'],
+      showContext: false,
+      enabledHighlights: allRoles,
+    })
+    expect(markers.length).toBeGreaterThan(0)
+    for (const m of markers) {
+      expect(m.role).toBe('scale')
+    }
+  })
+
   it('with all 5 positions selected, renders markers spanning the full neck', () => {
     const markers = buildChordToneMarkers({
       key: 'C',

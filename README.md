@@ -43,7 +43,7 @@ A consolidated CAGED-box practice tool. Each selected position renders as a fram
 The view supports two complementary practice modes via the same controls:
 
 - **Chord-tone targeting** — pick a chord from the diatonic row. The chord's R / 3 / 5 / 7 light up *inside* the selected positions, against the scale-tone background.
-- **Pure scale-position study** — deselect the chord. The major scale's 1 / 3 / 5 / 7 light up — the same view, but no chord-aware re-mapping.
+- **Pure scale-position study** — click the currently-selected chord card again to deselect it. With no chord active, no chord tones highlight at all — every in-key note renders as a plain scale tone, leaving just the box framing on the neck. The Legend's R / 3 / 5 / 7 toggles stay enabled, but with no chord context they have nothing to demote.
 
 **Features**
 - Independent toggles for the 5 CAGED positions (P1 E-shape through P5 G-shape); any combination is valid

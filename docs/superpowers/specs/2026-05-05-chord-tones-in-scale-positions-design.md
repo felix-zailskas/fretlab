@@ -17,8 +17,9 @@ the highest-practice-value Fretlab view. It answers two questions in one:
   chord-tone targeting inside one or more boxes.
 
 A chord is selected → chord-relative R / 3 / 5 / 7 light up. No chord
-selected → the major scale's 1 / 3 / 5 / 7 light up (effectively the I-chord
-mapping). Same controls, same visualization.
+selected → no highlights at all (every in-key note renders as plain
+`scale`); this is the explicit "clear highlights" shortcut for pure
+box-study practice. Same controls, same visualization.
 
 This spec also introduces the **CAGED position model** as shared theory
 infrastructure.
@@ -225,11 +226,16 @@ for each (string = 0..5, fret = 0..FRET_COUNT):
   inWindow = positions.some(p => isInPositionWindow(key, p, fret))
   if (!inWindow && !showContext) continue      // hide outside-position notes
 
-  role = roleFromChordTone(noteAtFret, chord, intervalRole)
-        // -> 'root' | 'third' | 'fifth' | 'seventh' | 'scale'
-
-  if (HIGHLIGHTABLE.has(role) && !enabledHighlights.has(role)) {
-    role = 'scale'                             // legend toggle off → demote
+  if (chord === null) {
+    // "Clear highlights" shortcut — every in-key note renders as plain
+    // scale, leaving the box framing as the dominant visual.
+    role = 'scale'
+  } else {
+    role = roleFromChordTone(noteAtFret, chord, intervalRole)
+          // -> 'root' | 'third' | 'fifth' | 'seventh' | 'scale'
+    if (HIGHLIGHTABLE.has(role) && !enabledHighlights.has(role)) {
+      role = 'scale'                           // legend toggle off → demote
+    }
   }
   if (!inWindow) {
     role = 'muted'                             // outside-window context override

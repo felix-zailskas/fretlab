@@ -103,9 +103,18 @@ export function buildChordToneMarkers({
       const inWindow = positions.some((p) => isInPositionWindow(key, p, fret))
       if (!inWindow && !showContext) continue // hide outside-position notes
 
-      let role = roleFromChordTone(note, chord, interval)
-      if (HIGHLIGHTABLE.has(role) && !enabledHighlights.has(role as HighlightableRole)) {
-        role = 'scale' // Legend toggle off → demote
+      // No-chord mode is a deliberate "clear highlights" shortcut: deselecting
+      // the chord card switches the view to box-only visualization (every
+      // in-key note renders as 'scale'), unlike NoteMapView which falls back
+      // to highlighting the major scale's 1/3/5/7 in that case.
+      let role: NoteDisplayRole
+      if (chord === null) {
+        role = 'scale'
+      } else {
+        role = roleFromChordTone(note, chord, interval)
+        if (HIGHLIGHTABLE.has(role) && !enabledHighlights.has(role as HighlightableRole)) {
+          role = 'scale' // Legend toggle off → demote
+        }
       }
       if (!inWindow) {
         role = 'muted' // outside-window context override
