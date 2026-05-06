@@ -114,18 +114,19 @@ export function ScalePositionsView({
           Show context notes
         </label>
       </div>
-      {selectedPositions.size === 0 ? (
-        <div className="text-fg-faint text-center py-20">
-          Toggle a position to begin.
-        </div>
-      ) : (
+      <div className="relative">
         <Fretboard
           markers={markers}
           fretCount={FRET_COUNT}
           positionWindows={positionWindows}
           overlapZones={overlapZones}
         />
-      )}
+        {selectedPositions.size === 0 && (
+          <div className="absolute inset-0 flex items-center justify-center text-fg-faint pointer-events-none">
+            Toggle a position to begin.
+          </div>
+        )}
+      </div>
     </div>
   );
 }
