@@ -230,6 +230,55 @@ visualization helps internalize that.
 
 Status: not yet designed in detail. Reach for this section when starting the brainstorm.
 
+### Future: Reference tab
+
+A theoretical-lookup tab — a distinct cognitive job from the existing practice-flow tabs
+(Note Map, Scale Positions, Chord Shapes), which are all key-aware and fretboard-driven.
+The Reference tab would consolidate look-up content that doesn't naturally belong on a
+fretboard and isn't needed at every glance during practice.
+
+**Candidate features.** None of these are scoped yet; ordering is rough priority:
+
+- **Circle of fifths.** All 12 keys arranged in canonical positions, with the
+  currently-selected key highlighted and the **diatonic-chord arc** for that key
+  emphasised — the 7 diatonic chords are always contiguous on the circle, a property
+  worth visualising. Clicking a position switches the global key. Doubles as a learning
+  tool for relative minors and key-signature relationships. Considered (and rejected) as
+  a replacement for the linear key selector in the shared header — a circle costs too
+  much vertical space in the always-visible chrome, especially on iPad-on-music-stand
+  layouts. The Reference tab gives it the room to earn its size.
+- **Chord-diagram box grid.** The static fingering reference originally scoped for V0 of
+  Chord Shapes, deferred when V1 narrowed to the ascending neck view. Two families:
+  shells (8 boxes, 2 root strings × 4 chord types) and triads (36 boxes, 4 string groups
+  × 3 qualities × 3 inversions). Pure fingering reference, not key-anchored — answers
+  _"how do I play an m7♭5 shape?"_ regardless of the current key.
+- **Non-diatonic chord lookup.** Pick any chord type and root and see its shapes /
+  shells, even when not diatonic in the current key.
+- **Theory formulas.** Chord construction (maj7 = 1 3 5 7, m7♭5 = 1 ♭3 ♭5 ♭7, etc.),
+  scale formulas, mode formulas. Static text reference.
+
+**Why this matters.** The existing practice tabs share a cognitive frame: key + visual +
+neck. Stuffing static lookup content into them dilutes that frame; the chord-diagram box
+grid was an early casualty (Chord Shapes V1 explicitly drops it). A separate Reference
+tab gives that content a home where its theoretical-lookup framing reads correctly
+without competing with the practice flow.
+
+**Open design questions** (to resolve when this is scoped):
+
+- Is the circle of fifths the primary chrome of the tab, or one section among many?
+- Does the Reference tab override the global key selector when a key is picked from the
+  circle, or run as a parallel "scratch" mode that doesn't disturb the practice tabs'
+  state?
+- How does the chord-diagram box grid integrate with the non-diatonic lookup — one
+  unified search/filter, or separate sub-sections?
+- Diatonic-chord row ordering on the circle: clockwise from I (F-C-G-D-A-E-B for C major
+  when including relative minors) reads cleanly, but it's worth confirming this matches
+  the way intermediate-to-advanced players already visualise it.
+
+Status: not yet designed in detail. The earliest concrete trigger for scoping is when V1
+Chord Shapes ships and we start missing the box-grid fingering reference in practice —
+that's when the Reference tab earns priority.
+
 ---
 
 ## Technical decisions and constraints
