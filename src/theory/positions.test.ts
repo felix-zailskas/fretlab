@@ -163,4 +163,24 @@ describe("computeOverlapZones", () => {
     const b = computeOverlapZones("C", ["P2", "P1"], 0, DEFAULT_END_FRET);
     expect(a.map((o) => o.id).sort()).toEqual(b.map((o) => o.id).sort());
   });
+
+  it("emits unique ids when multiple (octave × octave) pairs overlap", () => {
+    // C major in [0, 24]: P1 = [[0, 3], [12, 15]], P2 = [[2, 5], [14, 17]].
+    // Two overlap zones: [2, 3] and [14, 15] — both must have distinct ids.
+    const overlaps = computeOverlapZones("C", ["P1", "P2"], 0, 24);
+    expect(overlaps).toHaveLength(2);
+    const ids = new Set(overlaps.map((o) => o.id));
+    expect(ids.size).toBe(2);
+    const ranges = overlaps.map((o) => [o.low, o.high]).sort((x, y) => x[0] - y[0]);
+    expect(ranges).toEqual([
+      [2, 3],
+      [14, 15],
+    ]);
+  });
+
+  it("produces order-independent ids even with multi-octave positions", () => {
+    const a = computeOverlapZones("C", ["P1", "P2"], 0, 24);
+    const b = computeOverlapZones("C", ["P2", "P1"], 0, 24);
+    expect(a.map((o) => o.id).sort()).toEqual(b.map((o) => o.id).sort());
+  });
 });

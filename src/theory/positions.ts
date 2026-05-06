@@ -1,4 +1,3 @@
-import { DEFAULT_END_FRET, MAX_FRET } from "./constants";
 import { getNoteIndex } from "./notes";
 
 export type PositionId = "P1" | "P2" | "P3" | "P4" | "P5";
@@ -97,7 +96,9 @@ export type OverlapZone = {
 // Computes pairwise overlaps between selected positions' visible octave
 // windows. Each (positionA-octave × positionB-octave) intersection is
 // emitted once if non-empty, with a stable id derived from the sorted
-// position pair.
+// position pair plus the octave indices on each side, so multi-octave
+// ranges produce unique ids per (octaveA × octaveB) pair while remaining
+// independent of the input order of `positions`.
 export function computeOverlapZones(
   key: string,
   positions: ReadonlyArray<PositionId>,
@@ -111,20 +112,23 @@ export function computeOverlapZones(
     const aWindows = getPositionWindows(key, positions[i], startFret, endFret);
     for (let j = i + 1; j < positions.length; j++) {
       const bWindows = getPositionWindows(key, positions[j], startFret, endFret);
-      for (const [aLow, aHigh] of aWindows) {
-        for (const [bLow, bHigh] of bWindows) {
+      aWindows.forEach(([aLow, aHigh], aIdx) => {
+        bWindows.forEach(([bLow, bHigh], bIdx) => {
           const low = Math.max(aLow, bLow);
           const high = Math.min(aHigh, bHigh);
-          if (low > high) continue;
-          const [a, b] = [positions[i], positions[j]].sort();
-          result.push({ id: `${a}-${b}`, low, high });
-        }
-      }
+          if (low > high) return;
+          // Sort the position pair lexicographically and keep the octave
+          // indices aligned to that sort, so the id is independent of the
+          // input order of `positions` while still distinguishing octaves.
+          const swap = positions[i] > positions[j];
+          const a = swap ? positions[j] : positions[i];
+          const b = swap ? positions[i] : positions[j];
+          const aOctave = swap ? bIdx : aIdx;
+          const bOctave = swap ? aIdx : bIdx;
+          result.push({ id: `${a}-${aOctave}_${b}-${bOctave}`, low, high });
+        });
+      });
     }
   }
   return result;
 }
-
-// Re-export so callers needing the absolute UI ceiling can pull it from
-// this module alongside the position helpers.
-export { MAX_FRET, DEFAULT_END_FRET };
