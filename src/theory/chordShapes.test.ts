@@ -2,17 +2,60 @@ import { describe, it, expect } from "vitest";
 import {
   TRIAD_SHAPES,
   SEVENTH_SHAPES,
+  STRING_SETS_BY_SYSTEM,
+  VOICING_SYSTEM_ORDER,
   type StringSet,
-  type RootString,
+  type SeventhStringSet,
   type Inversion,
+  type SeventhInversion,
+  type VoicingSystem,
 } from "./chordShapes";
 import type { TriadQuality, ChordQuality } from "./scales";
 
 const STRING_SETS: StringSet[] = ["1-2-3", "2-3-4", "3-4-5", "4-5-6"];
 const INVERSIONS: Inversion[] = ["root", "first", "second"];
 const TRIAD_QUALITIES: TriadQuality[] = ["maj", "min", "dim"];
-const ROOT_STRINGS: RootString[] = ["6th", "5th"];
+const SEVENTH_INVERSIONS_LIST: SeventhInversion[] = [
+  "root",
+  "first",
+  "second",
+  "third",
+];
 const CHORD_QUALITIES: ChordQuality[] = ["maj7", "m7", "7", "m7b5"];
+
+// Which string holds the root for each (system, string set, inversion).
+// Derived from the low-to-high voicing stack and the string list of the set:
+// the rootString is whichever string of the set holds the root note in the
+// final low → high arrangement.
+//
+// Stacks (low → high) per system:
+//   close:    R-3-5-7 / 3-5-7-R / 5-7-R-3 / 7-R-3-5
+//   drop2:    R-5-7-3 / 3-7-R-5 / 5-R-3-7 / 7-3-5-R
+//   drop3:    R-7-3-5 / 3-R-5-7 / 5-3-7-R / 7-5-R-3
+//   drop2-4:  R-5-3-7 / 3-7-5-R / 5-R-7-3 / 7-3-R-5
+const EXPECTED_ROOT_STRING: Record<
+  VoicingSystem,
+  Partial<Record<SeventhStringSet, Record<SeventhInversion, number>>>
+> = {
+  close: {
+    "3-4-5-6": { root: 6, first: 3, second: 4, third: 5 },
+    "2-3-4-5": { root: 5, first: 2, second: 3, third: 4 },
+    "1-2-3-4": { root: 4, first: 1, second: 2, third: 3 },
+  },
+  drop2: {
+    "3-4-5-6": { root: 6, first: 4, second: 5, third: 3 },
+    "2-3-4-5": { root: 5, first: 3, second: 4, third: 2 },
+    "1-2-3-4": { root: 4, first: 2, second: 3, third: 1 },
+  },
+  drop3: {
+    "6-4-3-2": { root: 6, first: 4, second: 2, third: 3 },
+    "5-3-2-1": { root: 5, first: 3, second: 1, third: 2 },
+  },
+  "drop2-4": {
+    "6-5-3-2": { root: 6, first: 2, second: 5, third: 3 },
+    "5-4-2-1": { root: 5, first: 1, second: 4, third: 2 },
+  },
+};
 
 describe("TRIAD_SHAPES — structure", () => {
   it("has all 4 string sets, 3 inversions, 3 qualities (36 entries)", () => {
@@ -103,49 +146,108 @@ describe("TRIAD_SHAPES — structure", () => {
 });
 
 describe("SEVENTH_SHAPES — structure", () => {
-  it("has all 2 root strings, 4 chord qualities (8 entries)", () => {
+  it("populates the expected per-system × string-set × inversion × quality grid (160 entries total)", () => {
     let count = 0;
-    for (const rs of ROOT_STRINGS) {
-      for (const q of CHORD_QUALITIES) {
-        const shape = SEVENTH_SHAPES[rs][q];
-        expect(shape).toBeDefined();
-        count++;
+    for (const system of VOICING_SYSTEM_ORDER) {
+      const systemTable = SEVENTH_SHAPES[system];
+      for (const ss of STRING_SETS_BY_SYSTEM[system]) {
+        const perStringSet = systemTable[ss];
+        expect(perStringSet).toBeDefined();
+        for (const inv of SEVENTH_INVERSIONS_LIST) {
+          for (const q of CHORD_QUALITIES) {
+            const shape = perStringSet![inv][q];
+            expect(shape).toBeDefined();
+            count++;
+          }
+        }
       }
     }
-    expect(count).toBe(8);
+    // close: 3 × 4 × 4 = 48; drop2: 48; drop3: 2 × 4 × 4 = 32; drop2-4: 32. Total 160.
+    expect(count).toBe(160);
   });
 
-  it("each shape has exactly 4 positions with roles root/third/fifth/seventh", () => {
-    for (const rs of ROOT_STRINGS) {
-      for (const q of CHORD_QUALITIES) {
-        const shape = SEVENTH_SHAPES[rs][q];
-        expect(shape.positions).toHaveLength(4);
-        const roles = shape.positions.map((p) => p.role).sort();
-        expect(roles).toEqual(["fifth", "root", "seventh", "third"]);
+  it("each shape has exactly 4 positions on unique strings", () => {
+    for (const system of VOICING_SYSTEM_ORDER) {
+      for (const ss of STRING_SETS_BY_SYSTEM[system]) {
+        const perStringSet = SEVENTH_SHAPES[system][ss]!;
+        for (const inv of SEVENTH_INVERSIONS_LIST) {
+          for (const q of CHORD_QUALITIES) {
+            const shape = perStringSet[inv][q];
+            expect(shape.positions).toHaveLength(4);
+            const strings = shape.positions.map((p) => p.string);
+            expect(new Set(strings).size).toBe(4);
+          }
+        }
+      }
+    }
+  });
+
+  it("each shape has exactly one of root/third/fifth/seventh", () => {
+    for (const system of VOICING_SYSTEM_ORDER) {
+      for (const ss of STRING_SETS_BY_SYSTEM[system]) {
+        const perStringSet = SEVENTH_SHAPES[system][ss]!;
+        for (const inv of SEVENTH_INVERSIONS_LIST) {
+          for (const q of CHORD_QUALITIES) {
+            const shape = perStringSet[inv][q];
+            const roles = shape.positions.map((p) => p.role).sort();
+            expect(roles).toEqual(["fifth", "root", "seventh", "third"]);
+          }
+        }
       }
     }
   });
 
   it("the position with role=root has fretOffset 0 and string === rootString", () => {
-    for (const rs of ROOT_STRINGS) {
-      for (const q of CHORD_QUALITIES) {
-        const shape = SEVENTH_SHAPES[rs][q];
-        const root = shape.positions.find((p) => p.role === "root")!;
-        expect(root.fretOffset).toBe(0);
-        expect(root.string).toBe(shape.rootString);
+    for (const system of VOICING_SYSTEM_ORDER) {
+      for (const ss of STRING_SETS_BY_SYSTEM[system]) {
+        const perStringSet = SEVENTH_SHAPES[system][ss]!;
+        for (const inv of SEVENTH_INVERSIONS_LIST) {
+          for (const q of CHORD_QUALITIES) {
+            const shape = perStringSet[inv][q];
+            const root = shape.positions.find((p) => p.role === "root")!;
+            expect(root.fretOffset).toBe(0);
+            expect(root.string).toBe(shape.rootString);
+          }
+        }
       }
     }
   });
 
-  it("6th-string-root has rootString 6; 5th has rootString 5", () => {
-    for (const q of CHORD_QUALITIES) {
-      expect(SEVENTH_SHAPES["6th"][q].rootString).toBe(6);
-      expect(SEVENTH_SHAPES["5th"][q].rootString).toBe(5);
+  it("rootString matches the per-system bass→string mapping for every shape", () => {
+    for (const system of VOICING_SYSTEM_ORDER) {
+      for (const ss of STRING_SETS_BY_SYSTEM[system]) {
+        const perStringSet = SEVENTH_SHAPES[system][ss]!;
+        const expected = EXPECTED_ROOT_STRING[system][ss]!;
+        for (const inv of SEVENTH_INVERSIONS_LIST) {
+          for (const q of CHORD_QUALITIES) {
+            expect(perStringSet[inv][q].rootString).toBe(expected[inv]);
+          }
+        }
+      }
     }
   });
 
-  it("spot-check: 6th-string-root maj7 is the standard E-shape barre", () => {
-    expect(SEVENTH_SHAPES["6th"]["maj7"]).toEqual({
+  it("m7 and m7b5 differ only in the fifth (P5 vs d5) across every shape", () => {
+    for (const system of VOICING_SYSTEM_ORDER) {
+      for (const ss of STRING_SETS_BY_SYSTEM[system]) {
+        const perStringSet = SEVENTH_SHAPES[system][ss]!;
+        for (const inv of SEVENTH_INVERSIONS_LIST) {
+          const m7 = perStringSet[inv]["m7"];
+          const m7b5 = perStringSet[inv]["m7b5"];
+          const nonFifth = (s: typeof m7) =>
+            s.positions.filter((p) => p.role !== "fifth");
+          expect(nonFifth(m7)).toEqual(nonFifth(m7b5));
+          const m7Fifth = m7.positions.find((p) => p.role === "fifth")!;
+          const m7b5Fifth = m7b5.positions.find((p) => p.role === "fifth")!;
+          expect(m7b5Fifth.fretOffset).toBe(m7Fifth.fretOffset - 1);
+        }
+      }
+    }
+  });
+
+  // Drop-2 spot-checks: existing barre voicings reproduced by the generator.
+  it("spot-check: drop2 / 3-4-5-6 / root / maj7 is the standard E-shape barre", () => {
+    expect(SEVENTH_SHAPES["drop2"]["3-4-5-6"]!["root"]["maj7"]).toEqual({
       rootString: 6,
       positions: [
         { string: 6, fretOffset: 0, role: "root" },
@@ -156,17 +258,58 @@ describe("SEVENTH_SHAPES — structure", () => {
     });
   });
 
-  it("m7 and m7b5 differ only in the fifth (P5 vs d5)", () => {
-    for (const rs of ROOT_STRINGS) {
-      const m7 = SEVENTH_SHAPES[rs]["m7"];
-      const m7b5 = SEVENTH_SHAPES[rs]["m7b5"];
-      const nonFifth = (s: typeof m7) => s.positions.filter((p) => p.role !== "fifth");
-      expect(nonFifth(m7)).toEqual(nonFifth(m7b5));
-      const m7Fifth = m7.positions.find((p) => p.role === "fifth")!;
-      const m7b5Fifth = m7b5.positions.find((p) => p.role === "fifth")!;
-      // d5 sits one fret below P5.
-      expect(m7b5Fifth.fretOffset).toBe(m7Fifth.fretOffset - 1);
-    }
+  it("spot-check: drop2 / 2-3-4-5 / root / maj7 is the standard A-shape barre", () => {
+    expect(SEVENTH_SHAPES["drop2"]["2-3-4-5"]!["root"]["maj7"]).toEqual({
+      rootString: 5,
+      positions: [
+        { string: 5, fretOffset: 0, role: "root" },
+        { string: 4, fretOffset: 2, role: "fifth" },
+        { string: 3, fretOffset: 1, role: "seventh" },
+        { string: 2, fretOffset: 2, role: "third" },
+      ],
+    });
+  });
+
+  // Cmaj7 close root pos on 1-2-3-4: stairstep going from D fret 10 down by
+  // one fret per string up to high E fret 7 — the shape the user remembered.
+  it("spot-check: close / 1-2-3-4 / root / maj7 is the stairstep close voicing", () => {
+    expect(SEVENTH_SHAPES["close"]["1-2-3-4"]!["root"]["maj7"]).toEqual({
+      rootString: 4,
+      positions: [
+        { string: 4, fretOffset: 0, role: "root" },
+        { string: 3, fretOffset: -1, role: "third" },
+        { string: 2, fretOffset: -2, role: "fifth" },
+        { string: 1, fretOffset: -3, role: "seventh" },
+      ],
+    });
+  });
+
+  // Cmaj7 drop-3 root pos on 6-4-3-2: bass C on E fret 8, skip A, then B-E-G
+  // on D-G-B at frets 9-9-8 (the standard "open" Cmaj7 drop-3 voicing).
+  it("spot-check: drop3 / 6-4-3-2 / root / maj7 is the string-skipped Cmaj7 root voicing", () => {
+    expect(SEVENTH_SHAPES["drop3"]["6-4-3-2"]!["root"]["maj7"]).toEqual({
+      rootString: 6,
+      positions: [
+        { string: 6, fretOffset: 0, role: "root" },
+        { string: 4, fretOffset: 1, role: "seventh" },
+        { string: 3, fretOffset: 1, role: "third" },
+        { string: 2, fretOffset: 0, role: "fifth" },
+      ],
+    });
+  });
+
+  // Cmaj7 drop-2&4 root pos on 6-5-3-2: very wide R-5-3-7 stack, skips D
+  // string. Cmaj7 with C on E fret 8 → 6:8, 5:10, 3:9, 2:12 (notes C-G-E-B).
+  it("spot-check: drop2-4 / 6-5-3-2 / root / maj7 is the wide R-5-3-7 voicing", () => {
+    expect(SEVENTH_SHAPES["drop2-4"]["6-5-3-2"]!["root"]["maj7"]).toEqual({
+      rootString: 6,
+      positions: [
+        { string: 6, fretOffset: 0, role: "root" },
+        { string: 5, fretOffset: 2, role: "fifth" },
+        { string: 3, fretOffset: 1, role: "third" },
+        { string: 2, fretOffset: 4, role: "seventh" },
+      ],
+    });
   });
 });
 
@@ -197,10 +340,12 @@ describe("buildChordShapeMarkers — chord-centric", () => {
     expect(
       buildChordShapeMarkers({
         mode: "sevenths",
+        voicingSystem: "drop2",
         chord,
         key: ALL_NOTES_KEY,
         accidentalStyle: "sharp",
-        rootStrings: ["6th"],
+        stringSets: ["3-4-5-6"],
+        inversions: ["root"],
         startFret: 0,
         endFret: DEFAULT_END_FRET,
       }),
@@ -239,15 +384,34 @@ describe("buildChordShapeMarkers — chord-centric", () => {
     ).toEqual([]);
   });
 
-  it("returns [] when rootStrings is empty (sevenths)", () => {
+  it("returns [] when stringSets is empty (sevenths)", () => {
     const chord = getDiatonicChords("C", "sharp")[0];
     expect(
       buildChordShapeMarkers({
         mode: "sevenths",
+        voicingSystem: "drop2",
         chord,
         key: "C",
         accidentalStyle: "sharp",
-        rootStrings: [],
+        stringSets: [],
+        inversions: ["root"],
+        startFret: 0,
+        endFret: DEFAULT_END_FRET,
+      }),
+    ).toEqual([]);
+  });
+
+  it("returns [] when inversions is empty (sevenths)", () => {
+    const chord = getDiatonicChords("C", "sharp")[0];
+    expect(
+      buildChordShapeMarkers({
+        mode: "sevenths",
+        voicingSystem: "drop2",
+        chord,
+        key: "C",
+        accidentalStyle: "sharp",
+        stringSets: ["3-4-5-6"],
+        inversions: [],
         startFret: 0,
         endFret: DEFAULT_END_FRET,
       }),
@@ -328,27 +492,82 @@ describe("buildChordShapeMarkers — chord-centric", () => {
     ]);
   });
 
-  it("F major V (Sevenths), [6th] → C7 4-note voicing rooted at fret 8 on low E", () => {
+  it("F major V (Sevenths), 3-4-5-6 root → C7 E-shape barre at fret 8 on low E", () => {
     const chord = getDiatonicChords("F", "flat")[4]; // V = C7
     const markers = buildChordShapeMarkers({
       mode: "sevenths",
+      voicingSystem: "drop2",
       chord,
       key: "F",
       accidentalStyle: "flat",
-      rootStrings: ["6th"],
+      stringSets: ["3-4-5-6"],
+      inversions: ["root"],
       startFret: 0,
       endFret: DEFAULT_END_FRET,
     });
     expect(markers).toHaveLength(4); // 1 placement × 4 markers (R-5-7-3)
     const root = markers.find((m) => m.role === "root");
     expect(root).toEqual({ string: 0, fret: 8, note: "C", role: "root" });
-    // Standard E-shape C7 voicing.
     const fifth = markers.find((m) => m.role === "fifth");
     expect(fifth).toEqual({ string: 1, fret: 10, note: "G", role: "fifth" });
     const seventh = markers.find((m) => m.role === "seventh");
     expect(seventh).toEqual({ string: 2, fret: 8, note: "Bb", role: "seventh" });
     const third = markers.find((m) => m.role === "third");
     expect(third).toEqual({ string: 3, fret: 9, note: "E", role: "third" });
+  });
+
+  it("C major I (Sevenths), 3-4-5-6, all 4 inversions → 4 placements (16 markers, drop-2 cycle)", () => {
+    // Cmaj7 drop-2 on string set 3-4-5-6 cycles through four placements (one
+    // root per inversion within fret window [0, 15]):
+    //   root pos: C on low E fret 8
+    //   1st inv:  C on D string fret 10 (3 in bass at low E fret 12)
+    //   2nd inv:  C on A string fret 3 (5 in bass at low E fret 3); next
+    //             octave at A fret 15 fails because the seventh sits at +1.
+    //   3rd inv:  C on G string fret 5 (7 in bass at low E fret 7)
+    const chord = getDiatonicChords("C", "sharp")[0]; // I = Cmaj7
+    const markers = buildChordShapeMarkers({
+      mode: "sevenths",
+      voicingSystem: "drop2",
+      chord,
+      key: "C",
+      accidentalStyle: "sharp",
+      stringSets: ["3-4-5-6"],
+      inversions: ["root", "first", "second", "third"],
+      startFret: 0,
+      endFret: DEFAULT_END_FRET,
+    });
+    const roots = markers
+      .filter((m) => m.role === "root")
+      .map((m) => ({ string: m.string, fret: m.fret }));
+    expect(roots).toEqual([
+      { string: 0, fret: 8 }, // root pos
+      { string: 2, fret: 10 }, // 1st inv
+      { string: 1, fret: 3 }, // 2nd inv
+      { string: 3, fret: 5 }, // 3rd inv
+    ]);
+    expect(markers).toHaveLength(16); // 4 placements × 4 markers
+  });
+
+  it("Cmaj7 1st inv on 3-4-5-6 places frets E12 / A14 / D10 / G12 (drop-2 with 3 in bass)", () => {
+    const chord = getDiatonicChords("C", "sharp")[0]; // Cmaj7
+    const markers = buildChordShapeMarkers({
+      mode: "sevenths",
+      voicingSystem: "drop2",
+      chord,
+      key: "C",
+      accidentalStyle: "sharp",
+      stringSets: ["3-4-5-6"],
+      inversions: ["first"],
+      startFret: 0,
+      endFret: DEFAULT_END_FRET,
+    });
+    // string 0 = low E, ..., string 3 = G
+    const byString: Record<number, (typeof markers)[number]> = {};
+    for (const m of markers) byString[m.string] = m;
+    expect(byString[0]).toEqual({ string: 0, fret: 12, note: "E", role: "third" });
+    expect(byString[1]).toEqual({ string: 1, fret: 14, note: "B", role: "seventh" });
+    expect(byString[2]).toEqual({ string: 2, fret: 10, note: "C", role: "root" });
+    expect(byString[3]).toEqual({ string: 3, fret: 12, note: "G", role: "fifth" });
   });
 
   it("cap-at-fits: combos outside fret range produce no markers; others unaffected", () => {

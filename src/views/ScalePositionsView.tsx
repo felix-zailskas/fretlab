@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useMemo } from "react";
 import {
   Fretboard,
   type OverlapZone,
@@ -12,10 +12,10 @@ import {
   CAGED_POSITIONS,
   computeOverlapZones,
   getPositionWindows,
-  type PositionId,
 } from "../theory/positions";
 import type { AccidentalStyle } from "../theory/notes";
 import type { DiatonicChord, DiatonicTriad } from "../theory/scales";
+import { type ScalePositionsControls } from "./useScalePositionsState";
 
 type ScalePositionsViewProps = {
   selectedKey: string;
@@ -24,13 +24,12 @@ type ScalePositionsViewProps = {
   selectedChord: DiatonicChord | DiatonicTriad | null;
   startFret: number;
   endFret: number;
+  controls: ScalePositionsControls;
 };
 
 // Wider, neutral phrasing — the view serves both pure scale-position study
 // and chord-tone targeting.
 const EMPTY_KEY_MESSAGE = "Select a key to view scale positions.";
-
-const DEFAULT_POSITIONS: PositionId[] = ["P1"];
 
 export function ScalePositionsView({
   selectedKey,
@@ -39,20 +38,9 @@ export function ScalePositionsView({
   selectedChord,
   startFret,
   endFret,
+  controls,
 }: ScalePositionsViewProps) {
-  const [selectedPositions, setSelectedPositions] = useState<Set<PositionId>>(
-    () => new Set(DEFAULT_POSITIONS),
-  );
-  const [showContext, setShowContext] = useState(false);
-
-  const togglePosition = useCallback((position: PositionId) => {
-    setSelectedPositions((prev) => {
-      const next = new Set(prev);
-      if (next.has(position)) next.delete(position);
-      else next.add(position);
-      return next;
-    });
-  }, []);
+  const { selectedPositions, togglePosition, showContext, setShowContext } = controls;
 
   const positionsArray = useMemo(
     () =>

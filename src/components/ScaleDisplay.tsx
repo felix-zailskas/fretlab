@@ -51,7 +51,7 @@ export function ScaleDisplay({
   };
 
   return (
-    <div className="overflow-x-auto">
+    <div className="overflow-x-auto overflow-y-clip">
       <div
         className="inline-grid items-center gap-x-2 gap-y-1 text-sm"
         style={gridStyle}

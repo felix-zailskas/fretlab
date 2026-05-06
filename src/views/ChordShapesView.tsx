@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { Fretboard } from "../components/Fretboard/Fretboard";
 import { ALL_NOTES_KEY } from "../components/KeySelector";
 import { type HighlightableRole } from "../components/Legend";
@@ -6,13 +6,20 @@ import { StringSetToggles } from "../components/StringSetToggles";
 import { type ChordRowMode } from "../components/DiatonicChords";
 import {
   buildChordShapeMarkers,
+  VOICING_SYSTEM_ORDER,
   type ChordShapesMode,
   type Inversion,
-  type RootString,
+  type SeventhInversion,
+  type SeventhStringSet,
   type StringSet,
+  type VoicingSystem,
 } from "../theory/chordShapes";
 import type { AccidentalStyle } from "../theory/notes";
 import type { DiatonicTriad, DiatonicChord } from "../theory/scales";
+import {
+  type ChordShapesControls,
+  type SeventhStringPosition,
+} from "./useChordShapesState";
 
 type ChordShapesViewProps = {
   selectedKey: string;
@@ -23,6 +30,7 @@ type ChordShapesViewProps = {
   chordRowMode: ChordRowMode;
   onChordRowModeChange: (mode: ChordRowMode) => void;
   enabledHighlights: Set<HighlightableRole>;
+  controls: ChordShapesControls;
 };
 
 const STRING_SET_OPTIONS: ReadonlyArray<{ id: StringSet; label: string }> = [
@@ -32,16 +40,43 @@ const STRING_SET_OPTIONS: ReadonlyArray<{ id: StringSet; label: string }> = [
   { id: "4-5-6", label: "4-5-6" },
 ];
 
-const ROOT_STRING_OPTIONS: ReadonlyArray<{ id: RootString; label: string }> = [
-  { id: "6th", label: "6th-string-root" },
-  { id: "5th", label: "5th-string-root" },
-];
-
 const INVERSION_OPTIONS: ReadonlyArray<{ id: Inversion; label: string }> = [
   { id: "root", label: "Root" },
   { id: "first", label: "1st Inversion" },
   { id: "second", label: "2nd Inversion" },
 ];
+
+const SEVENTH_INVERSION_OPTIONS: ReadonlyArray<{
+  id: SeventhInversion;
+  label: string;
+}> = [
+  { id: "root", label: "Root" },
+  { id: "first", label: "1st Inversion" },
+  { id: "second", label: "2nd Inversion" },
+  { id: "third", label: "3rd Inversion" },
+];
+
+const VOICING_SYSTEM_LABELS: Record<VoicingSystem, string> = {
+  close: "Close",
+  drop2: "Drop 2",
+  drop3: "Drop 3",
+  "drop2-4": "Drop 2&4",
+};
+
+const POSITION_ORDER: SeventhStringPosition[] = ["low", "mid", "high"];
+
+// Each system's mapping from position → its concrete string-set id. drop-3 and
+// drop-2&4 only have the lower two positions; the user's selection of "high"
+// silently produces no markers in those systems until they pick low or mid.
+const STRING_SET_BY_POSITION: Record<
+  VoicingSystem,
+  Partial<Record<SeventhStringPosition, SeventhStringSet>>
+> = {
+  close: { low: "3-4-5-6", mid: "2-3-4-5", high: "1-2-3-4" },
+  drop2: { low: "3-4-5-6", mid: "2-3-4-5", high: "1-2-3-4" },
+  drop3: { low: "6-4-3-2", mid: "5-3-2-1" },
+  "drop2-4": { low: "6-5-3-2", mid: "5-4-2-1" },
+};
 
 export function ChordShapesView({
   selectedKey,
@@ -52,45 +87,41 @@ export function ChordShapesView({
   chordRowMode,
   onChordRowModeChange,
   enabledHighlights,
+  controls,
 }: ChordShapesViewProps) {
-  const [selectedStringSets, setSelectedStringSets] = useState<Set<StringSet>>(
-    () => new Set<StringSet>(["1-2-3"]),
-  );
-  const [selectedRootStrings, setSelectedRootStrings] = useState<Set<RootString>>(
-    () => new Set<RootString>(["6th"]),
-  );
-  const [selectedInversions, setSelectedInversions] = useState<Set<Inversion>>(
-    () => new Set<Inversion>(["root"]),
-  );
-
-  const toggleStringSet = useCallback((id: StringSet) => {
-    setSelectedStringSets((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  }, []);
-
-  const toggleRootString = useCallback((id: RootString) => {
-    setSelectedRootStrings((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  }, []);
-
-  const toggleInversion = useCallback((id: Inversion) => {
-    setSelectedInversions((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  }, []);
+  const {
+    selectedStringSets,
+    toggleStringSet,
+    selectedInversions,
+    toggleInversion,
+    selectedVoicingSystem,
+    setSelectedVoicingSystem,
+    selectedSeventhPositions,
+    toggleSeventhPosition,
+    selectedSeventhInversions,
+    toggleSeventhInversion,
+  } = controls;
 
   const mode: ChordShapesMode = chordRowMode;
+
+  // Toggle row labels show the system's literal string-set id, but the click
+  // toggles the underlying position so the choice persists across systems.
+  const seventhPositionOptions = useMemo<
+    ReadonlyArray<{ id: SeventhStringPosition; label: string }>
+  >(() => {
+    const map = STRING_SET_BY_POSITION[selectedVoicingSystem];
+    return POSITION_ORDER.filter((p) => map[p] !== undefined).map((p) => ({
+      id: p,
+      label: map[p]!,
+    }));
+  }, [selectedVoicingSystem]);
+
+  const activeSeventhStringSets = useMemo<SeventhStringSet[]>(() => {
+    const map = STRING_SET_BY_POSITION[selectedVoicingSystem];
+    return Array.from(selectedSeventhPositions)
+      .map((p) => map[p])
+      .filter((s): s is SeventhStringSet => s !== undefined);
+  }, [selectedSeventhPositions, selectedVoicingSystem]);
 
   const markers = useMemo(() => {
     if (!selectedChord) return [];
@@ -108,10 +139,12 @@ export function ChordShapesView({
     }
     return buildChordShapeMarkers({
       mode: "sevenths",
+      voicingSystem: selectedVoicingSystem,
       chord: selectedChord as DiatonicChord,
       key: selectedKey,
       accidentalStyle,
-      rootStrings: Array.from(selectedRootStrings),
+      stringSets: activeSeventhStringSets,
+      inversions: Array.from(selectedSeventhInversions),
       startFret,
       endFret,
     });
@@ -121,8 +154,10 @@ export function ChordShapesView({
     selectedKey,
     accidentalStyle,
     selectedStringSets,
-    selectedRootStrings,
     selectedInversions,
+    selectedVoicingSystem,
+    activeSeventhStringSets,
+    selectedSeventhInversions,
     startFret,
     endFret,
   ]);
@@ -151,7 +186,7 @@ export function ChordShapesView({
   const activeSubSelectorEmpty = selectedChord
     ? mode === "triads"
       ? selectedStringSets.size === 0 || selectedInversions.size === 0
-      : selectedRootStrings.size === 0
+      : activeSeventhStringSets.length === 0 || selectedSeventhInversions.size === 0
     : false;
 
   const fretboardMessage = !selectedChord
@@ -167,14 +202,23 @@ export function ChordShapesView({
         onChordRowModeChange={onChordRowModeChange}
         selectedChord={selectedChord}
       />
+      {mode === "sevenths" ? (
+        <VoicingSystemSelector
+          selected={selectedVoicingSystem}
+          onChange={setSelectedVoicingSystem}
+        />
+      ) : null}
       <SubSelectorRow
         mode={mode}
         selectedStringSets={selectedStringSets}
-        selectedRootStrings={selectedRootStrings}
+        selectedSeventhPositions={selectedSeventhPositions}
         selectedInversions={selectedInversions}
+        selectedSeventhInversions={selectedSeventhInversions}
+        seventhPositionOptions={seventhPositionOptions}
         onToggleStringSet={toggleStringSet}
-        onToggleRootString={toggleRootString}
+        onToggleSeventhPosition={toggleSeventhPosition}
         onToggleInversion={toggleInversion}
+        onToggleSeventhInversion={toggleSeventhInversion}
       />
       <Fretboard
         markers={visibleMarkers}
@@ -244,24 +288,68 @@ function ShapeHeader({
   );
 }
 
+type VoicingSystemSelectorProps = {
+  selected: VoicingSystem;
+  onChange: (system: VoicingSystem) => void;
+};
+
+function VoicingSystemSelector({ selected, onChange }: VoicingSystemSelectorProps) {
+  return (
+    <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+      <span className="text-xs uppercase tracking-wide text-fg-muted">Voicing</span>
+      <div
+        className="inline-flex rounded overflow-hidden border border-line"
+        role="radiogroup"
+        aria-label="Voicing system"
+      >
+        {VOICING_SYSTEM_ORDER.map((system) => (
+          <button
+            key={system}
+            type="button"
+            role="radio"
+            aria-checked={selected === system}
+            onClick={() => onChange(system)}
+            className={`px-3 py-1.5 text-sm font-semibold transition-colors cursor-pointer ${
+              selected === system
+                ? "bg-surface-active text-fg-emphasis"
+                : "bg-surface text-fg-muted hover:bg-surface-raised"
+            }`}
+          >
+            {VOICING_SYSTEM_LABELS[system]}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 type SubSelectorRowProps = {
   mode: ChordShapesMode;
   selectedStringSets: Set<StringSet>;
-  selectedRootStrings: Set<RootString>;
+  selectedSeventhPositions: Set<SeventhStringPosition>;
   selectedInversions: Set<Inversion>;
+  selectedSeventhInversions: Set<SeventhInversion>;
+  seventhPositionOptions: ReadonlyArray<{
+    id: SeventhStringPosition;
+    label: string;
+  }>;
   onToggleStringSet: (id: StringSet) => void;
-  onToggleRootString: (id: RootString) => void;
+  onToggleSeventhPosition: (id: SeventhStringPosition) => void;
   onToggleInversion: (id: Inversion) => void;
+  onToggleSeventhInversion: (id: SeventhInversion) => void;
 };
 
 function SubSelectorRow({
   mode,
   selectedStringSets,
-  selectedRootStrings,
+  selectedSeventhPositions,
   selectedInversions,
+  selectedSeventhInversions,
+  seventhPositionOptions,
   onToggleStringSet,
-  onToggleRootString,
+  onToggleSeventhPosition,
   onToggleInversion,
+  onToggleSeventhInversion,
 }: SubSelectorRowProps) {
   if (mode === "triads") {
     return (
@@ -284,10 +372,16 @@ function SubSelectorRow({
   return (
     <div className="flex flex-wrap items-center gap-4">
       <StringSetToggles
-        options={ROOT_STRING_OPTIONS}
-        selected={selectedRootStrings}
-        onToggle={onToggleRootString}
-        ariaLabel="Root strings"
+        options={seventhPositionOptions}
+        selected={selectedSeventhPositions}
+        onToggle={onToggleSeventhPosition}
+        ariaLabel="String groups"
+      />
+      <StringSetToggles
+        options={SEVENTH_INVERSION_OPTIONS}
+        selected={selectedSeventhInversions}
+        onToggle={onToggleSeventhInversion}
+        ariaLabel="Inversions"
       />
     </div>
   );

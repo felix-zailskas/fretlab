@@ -9,6 +9,8 @@ import { DiatonicChords, type ChordRowMode } from "./components/DiatonicChords";
 import { ChordShapesView } from "./views/ChordShapesView";
 import { NoteMapView } from "./views/NoteMapView";
 import { ScalePositionsView } from "./views/ScalePositionsView";
+import { useChordShapesState } from "./views/useChordShapesState";
+import { useScalePositionsState } from "./views/useScalePositionsState";
 import type { AccidentalStyle } from "./theory/notes";
 import { DEFAULT_END_FRET } from "./theory/constants";
 import { getDiatonicChords, getDiatonicTriads } from "./theory/scales";
@@ -39,6 +41,11 @@ function App() {
   const [chordRowMode, setChordRowMode] = useState<ChordRowMode>("triads");
   const [startFret, setStartFret] = useState(0);
   const [endFret, setEndFret] = useState(DEFAULT_END_FRET);
+
+  // Per-view selector state, lifted here so it survives tab switches. Each
+  // view's hook bundles its own useState calls + handlers.
+  const chordShapesControls = useChordShapesState();
+  const scalePositionsControls = useScalePositionsState();
 
   const handleFretRangeChange = useCallback((start: number, end: number) => {
     setStartFret(start);
@@ -148,6 +155,7 @@ function App() {
               selectedChord={selectedChord}
               startFret={startFret}
               endFret={endFret}
+              controls={scalePositionsControls}
             />
             <div className="mt-4">
               <Legend enabledRoles={enabledHighlights} onToggleRole={toggleHighlight} />
@@ -173,6 +181,7 @@ function App() {
               chordRowMode={chordRowMode}
               onChordRowModeChange={setChordRowMode}
               enabledHighlights={enabledHighlights}
+              controls={chordShapesControls}
             />
             <div className="mt-4">
               <Legend enabledRoles={enabledHighlights} onToggleRole={toggleHighlight} />
