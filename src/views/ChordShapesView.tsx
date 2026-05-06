@@ -20,6 +20,7 @@ type ChordShapesViewProps = {
   endFret: number;
   selectedChord: DiatonicTriad | DiatonicChord | null;
   chordRowMode: ChordRowMode;
+  onChordRowModeChange: (mode: ChordRowMode) => void;
   enabledHighlights: Set<HighlightableRole>;
 };
 
@@ -37,8 +38,8 @@ const ROOT_STRING_OPTIONS: ReadonlyArray<{ id: RootString; label: string }> = [
 
 const INVERSION_OPTIONS: ReadonlyArray<{ id: Inversion; label: string }> = [
   { id: "root", label: "Root" },
-  { id: "first", label: "1st" },
-  { id: "second", label: "2nd" },
+  { id: "first", label: "1st Inversion" },
+  { id: "second", label: "2nd Inversion" },
 ];
 
 export function ChordShapesView({
@@ -48,6 +49,7 @@ export function ChordShapesView({
   endFret,
   selectedChord,
   chordRowMode,
+  onChordRowModeChange,
   enabledHighlights,
 }: ChordShapesViewProps) {
   const [selectedStringSets, setSelectedStringSets] = useState<Set<StringSet>>(
@@ -57,7 +59,7 @@ export function ChordShapesView({
     () => new Set<RootString>(["6th"]),
   );
   const [selectedInversions, setSelectedInversions] = useState<Set<Inversion>>(
-    () => new Set<Inversion>(["root", "first", "second"]),
+    () => new Set<Inversion>(["root"]),
   );
 
   const toggleStringSet = useCallback((id: StringSet) => {
@@ -140,6 +142,11 @@ export function ChordShapesView({
   if (!selectedChord) {
     return (
       <div className="space-y-4">
+        <ShapeHeader
+          chordRowMode={chordRowMode}
+          onChordRowModeChange={onChordRowModeChange}
+          selectedChord={null}
+        />
         <SubSelectorRow
           mode={mode}
           selectedStringSets={selectedStringSets}
@@ -163,6 +170,11 @@ export function ChordShapesView({
 
   return (
     <div className="space-y-4">
+      <ShapeHeader
+        chordRowMode={chordRowMode}
+        onChordRowModeChange={onChordRowModeChange}
+        selectedChord={selectedChord}
+      />
       <SubSelectorRow
         mode={mode}
         selectedStringSets={selectedStringSets}
@@ -178,6 +190,64 @@ export function ChordShapesView({
         </div>
       ) : (
         <Fretboard markers={visibleMarkers} startFret={startFret} endFret={endFret} />
+      )}
+    </div>
+  );
+}
+
+type ShapeHeaderProps = {
+  chordRowMode: ChordRowMode;
+  onChordRowModeChange: (mode: ChordRowMode) => void;
+  selectedChord: DiatonicTriad | DiatonicChord | null;
+};
+
+function ShapeHeader({
+  chordRowMode,
+  onChordRowModeChange,
+  selectedChord,
+}: ShapeHeaderProps) {
+  return (
+    <div className="flex flex-wrap items-center gap-x-4 gap-y-2 pb-3 border-b border-line">
+      <span className="text-xs uppercase tracking-wide text-fg-muted">Showing</span>
+      <div
+        className="inline-flex rounded overflow-hidden border border-line"
+        role="radiogroup"
+        aria-label="Chord-shape language"
+      >
+        <button
+          type="button"
+          role="radio"
+          aria-checked={chordRowMode === "triads"}
+          onClick={() => onChordRowModeChange("triads")}
+          className={`px-3 py-1.5 text-sm font-semibold transition-colors cursor-pointer ${
+            chordRowMode === "triads"
+              ? "bg-surface-active text-fg-emphasis"
+              : "bg-surface text-fg-muted hover:bg-surface-raised"
+          }`}
+        >
+          Triad shapes
+        </button>
+        <button
+          type="button"
+          role="radio"
+          aria-checked={chordRowMode === "sevenths"}
+          onClick={() => onChordRowModeChange("sevenths")}
+          className={`px-3 py-1.5 text-sm font-semibold transition-colors cursor-pointer ${
+            chordRowMode === "sevenths"
+              ? "bg-surface-active text-fg-emphasis"
+              : "bg-surface text-fg-muted hover:bg-surface-raised"
+          }`}
+        >
+          Shell voicings
+        </button>
+      </div>
+      {selectedChord ? (
+        <div className="flex items-baseline gap-2 text-sm">
+          <span className="font-semibold text-fg-primary">{selectedChord.symbol}</span>
+          <span className="text-fg-muted">{selectedChord.notes.join(" • ")}</span>
+        </div>
+      ) : (
+        <span className="text-sm text-fg-faint italic">no chord selected</span>
       )}
     </div>
   );

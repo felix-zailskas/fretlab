@@ -36,7 +36,7 @@ function App() {
     () => new Set(DEFAULT_HIGHLIGHTS),
   );
   const [selectedChordDegree, setSelectedChordDegree] = useState<number | null>(1);
-  const [chordRowMode, setChordRowMode] = useState<ChordRowMode>("sevenths");
+  const [chordRowMode, setChordRowMode] = useState<ChordRowMode>("triads");
   const [startFret, setStartFret] = useState(0);
   const [endFret, setEndFret] = useState(DEFAULT_END_FRET);
 
@@ -171,6 +171,7 @@ function App() {
               endFret={endFret}
               selectedChord={selectedChord}
               chordRowMode={chordRowMode}
+              onChordRowModeChange={setChordRowMode}
               enabledHighlights={enabledHighlights}
             />
             <div className="mt-4">
