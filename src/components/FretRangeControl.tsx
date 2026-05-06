@@ -81,7 +81,10 @@ export function FretRangeControl({
               min={0}
               max={MAX_FRET - 1}
               value={startFret}
-              onChange={(e) => handleStartChange(Number(e.target.value))}
+              onChange={(e) => {
+                if (e.target.value === "") return; // preserve current value while empty
+                handleStartChange(Number(e.target.value));
+              }}
               className="w-16 px-2 py-1 rounded border border-line bg-surface text-fg-primary text-sm"
             />
           </label>
@@ -92,7 +95,10 @@ export function FretRangeControl({
               min={startFret + 1}
               max={MAX_FRET}
               value={endFret}
-              onChange={(e) => handleEndChange(Number(e.target.value))}
+              onChange={(e) => {
+                if (e.target.value === "") return; // preserve current value while empty
+                handleEndChange(Number(e.target.value));
+              }}
               className="w-16 px-2 py-1 rounded border border-line bg-surface text-fg-primary text-sm"
             />
           </label>
