@@ -1,5 +1,4 @@
 import { ALL_NOTES_KEY } from "../components/KeySelector";
-import { DEFAULT_END_FRET } from "./constants";
 import {
   STANDARD_TUNING,
   getDisplayName,
@@ -463,12 +462,16 @@ export type BuildChordShapeMarkersInput =
       accidentalStyle: AccidentalStyle;
       stringSets: ReadonlyArray<StringSet>;
       inversion: Inversion;
+      startFret: number;
+      endFret: number;
     }
   | {
       mode: "shells";
       key: string;
       accidentalStyle: AccidentalStyle;
       rootStrings: ReadonlyArray<RootString>;
+      startFret: number;
+      endFret: number;
     };
 
 // Convert a 1..6 (high-E-first) shape-string index to the codebase's 0..5
@@ -479,13 +482,19 @@ function shapeStringToMarkerString(shapeString: number): number {
 }
 
 // Returns the playable frets for a target note on a given open string,
-// inside [0, DEFAULT_END_FRET]. A note repeats every 12 frets, so this returns
-// either 1 or 2 entries.
-function getRootFrets(targetNote: string, openStringNote: string): number[] {
+// inside [startFret, endFret]. A note repeats every 12 frets.
+function getRootFrets(
+  targetNote: string,
+  openStringNote: string,
+  startFret: number,
+  endFret: number,
+): number[] {
   const baseFret = (getNoteIndex(targetNote) - getNoteIndex(openStringNote) + 12) % 12;
   const result: number[] = [];
-  if (baseFret <= DEFAULT_END_FRET) result.push(baseFret);
-  if (baseFret + 12 <= DEFAULT_END_FRET) result.push(baseFret + 12);
+  // Walk every octave of the target note that fits inside [startFret, endFret].
+  for (let candidate = baseFret; candidate <= endFret; candidate += 12) {
+    if (candidate >= startFret) result.push(candidate);
+  }
   return result;
 }
 
@@ -504,9 +513,11 @@ function placeChordsOnAnchor(
   shapeLookup: ShapeLookup,
   key: string,
   accidentalStyle: AccidentalStyle,
+  startFret: number,
+  endFret: number,
 ): NoteMarker[] {
   const result: NoteMarker[] = [];
-  let previousFret = -1;
+  let previousFret = startFret - 1;
 
   for (const chord of chords) {
     const shape = shapeLookup(chord.quality);
@@ -516,14 +527,19 @@ function placeChordsOnAnchor(
     const openAnchorNote = STANDARD_TUNING[anchorMarkerString];
     const rootNote = chord.notes[0];
 
-    const candidateRootFrets = getRootFrets(rootNote, openAnchorNote);
+    const candidateRootFrets = getRootFrets(
+      rootNote,
+      openAnchorNote,
+      startFret,
+      endFret,
+    );
 
     for (const candidate of candidateRootFrets) {
       if (candidate <= previousFret) continue;
 
       const allFit = shape.positions.every((p) => {
         const absFret = candidate + p.fretOffset;
-        return absFret >= 0 && absFret <= DEFAULT_END_FRET;
+        return absFret >= startFret && absFret <= endFret;
       });
       if (!allFit) continue;
 
@@ -551,7 +567,7 @@ function placeChordsOnAnchor(
 // Pure: given the Chord Shapes view's full input, returns the NoteMarker[]
 // the Fretboard should render. Returns [] for ALL_NOTES_KEY or when the
 // active sub-selector set is empty. Drops chords whose shape doesn't fit
-// inside [0, DEFAULT_END_FRET] per the cap-at-fits rule.
+// inside [startFret, endFret] per the cap-at-fits rule.
 export function buildChordShapeMarkers(
   input: BuildChordShapeMarkersInput,
 ): NoteMarker[] {
@@ -568,7 +584,14 @@ export function buildChordShapeMarkers(
       const lookup: ShapeLookup = (q) =>
         (TRIAD_SHAPES[stringSet][input.inversion] as Record<string, TriadShape>)[q];
       result.push(
-        ...placeChordsOnAnchor(triads, lookup, input.key, input.accidentalStyle),
+        ...placeChordsOnAnchor(
+          triads,
+          lookup,
+          input.key,
+          input.accidentalStyle,
+          input.startFret,
+          input.endFret,
+        ),
       );
     }
     return result;
@@ -582,7 +605,14 @@ export function buildChordShapeMarkers(
     const lookup: ShapeLookup = (q) =>
       (SHELL_SHAPES[rootString] as Record<string, ShellShape>)[q];
     result.push(
-      ...placeChordsOnAnchor(chords, lookup, input.key, input.accidentalStyle),
+      ...placeChordsOnAnchor(
+        chords,
+        lookup,
+        input.key,
+        input.accidentalStyle,
+        input.startFret,
+        input.endFret,
+      ),
     );
   }
   return result;

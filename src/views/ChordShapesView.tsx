@@ -70,6 +70,8 @@ export function ChordShapesView({
         accidentalStyle,
         stringSets: Array.from(selectedStringSets),
         inversion,
+        startFret: 0,
+        endFret: DEFAULT_END_FRET,
       });
     }
     return buildChordShapeMarkers({
@@ -77,6 +79,8 @@ export function ChordShapesView({
       key: selectedKey,
       accidentalStyle,
       rootStrings: Array.from(selectedRootStrings),
+      startFret: 0,
+      endFret: DEFAULT_END_FRET,
     });
   }, [
     mode,

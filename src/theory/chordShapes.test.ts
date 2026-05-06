@@ -164,6 +164,7 @@ describe("SHELL_SHAPES — structure", () => {
 
 import { buildChordShapeMarkers } from "./chordShapes";
 import { ALL_NOTES_KEY } from "../components/KeySelector";
+import { DEFAULT_END_FRET } from "./constants";
 
 describe("buildChordShapeMarkers", () => {
   it("returns [] when key is ALL_NOTES_KEY (triads)", () => {
@@ -174,6 +175,8 @@ describe("buildChordShapeMarkers", () => {
         accidentalStyle: "sharp",
         stringSets: ["1-2-3"],
         inversion: "root",
+        startFret: 0,
+        endFret: DEFAULT_END_FRET,
       }),
     ).toEqual([]);
   });
@@ -185,6 +188,8 @@ describe("buildChordShapeMarkers", () => {
         key: ALL_NOTES_KEY,
         accidentalStyle: "sharp",
         rootStrings: ["6th"],
+        startFret: 0,
+        endFret: DEFAULT_END_FRET,
       }),
     ).toEqual([]);
   });
@@ -197,6 +202,8 @@ describe("buildChordShapeMarkers", () => {
         accidentalStyle: "sharp",
         stringSets: [],
         inversion: "root",
+        startFret: 0,
+        endFret: DEFAULT_END_FRET,
       }),
     ).toEqual([]);
   });
@@ -208,6 +215,8 @@ describe("buildChordShapeMarkers", () => {
         key: "C",
         accidentalStyle: "sharp",
         rootStrings: [],
+        startFret: 0,
+        endFret: DEFAULT_END_FRET,
       }),
     ).toEqual([]);
   });
@@ -219,6 +228,8 @@ describe("buildChordShapeMarkers", () => {
       accidentalStyle: "sharp",
       stringSets: ["1-2-3"],
       inversion: "root",
+      startFret: 0,
+      endFret: DEFAULT_END_FRET,
     });
     // 6 chords × 3 markers = 18 markers (vii° = B° at fret 16+ doesn't fit).
     expect(markers).toHaveLength(18);
@@ -259,6 +270,8 @@ describe("buildChordShapeMarkers", () => {
       accidentalStyle: "sharp",
       stringSets: ["1-2-3", "4-5-6"],
       inversion: "root",
+      startFret: 0,
+      endFret: DEFAULT_END_FRET,
     });
     // 1-2-3 contributes 6 chords × 3 = 18; 4-5-6 contributes 5 chords × 3 = 15
     // (in C major, root pos on 4-5-6 fits I-V; vi at fret 17 drops, vii° at 19 drops).
@@ -278,6 +291,8 @@ describe("buildChordShapeMarkers", () => {
       accidentalStyle: "sharp",
       stringSets: ["4-5-6"],
       inversion: "root",
+      startFret: 0,
+      endFret: DEFAULT_END_FRET,
     });
     expect(markers).toHaveLength(15); // 5 chords × 3 markers
     // Roots on low E string (marker.string = 0): C(8), D(10), E(12), F(13), G(15).
@@ -293,6 +308,8 @@ describe("buildChordShapeMarkers", () => {
       key: "F",
       accidentalStyle: "flat",
       rootStrings: ["6th"],
+      startFret: 0,
+      endFret: DEFAULT_END_FRET,
     });
     expect(markers).toHaveLength(21); // 7 chords × 3 markers
     // V in F major is C7. Lowest C on low E above the previous chord (Bb at
@@ -313,6 +330,8 @@ describe("buildChordShapeMarkers", () => {
       accidentalStyle: "flat",
       stringSets: ["1-2-3"],
       inversion: "root",
+      startFret: 0,
+      endFret: DEFAULT_END_FRET,
     });
     // iii in D major = F#m. With flat style, F# becomes Gb.
     // Ascending placement on string 3 (G): I=D@7, ii=Em@9, iii=F#m@11, IV=G@12,
@@ -331,6 +350,8 @@ describe("buildChordShapeMarkers", () => {
       accidentalStyle: "sharp",
       stringSets: ["1-2-3", "4-5-6"],
       inversion: "root",
+      startFret: 0,
+      endFret: DEFAULT_END_FRET,
     });
     // First group of 18 markers should be from 1-2-3 (rootString=3, marker.string=3
     // for the root markers); the next 15 from 4-5-6 (rootString=6, marker.string=0).
@@ -338,5 +359,50 @@ describe("buildChordShapeMarkers", () => {
     const secondGroupRoots = markers.slice(18).filter((m) => m.role === "root");
     expect(firstGroupRoots.every((m) => m.string === 3)).toBe(true);
     expect(secondGroupRoots.every((m) => m.string === 0)).toBe(true);
+  });
+});
+
+describe("buildChordShapeMarkers — explicit range", () => {
+  it("drops a chord whose only fitting placement falls below startFret", () => {
+    // C major Triads, [4-5-6], root inv. With range [0, 15] the I (C)
+    // chord's root sits at fret 8 on low E. With startFret=10, that
+    // placement is below the visible range and the chord drops.
+    const markers = buildChordShapeMarkers({
+      mode: "triads",
+      key: "C",
+      accidentalStyle: "sharp",
+      stringSets: ["4-5-6"],
+      inversion: "root",
+      startFret: 10,
+      endFret: 15,
+    });
+    // I (C@8) drops; ii (D@10), iii (E@12), IV (F@13), V (G@15) still fit.
+    const rootFrets = markers
+      .filter((m) => m.role === "root" && m.string === 0)
+      .map((m) => m.fret);
+    expect(rootFrets).not.toContain(8);
+    for (const m of markers) {
+      expect(m.fret).toBeGreaterThanOrEqual(10);
+      expect(m.fret).toBeLessThanOrEqual(15);
+    }
+  });
+
+  it("emits more chords when the range extends past 15", () => {
+    // C major Triads, [4-5-6], root inv. In [0, 15] only I..V fit (vi at
+    // 17 and vii° at 19 drop). In [0, 24] vi and vii° fit too.
+    const wide = buildChordShapeMarkers({
+      mode: "triads",
+      key: "C",
+      accidentalStyle: "sharp",
+      stringSets: ["4-5-6"],
+      inversion: "root",
+      startFret: 0,
+      endFret: 24,
+    });
+    // Roots on low E: C(8), D(10), E(12), F(13), G(15), A(17), B(19).
+    const rootFrets = wide
+      .filter((m) => m.role === "root" && m.string === 0)
+      .map((m) => m.fret);
+    expect(rootFrets).toEqual([8, 10, 12, 13, 15, 17, 19]);
   });
 });
