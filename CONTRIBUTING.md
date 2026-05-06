@@ -80,6 +80,21 @@ docs/
 - Test pure theory functions directly; do not test React rendering for theory behavior.
 - Aim for one assertion per `it()` block. Group related cases with `describe()`.
 
+## GitHub Actions
+
+All actions must be pinned to a full commit SHA rather than a mutable tag:
+
+```yaml
+# Good
+- uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+# Bad
+- uses: actions/checkout@v4
+```
+
+Add the version tag as a trailing comment so the pin remains human-readable. This
+prevents a compromised upstream tag from silently changing the code that runs in CI.
+
 ## Reference Documents
 
 When a contribution adds or changes user-visible behavior, the following documents must
