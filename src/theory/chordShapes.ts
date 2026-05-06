@@ -6,8 +6,12 @@ import {
   getNoteIndex,
   type AccidentalStyle,
 } from "./notes";
-import { getDiatonicTriads, getDiatonicChords } from "./scales";
-import type { TriadQuality, ChordQuality } from "./scales";
+import type {
+  TriadQuality,
+  ChordQuality,
+  DiatonicTriad,
+  DiatonicChord,
+} from "./scales";
 import type { NoteMarker } from "./types";
 
 // String numbering follows standard guitar nomenclature: string 1 = high E,
@@ -458,15 +462,17 @@ export const SHELL_SHAPES: Record<RootString, Record<ChordQuality, ShellShape>> 
 export type BuildChordShapeMarkersInput =
   | {
       mode: "triads";
+      chord: DiatonicTriad;
       key: string;
       accidentalStyle: AccidentalStyle;
       stringSets: ReadonlyArray<StringSet>;
-      inversion: Inversion;
+      inversions: ReadonlyArray<Inversion>;
       startFret: number;
       endFret: number;
     }
   | {
       mode: "shells";
+      chord: DiatonicChord;
       key: string;
       accidentalStyle: AccidentalStyle;
       rootStrings: ReadonlyArray<RootString>;
@@ -491,123 +497,99 @@ function getRootFrets(
 ): number[] {
   const baseFret = (getNoteIndex(targetNote) - getNoteIndex(openStringNote) + 12) % 12;
   const result: number[] = [];
-  // Walk every octave of the target note that fits inside [startFret, endFret].
   for (let candidate = baseFret; candidate <= endFret; candidate += 12) {
     if (candidate >= startFret) result.push(candidate);
   }
   return result;
 }
 
-type ChordSource = {
-  quality: string;
-  notes: readonly string[];
-};
-
-type ShapeLookup = (quality: string) => TriadShape | ShellShape | undefined;
-
-// Walk the 7 diatonic chords in degree order, placing each on the given
-// shape's anchor string using the ascending root rule. Returns NoteMarker[]
-// in degree-ascending order. Drops chords whose shape doesn't fit cleanly.
-function placeChordsOnAnchor(
-  chords: ReadonlyArray<ChordSource>,
-  shapeLookup: ShapeLookup,
+// Places all fitting occurrences of a single chord's shape on one combo.
+// Returns clusters in ascending root-fret order; no coupling between combos.
+function placeChordOnCombo(
+  chord: { quality: string; notes: readonly string[] },
+  shape: TriadShape | ShellShape,
   key: string,
   accidentalStyle: AccidentalStyle,
   startFret: number,
   endFret: number,
 ): NoteMarker[] {
+  const anchorMarkerString = shapeStringToMarkerString(shape.rootString);
+  const openAnchorNote = STANDARD_TUNING[anchorMarkerString];
+  const candidates = getRootFrets(chord.notes[0], openAnchorNote, startFret, endFret);
   const result: NoteMarker[] = [];
-  let previousFret = startFret - 1;
 
-  for (const chord of chords) {
-    const shape = shapeLookup(chord.quality);
-    if (!shape) continue;
-
-    const anchorMarkerString = shapeStringToMarkerString(shape.rootString);
-    const openAnchorNote = STANDARD_TUNING[anchorMarkerString];
-    const rootNote = chord.notes[0];
-
-    const candidateRootFrets = getRootFrets(
-      rootNote,
-      openAnchorNote,
-      startFret,
-      endFret,
+  for (const candidate of candidates) {
+    const allFit = shape.positions.every(
+      (p) =>
+        candidate + p.fretOffset >= startFret && candidate + p.fretOffset <= endFret,
     );
+    if (!allFit) continue;
 
-    for (const candidate of candidateRootFrets) {
-      if (candidate <= previousFret) continue;
-
-      const allFit = shape.positions.every((p) => {
-        const absFret = candidate + p.fretOffset;
-        return absFret >= startFret && absFret <= endFret;
+    for (const p of shape.positions) {
+      const absFret = candidate + p.fretOffset;
+      const markerString = shapeStringToMarkerString(p.string);
+      const openNote = STANDARD_TUNING[markerString];
+      result.push({
+        string: markerString,
+        fret: absFret,
+        note: getDisplayName(getNoteAtFret(openNote, absFret), key, accidentalStyle),
+        role: p.role,
       });
-      if (!allFit) continue;
-
-      // Place the cluster.
-      for (const p of shape.positions) {
-        const absFret = candidate + p.fretOffset;
-        const markerString = shapeStringToMarkerString(p.string);
-        const openNote = STANDARD_TUNING[markerString];
-        const noteAtFret = getNoteAtFret(openNote, absFret);
-        result.push({
-          string: markerString,
-          fret: absFret,
-          note: getDisplayName(noteAtFret, key, accidentalStyle),
-          role: p.role,
-        });
-      }
-      previousFret = candidate;
-      break;
     }
   }
 
   return result;
 }
 
-// Pure: given the Chord Shapes view's full input, returns the NoteMarker[]
-// the Fretboard should render. Returns [] for ALL_NOTES_KEY or when the
-// active sub-selector set is empty. Drops chords whose shape doesn't fit
-// inside [startFret, endFret] per the cap-at-fits rule.
+// Canonical order ensures stable output regardless of input order of inversions.
+const INVERSION_ORDER: Inversion[] = ["root", "first", "second"];
+
+// Pure: given one diatonic chord and the view's sub-selector state, returns
+// every NoteMarker the Fretboard should render. Returns [] for ALL_NOTES_KEY
+// or when the active sub-selector set is empty. Drops placements whose shape
+// doesn't fit inside [startFret, endFret].
 export function buildChordShapeMarkers(
   input: BuildChordShapeMarkersInput,
 ): NoteMarker[] {
   if (input.key === ALL_NOTES_KEY) return [];
 
   if (input.mode === "triads") {
-    if (input.stringSets.length === 0) return [];
-    const triads = getDiatonicTriads(input.key, input.accidentalStyle);
+    if (input.stringSets.length === 0 || input.inversions.length === 0) return [];
     const result: NoteMarker[] = [];
     for (const stringSet of input.stringSets) {
-      // The cast to Record<string, TriadShape> sidesteps a TS narrowing
-      // issue where indexing a Record<TriadQuality, …> with a plain string
-      // fails. The runtime call site always passes a TriadQuality.
-      const lookup: ShapeLookup = (q) =>
-        (TRIAD_SHAPES[stringSet][input.inversion] as Record<string, TriadShape>)[q];
-      result.push(
-        ...placeChordsOnAnchor(
-          triads,
-          lookup,
-          input.key,
-          input.accidentalStyle,
-          input.startFret,
-          input.endFret,
-        ),
-      );
+      for (const inv of INVERSION_ORDER) {
+        if (!input.inversions.includes(inv)) continue;
+        const shape = (TRIAD_SHAPES[stringSet][inv] as Record<string, TriadShape>)[
+          input.chord.quality
+        ];
+        if (!shape) continue;
+        result.push(
+          ...placeChordOnCombo(
+            input.chord,
+            shape,
+            input.key,
+            input.accidentalStyle,
+            input.startFret,
+            input.endFret,
+          ),
+        );
+      }
     }
     return result;
   }
 
-  // shells mode
+  // shells
   if (input.rootStrings.length === 0) return [];
-  const chords = getDiatonicChords(input.key, input.accidentalStyle);
   const result: NoteMarker[] = [];
   for (const rootString of input.rootStrings) {
-    const lookup: ShapeLookup = (q) =>
-      (SHELL_SHAPES[rootString] as Record<string, ShellShape>)[q];
+    const shape = (SHELL_SHAPES[rootString] as Record<string, ShellShape>)[
+      input.chord.quality
+    ];
+    if (!shape) continue;
     result.push(
-      ...placeChordsOnAnchor(
-        chords,
-        lookup,
+      ...placeChordOnCombo(
+        input.chord,
+        shape,
         input.key,
         input.accidentalStyle,
         input.startFret,

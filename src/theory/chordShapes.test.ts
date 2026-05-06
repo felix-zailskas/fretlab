@@ -163,18 +163,21 @@ describe("SHELL_SHAPES — structure", () => {
 });
 
 import { buildChordShapeMarkers } from "./chordShapes";
+import { getDiatonicTriads, getDiatonicChords } from "./scales";
 import { ALL_NOTES_KEY } from "../components/KeySelector";
 import { DEFAULT_END_FRET } from "./constants";
 
-describe("buildChordShapeMarkers", () => {
+describe("buildChordShapeMarkers — chord-centric", () => {
   it("returns [] when key is ALL_NOTES_KEY (triads)", () => {
+    const chord = getDiatonicTriads("C", "sharp")[0];
     expect(
       buildChordShapeMarkers({
         mode: "triads",
+        chord,
         key: ALL_NOTES_KEY,
         accidentalStyle: "sharp",
         stringSets: ["1-2-3"],
-        inversion: "root",
+        inversions: ["root"],
         startFret: 0,
         endFret: DEFAULT_END_FRET,
       }),
@@ -182,9 +185,11 @@ describe("buildChordShapeMarkers", () => {
   });
 
   it("returns [] when key is ALL_NOTES_KEY (shells)", () => {
+    const chord = getDiatonicChords("C", "sharp")[0];
     expect(
       buildChordShapeMarkers({
         mode: "shells",
+        chord,
         key: ALL_NOTES_KEY,
         accidentalStyle: "sharp",
         rootStrings: ["6th"],
@@ -195,13 +200,31 @@ describe("buildChordShapeMarkers", () => {
   });
 
   it("returns [] when stringSets is empty (triads)", () => {
+    const chord = getDiatonicTriads("C", "sharp")[0];
     expect(
       buildChordShapeMarkers({
         mode: "triads",
+        chord,
         key: "C",
         accidentalStyle: "sharp",
         stringSets: [],
-        inversion: "root",
+        inversions: ["root"],
+        startFret: 0,
+        endFret: DEFAULT_END_FRET,
+      }),
+    ).toEqual([]);
+  });
+
+  it("returns [] when inversions is empty (triads)", () => {
+    const chord = getDiatonicTriads("C", "sharp")[0];
+    expect(
+      buildChordShapeMarkers({
+        mode: "triads",
+        chord,
+        key: "C",
+        accidentalStyle: "sharp",
+        stringSets: ["1-2-3"],
+        inversions: [],
         startFret: 0,
         endFret: DEFAULT_END_FRET,
       }),
@@ -209,9 +232,11 @@ describe("buildChordShapeMarkers", () => {
   });
 
   it("returns [] when rootStrings is empty (shells)", () => {
+    const chord = getDiatonicChords("C", "sharp")[0];
     expect(
       buildChordShapeMarkers({
         mode: "shells",
+        chord,
         key: "C",
         accidentalStyle: "sharp",
         rootStrings: [],
@@ -221,188 +246,156 @@ describe("buildChordShapeMarkers", () => {
     ).toEqual([]);
   });
 
-  it("C major Triads, [1-2-3], root inv → 6 chords (vii° drops past fret 15)", () => {
+  it("C major I (Triads), [1-2-3], all inversions → 12 markers (two-octave in 2nd inv)", () => {
+    // root inv: C on G-string (marker 3) at fret 5 → 1 placement × 3 = 3
+    // first inv: C on high-E (marker 5) at fret 8 → 1 × 3 = 3
+    // second inv: C on B-string (marker 4) at frets 1 and 13 → 2 × 3 = 6
+    const chord = getDiatonicTriads("C", "sharp")[0]; // C major (I)
     const markers = buildChordShapeMarkers({
       mode: "triads",
+      chord,
       key: "C",
       accidentalStyle: "sharp",
       stringSets: ["1-2-3"],
-      inversion: "root",
+      inversions: ["root", "first", "second"],
       startFret: 0,
       endFret: DEFAULT_END_FRET,
     });
-    // 6 chords × 3 markers = 18 markers (vii° = B° at fret 16+ doesn't fit).
-    expect(markers).toHaveLength(18);
-    for (const m of markers) {
-      expect(m.fret).toBeGreaterThanOrEqual(0);
-      expect(m.fret).toBeLessThanOrEqual(15);
-    }
-
-    // Marker convention: 0 = low E, 5 = high E. Shape's string 3 (G) → marker 3.
-    // I (C maj root pos): root C on G string fret 5.
-    const iRoot = markers.find(
-      (m) => m.string === 3 && m.fret === 5 && m.role === "root",
-    );
-    expect(iRoot).toBeDefined();
-    expect(iRoot!.note).toBe("C");
-
-    // ii (Dm root pos): root D on G string fret 7.
-    const iiRoot = markers.find(
-      (m) => m.string === 3 && m.fret === 7 && m.role === "root",
-    );
-    expect(iiRoot).toBeDefined();
-
-    // vii° should not appear: no marker on the G string at fret 16.
-    const viiRoot = markers.find((m) => m.string === 3 && m.fret === 16);
-    expect(viiRoot).toBeUndefined();
-
-    // Strict ascending order on string 3 (the rootString for root inv on 1-2-3).
-    const rootMarkers = markers
-      .filter((m) => m.role === "root" && m.string === 3)
+    expect(markers).toHaveLength(12);
+    // Second inversion root (B-string = marker 4) appears at fret 1 and 13.
+    const secondInvRoots = markers
+      .filter((m) => m.role === "root" && m.string === 4)
       .map((m) => m.fret);
-    expect(rootMarkers).toEqual([5, 7, 9, 10, 12, 14]);
+    expect(secondInvRoots).toEqual([1, 13]);
   });
 
-  it("C major Triads, [1-2-3, 4-5-6], root inv → markers from both string sets", () => {
+  it("C major I (Triads), [1-2-3], inversions=[root,second] → 9 markers (first inv absent)", () => {
+    const chord = getDiatonicTriads("C", "sharp")[0];
     const markers = buildChordShapeMarkers({
       mode: "triads",
+      chord,
+      key: "C",
+      accidentalStyle: "sharp",
+      stringSets: ["1-2-3"],
+      inversions: ["root", "second"],
+      startFret: 0,
+      endFret: DEFAULT_END_FRET,
+    });
+    // root(3) + second(6) = 9; first inv root was at str=5, fret=8 — must be absent.
+    expect(markers).toHaveLength(9);
+    expect(
+      markers.find((m) => m.string === 5 && m.fret === 8 && m.role === "root"),
+    ).toBeUndefined();
+  });
+
+  it("C major I (Triads), [1-2-3, 4-5-6], all inversions → 24 markers, ordered by stringSet then inversion", () => {
+    // 1-2-3: root@str3f5, first@str5f8, second@str4f1, second@str4f13 → 12 markers
+    // 4-5-6: root@str0f8, first@str2f10, second@str1f3, second@str1f15 → 12 markers
+    const chord = getDiatonicTriads("C", "sharp")[0];
+    const markers = buildChordShapeMarkers({
+      mode: "triads",
+      chord,
       key: "C",
       accidentalStyle: "sharp",
       stringSets: ["1-2-3", "4-5-6"],
-      inversion: "root",
+      inversions: ["root", "first", "second"],
       startFret: 0,
       endFret: DEFAULT_END_FRET,
     });
-    // 1-2-3 contributes 6 chords × 3 = 18; 4-5-6 contributes 5 chords × 3 = 15
-    // (in C major, root pos on 4-5-6 fits I-V; vi at fret 17 drops, vii° at 19 drops).
-    expect(markers).toHaveLength(33);
-    // 4-5-6 root inv has rootString 6 (low E). Marker convention: string 0.
-    const fromLowE = markers.filter((m) => m.string === 0);
-    expect(fromLowE.length).toBeGreaterThan(0);
-    // 1-2-3 root inv has rootString 3 (G). Marker convention: string 3.
-    const fromG = markers.filter((m) => m.string === 3 && m.role === "root");
-    expect(fromG.length).toBe(6); // I..vi
+    expect(markers).toHaveLength(24);
+    // First 12 from 1-2-3 (shape strings 1,2,3 → marker strings 5,4,3; all ≥ 3).
+    expect(markers.slice(0, 12).every((m) => m.string >= 3)).toBe(true);
+    // Next 12 from 4-5-6 (shape strings 4,5,6 → marker strings 2,1,0; all ≤ 2).
+    expect(markers.slice(12).every((m) => m.string <= 2)).toBe(true);
+    // Canonical inversion order within 1-2-3: root → first → second (asc fret per combo).
+    const first12Roots = markers
+      .slice(0, 12)
+      .filter((m) => m.role === "root")
+      .map((m) => ({ string: m.string, fret: m.fret }));
+    expect(first12Roots).toEqual([
+      { string: 3, fret: 5 }, // root inv
+      { string: 5, fret: 8 }, // first inv
+      { string: 4, fret: 1 }, // second inv, low octave
+      { string: 4, fret: 13 }, // second inv, high octave
+    ]);
   });
 
-  it("C major Triads, [4-5-6], root inv → 5 chords (vi, vii° drop)", () => {
-    const markers = buildChordShapeMarkers({
-      mode: "triads",
-      key: "C",
-      accidentalStyle: "sharp",
-      stringSets: ["4-5-6"],
-      inversion: "root",
-      startFret: 0,
-      endFret: DEFAULT_END_FRET,
-    });
-    expect(markers).toHaveLength(15); // 5 chords × 3 markers
-    // Roots on low E string (marker.string = 0): C(8), D(10), E(12), F(13), G(15).
-    const rootFrets = markers
-      .filter((m) => m.role === "root" && m.string === 0)
-      .map((m) => m.fret);
-    expect(rootFrets).toEqual([8, 10, 12, 13, 15]);
-  });
-
-  it("F major Shells, [6th] → 7 chords × 3 markers, V (C7) root at fret 8 on low E", () => {
+  it("F major V (Shells), [6th] → C7 root at fret 8 on low E", () => {
+    const chord = getDiatonicChords("F", "flat")[4]; // V = C7
     const markers = buildChordShapeMarkers({
       mode: "shells",
+      chord,
       key: "F",
       accidentalStyle: "flat",
       rootStrings: ["6th"],
       startFret: 0,
       endFret: DEFAULT_END_FRET,
     });
-    expect(markers).toHaveLength(21); // 7 chords × 3 markers
-    // V in F major is C7. Lowest C on low E above the previous chord (Bb at
-    // fret 6): C is at fret 8.
-    const v = markers.find((m) => m.role === "root" && m.string === 0 && m.fret === 8);
-    expect(v).toBeDefined();
-    // Roots ascend: F(1), Gm(3), Am(5), Bb(6), C(8), Dm(10), Em(12).
-    const rootFrets = markers
-      .filter((m) => m.role === "root" && m.string === 0)
-      .map((m) => m.fret);
-    expect(rootFrets).toEqual([1, 3, 5, 6, 8, 10, 12]);
+    expect(markers).toHaveLength(3); // 1 placement × 3 markers
+    const root = markers.find((m) => m.role === "root");
+    expect(root).toBeDefined();
+    expect(root!.string).toBe(0); // low E = marker string 0
+    expect(root!.fret).toBe(8);
+    expect(root!.note).toBe("C");
   });
 
-  it("respects accidentalStyle in marker note labels", () => {
+  it("cap-at-fits: combos outside fret range produce no markers; others unaffected", () => {
+    // C major I, [1-2-3, 4-5-6], root inv, endFret=5.
+    // 1-2-3/root: C on G-string (marker 3) at fret 5 → fits [0,5] → 3 markers.
+    // 4-5-6/root: C on low E at fret 8 → 8 > 5 → 0 markers.
+    const chord = getDiatonicTriads("C", "sharp")[0];
     const markers = buildChordShapeMarkers({
       mode: "triads",
-      key: "D",
-      accidentalStyle: "flat",
-      stringSets: ["1-2-3"],
-      inversion: "root",
-      startFret: 0,
-      endFret: DEFAULT_END_FRET,
-    });
-    // iii in D major = F#m. With flat style, F# becomes Gb.
-    // Ascending placement on string 3 (G): I=D@7, ii=Em@9, iii=F#m@11, IV=G@12,
-    // V=A@14; vi/vii° drop. So F# at fret 11 is in the output.
-    const iiiRoot = markers.find(
-      (m) => m.role === "root" && m.fret === 11 && m.string === 3,
-    );
-    expect(iiiRoot).toBeDefined();
-    expect(iiiRoot!.note).toBe("Gb");
-  });
-
-  it("output ordering: markers grouped by string-set, then by ascending degree", () => {
-    const markers = buildChordShapeMarkers({
-      mode: "triads",
+      chord,
       key: "C",
       accidentalStyle: "sharp",
       stringSets: ["1-2-3", "4-5-6"],
-      inversion: "root",
+      inversions: ["root"],
+      startFret: 0,
+      endFret: 5,
+    });
+    expect(markers).toHaveLength(3); // only 1-2-3/root contributed
+    expect(markers.every((m) => m.string >= 3)).toBe(true); // all from 1-2-3
+    expect(markers.every((m) => m.fret <= 5)).toBe(true);
+  });
+
+  it("two-octave emission: both root-fret candidates emitted when both fit", () => {
+    // 2nd inv on 1-2-3: rootString=2 (B, marker 4). C on B: fret 1 and fret 13.
+    // Shape offsets [0,-1,-1] → frets [1,0,0] and [13,12,12]; both sets in [0,15].
+    const chord = getDiatonicTriads("C", "sharp")[0];
+    const markers = buildChordShapeMarkers({
+      mode: "triads",
+      chord,
+      key: "C",
+      accidentalStyle: "sharp",
+      stringSets: ["1-2-3"],
+      inversions: ["second"],
       startFret: 0,
       endFret: DEFAULT_END_FRET,
     });
-    // First group of 18 markers should be from 1-2-3 (rootString=3, marker.string=3
-    // for the root markers); the next 15 from 4-5-6 (rootString=6, marker.string=0).
-    const firstGroupRoots = markers.slice(0, 18).filter((m) => m.role === "root");
-    const secondGroupRoots = markers.slice(18).filter((m) => m.role === "root");
-    expect(firstGroupRoots.every((m) => m.string === 3)).toBe(true);
-    expect(secondGroupRoots.every((m) => m.string === 0)).toBe(true);
+    expect(markers).toHaveLength(6); // 2 placements × 3 markers
+    const rootFrets = markers.filter((m) => m.role === "root").map((m) => m.fret);
+    expect(rootFrets).toEqual([1, 13]);
   });
-});
 
-describe("buildChordShapeMarkers — explicit range", () => {
-  it("drops a chord whose only fitting placement falls below startFret", () => {
-    // C major Triads, [4-5-6], root inv. With range [0, 15] the I (C)
-    // chord's root sits at fret 8 on low E. With startFret=10, that
-    // placement is below the visible range and the chord drops.
+  it("accidental style: F# in D major shown as Gb with flat style", () => {
+    // D major iii = F#m. With flat accidentalStyle, root displays as Gb.
+    // Root pos on 1-2-3: Gb on G-string (marker 3) at fret 11.
+    const chord = getDiatonicTriads("D", "flat")[2]; // iii = Gbm
     const markers = buildChordShapeMarkers({
       mode: "triads",
-      key: "C",
-      accidentalStyle: "sharp",
-      stringSets: ["4-5-6"],
-      inversion: "root",
-      startFret: 10,
-      endFret: 15,
-    });
-    // I (C@8) drops; ii (D@10), iii (E@12), IV (F@13), V (G@15) still fit.
-    const rootFrets = markers
-      .filter((m) => m.role === "root" && m.string === 0)
-      .map((m) => m.fret);
-    expect(rootFrets).not.toContain(8);
-    for (const m of markers) {
-      expect(m.fret).toBeGreaterThanOrEqual(10);
-      expect(m.fret).toBeLessThanOrEqual(15);
-    }
-  });
-
-  it("emits more chords when the range extends past 15", () => {
-    // C major Triads, [4-5-6], root inv. In [0, 15] only I..V fit (vi at
-    // 17 and vii° at 19 drop). In [0, 24] vi and vii° fit too.
-    const wide = buildChordShapeMarkers({
-      mode: "triads",
-      key: "C",
-      accidentalStyle: "sharp",
-      stringSets: ["4-5-6"],
-      inversion: "root",
+      chord,
+      key: "D",
+      accidentalStyle: "flat",
+      stringSets: ["1-2-3"],
+      inversions: ["root"],
       startFret: 0,
-      endFret: 24,
+      endFret: DEFAULT_END_FRET,
     });
-    // Roots on low E: C(8), D(10), E(12), F(13), G(15), A(17), B(19).
-    const rootFrets = wide
-      .filter((m) => m.role === "root" && m.string === 0)
-      .map((m) => m.fret);
-    expect(rootFrets).toEqual([8, 10, 12, 13, 15, 17, 19]);
+    const rootMarker = markers.find(
+      (m) => m.role === "root" && m.string === 3 && m.fret === 11,
+    );
+    expect(rootMarker).toBeDefined();
+    expect(rootMarker!.note).toBe("Gb");
   });
 });
