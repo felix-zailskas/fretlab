@@ -32,3 +32,6 @@ coverage/
 
 # Misc
 *.tsbuildinfo
+
+# Superpowers brainstorming visual companion (transient mockups)
+.superpowers/
