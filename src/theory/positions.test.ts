@@ -28,7 +28,7 @@ describe("CAGED_POSITIONS", () => {
   it("declares the 5 CAGED positions in the spec-defined order", () => {
     expect(CAGED_POSITIONS).toHaveLength(5);
     expect(CAGED_POSITIONS.map((p) => p.id)).toEqual(["P1", "P2", "P3", "P4", "P5"]);
-    expect(CAGED_POSITIONS.map((p) => p.shape)).toEqual(["E", "D", "C", "A", "G"]);
+    expect(CAGED_POSITIONS.map((p) => p.shape)).toEqual(["C", "A", "G", "E", "D"]);
     expect(CAGED_POSITIONS.map((p) => p.cMajorWindow)).toEqual([
       [0, 3],
       [2, 5],

@@ -1,12 +1,6 @@
-import type { PositionId, CagedShape } from "../theory/positions";
+import { CAGED_POSITIONS, type PositionId } from "../theory/positions";
 
-const TOGGLES: ReadonlyArray<{ id: PositionId; shape: CagedShape }> = [
-  { id: "P1", shape: "E" },
-  { id: "P2", shape: "D" },
-  { id: "P3", shape: "C" },
-  { id: "P4", shape: "A" },
-  { id: "P5", shape: "G" },
-];
+const TOGGLES = CAGED_POSITIONS.map((p) => ({ id: p.id, shape: p.shape }));
 
 type PositionTogglesProps = {
   selected: ReadonlySet<PositionId>;

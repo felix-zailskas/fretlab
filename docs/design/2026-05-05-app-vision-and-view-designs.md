@@ -86,7 +86,7 @@ controls serve both practice intents.
   default just **P1**, no "All" option) + an optional chord degree (I, ii, iii, IV, V,
   vi, vii°).
 - The fretboard renders a soft tinted rectangle behind each selected position's fret
-  window with a compact label (e.g., `P1 — E`) above it. The box is a visible artifact,
+  window with a compact label (e.g., `P1 — C`) above it. The box is a visible artifact,
   not just inferred from where markers happen to appear.
 - **Overlap zones get explicit emphasis** when two or more selected positions share
   frets — a brighter fill plus a defined border highlights the transition area.
@@ -112,17 +112,19 @@ controls serve both practice intents.
 - Layout matches Note Map: fretboard, then Legend below it, then the diatonic chord row.
   View-specific controls (position toggles, context toggle) sit inside the view above
   the fretboard.
-- CAGED encoding is anchored to C major, with shapes shifting by key:
-  - P1 (E shape) ≈ frets 0–3
-  - P2 (D shape) ≈ frets 2–5
-  - P3 (C shape) ≈ frets 4–8
-  - P4 (A shape) ≈ frets 7–10
-  - P5 (G shape) ≈ frets 9–13
+- CAGED encoding is anchored to C major, with shapes shifting by key. Positions follow
+  the canonical CAGED order ascending the neck from open in C major: C → A → G → E → D
+  (then C again one octave up).
+  - P1 (C shape) ≈ frets 0–3
+  - P2 (A shape) ≈ frets 2–5
+  - P3 (G shape) ≈ frets 4–8
+  - P4 (E shape) ≈ frets 7–10
+  - P5 (D shape) ≈ frets 9–13
   - The interval _shape_ stays constant; only the fret offset moves with key.
 - Worked example: in G major, ii (Am7), with P1 selected, the notes A / C / E are
   highlighted as R / 3 / 5; toggling the 7 in the Legend adds G as ♭7.
-- Answers two questions in one view: _"What does the C-shape (P3) box look like in this
-  key, and where does it overlap with the A-shape (P4)?"_ and _"I'm soloing over ii in G
+- Answers two questions in one view: _"What does the G-shape (P3) box look like in this
+  key, and where does it overlap with the E-shape (P4)?"_ and _"I'm soloing over ii in G
   in position 3 — which notes do I target?"_.
 - Implementation spec:
   `docs/superpowers/specs/2026-05-05-chord-tones-in-scale-positions-design.md`.
@@ -223,7 +225,7 @@ visualization helps internalize that.
   highlight Dm7's chord tones, or does it switch into D Dorian visualization with no
   chord highlighted?
 - Are the 7 modes shown as a separate selector, or always inferred from the chord row?
-- Does the CAGED position framing change when the tonic shifts? In Dorian, the "P1 / E
+- Does the CAGED position framing change when the tonic shifts? In Dorian, the "P1 / C
   shape" of C major becomes a different shape relative to D as root.
 - A characteristic-tones overlay (e.g., highlight ♯4 in Lydian, ♭2 in Phrygian) would
   meaningfully add to mode practice — worth scoping alongside the basic re-anchor.

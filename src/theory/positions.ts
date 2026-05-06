@@ -12,15 +12,17 @@ type PositionDef = {
   cMajorWindow: FretWindow;
 };
 
-// Anchored to C major. Numbers from the vision doc's Scale Positions section
-// (P1 E shape ≈ frets 0–3, P2 D shape ≈ frets 2–5, ...). Other keys are
-// derived from these by getPositionWindow.
+// Anchored to C major. Shapes follow the canonical CAGED order ascending the
+// neck from the open position in C major: C → A → G → E → D (then C again one
+// octave up). Each shape's window is the fret span where its barre form sits
+// for C major, derived by adding the shape's relative offset to its barre
+// fret. Other keys are derived from these by getPositionWindow.
 export const CAGED_POSITIONS: ReadonlyArray<PositionDef> = [
-  { id: "P1", shape: "E", cMajorWindow: [0, 3] },
-  { id: "P2", shape: "D", cMajorWindow: [2, 5] },
-  { id: "P3", shape: "C", cMajorWindow: [4, 8] },
-  { id: "P4", shape: "A", cMajorWindow: [7, 10] },
-  { id: "P5", shape: "G", cMajorWindow: [9, 13] },
+  { id: "P1", shape: "C", cMajorWindow: [0, 3] },
+  { id: "P2", shape: "A", cMajorWindow: [2, 5] },
+  { id: "P3", shape: "G", cMajorWindow: [4, 8] },
+  { id: "P4", shape: "E", cMajorWindow: [7, 10] },
+  { id: "P5", shape: "D", cMajorWindow: [9, 13] },
 ];
 
 const C_INDEX = getNoteIndex("C");
