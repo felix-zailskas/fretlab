@@ -1,5 +1,5 @@
 import { ALL_NOTES_KEY } from "../components/KeySelector";
-import { FRET_COUNT } from "./constants";
+import { DEFAULT_END_FRET } from "./constants";
 import {
   STANDARD_TUNING,
   getDisplayName,
@@ -479,13 +479,13 @@ function shapeStringToMarkerString(shapeString: number): number {
 }
 
 // Returns the playable frets for a target note on a given open string,
-// inside [0, FRET_COUNT]. A note repeats every 12 frets, so this returns
+// inside [0, DEFAULT_END_FRET]. A note repeats every 12 frets, so this returns
 // either 1 or 2 entries.
 function getRootFrets(targetNote: string, openStringNote: string): number[] {
   const baseFret = (getNoteIndex(targetNote) - getNoteIndex(openStringNote) + 12) % 12;
   const result: number[] = [];
-  if (baseFret <= FRET_COUNT) result.push(baseFret);
-  if (baseFret + 12 <= FRET_COUNT) result.push(baseFret + 12);
+  if (baseFret <= DEFAULT_END_FRET) result.push(baseFret);
+  if (baseFret + 12 <= DEFAULT_END_FRET) result.push(baseFret + 12);
   return result;
 }
 
@@ -523,7 +523,7 @@ function placeChordsOnAnchor(
 
       const allFit = shape.positions.every((p) => {
         const absFret = candidate + p.fretOffset;
-        return absFret >= 0 && absFret <= FRET_COUNT;
+        return absFret >= 0 && absFret <= DEFAULT_END_FRET;
       });
       if (!allFit) continue;
 
@@ -551,7 +551,7 @@ function placeChordsOnAnchor(
 // Pure: given the Chord Shapes view's full input, returns the NoteMarker[]
 // the Fretboard should render. Returns [] for ALL_NOTES_KEY or when the
 // active sub-selector set is empty. Drops chords whose shape doesn't fit
-// inside [0, FRET_COUNT] per the cap-at-fits rule.
+// inside [0, DEFAULT_END_FRET] per the cap-at-fits rule.
 export function buildChordShapeMarkers(
   input: BuildChordShapeMarkersInput,
 ): NoteMarker[] {

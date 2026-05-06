@@ -1,4 +1,7 @@
-// Highest fret rendered by the Fretboard. Single source of truth — every view
-// and the renderer itself must derive their fret loop bounds and defaults from
-// this constant. Bumping it changes the visible range across the entire app.
-export const FRET_COUNT = 15;
+// Default highest fret rendered by the Fretboard. The user can override
+// the visible range via FretRangeControl; this is just the default end.
+export const DEFAULT_END_FRET = 15;
+
+// Absolute UI ceiling — the longest commonly-built electric neck.
+// FretRangeControl clamps endFret to this value.
+export const MAX_FRET = 24;

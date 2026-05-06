@@ -7,7 +7,7 @@ import {
 import { PositionToggles } from "../components/PositionToggles";
 import { ALL_NOTES_KEY } from "../components/KeySelector";
 import type { HighlightableRole } from "../components/Legend";
-import { FRET_COUNT } from "../theory/constants";
+import { DEFAULT_END_FRET } from "../theory/constants";
 import { buildChordToneMarkers } from "../theory/chordTones";
 import {
   CAGED_POSITIONS,
@@ -117,7 +117,7 @@ export function ScalePositionsView({
       <div className="relative">
         <Fretboard
           markers={markers}
-          fretCount={FRET_COUNT}
+          fretCount={DEFAULT_END_FRET}
           positionWindows={positionWindows}
           overlapZones={overlapZones}
         />

@@ -6,7 +6,7 @@ import {
   isInPositionWindow,
   type PositionId,
 } from "./positions";
-import { FRET_COUNT } from "./constants";
+import { DEFAULT_END_FRET } from "./constants";
 
 const ALL_KEYS = [
   "C",
@@ -48,7 +48,7 @@ describe("getPositionWindow", () => {
     expect(getPositionWindow("C", "P5")).toEqual([9, 13]);
   });
 
-  it("shifts windows by the key offset when they fit within FRET_COUNT", () => {
+  it("shifts windows by the key offset when they fit within DEFAULT_END_FRET", () => {
     // D major = +2: P1 [0,3] -> [2,5], P2 [2,5] -> [4,7], P5 [9,13] -> [11,15].
     expect(getPositionWindow("D", "P1")).toEqual([2, 5]);
     expect(getPositionWindow("D", "P5")).toEqual([11, 15]);
@@ -80,12 +80,12 @@ describe("getPositionWindow", () => {
     expect(getPositionWindow("Gb", "P5")).toEqual([3, 7]);
   });
 
-  it("produces a window with 0 <= low <= high <= FRET_COUNT for every (key, position) pair", () => {
+  it("produces a window with 0 <= low <= high <= DEFAULT_END_FRET for every (key, position) pair", () => {
     for (const key of ALL_KEYS) {
       for (const position of ALL_POSITIONS) {
         const [low, high] = getPositionWindow(key, position);
         expect(
-          low >= 0 && low <= high && high <= FRET_COUNT,
+          low >= 0 && low <= high && high <= DEFAULT_END_FRET,
           `key=${key} pos=${position} window=[${low},${high}]`,
         ).toBe(true);
       }

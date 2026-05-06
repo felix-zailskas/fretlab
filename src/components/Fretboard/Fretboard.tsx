@@ -1,5 +1,5 @@
 import type { NoteMarker } from "../../theory/types";
-import { FRET_COUNT } from "../../theory/constants";
+import { DEFAULT_END_FRET } from "../../theory/constants";
 import { FretboardString } from "./FretboardString";
 import { FretMarkers } from "./FretMarkers";
 import { NoteCircle } from "./NoteCircle";
@@ -49,7 +49,7 @@ const OVERLAP_STROKE_WIDTH = 1.5;
 
 export function Fretboard({
   markers,
-  fretCount = FRET_COUNT,
+  fretCount = DEFAULT_END_FRET,
   positionWindows,
   overlapZones,
 }: FretboardProps) {

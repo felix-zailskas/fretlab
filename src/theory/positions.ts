@@ -1,4 +1,4 @@
-import { FRET_COUNT } from "./constants";
+import { DEFAULT_END_FRET } from "./constants";
 import { getNoteIndex } from "./notes";
 
 export type PositionId = "P1" | "P2" | "P3" | "P4" | "P5";
@@ -54,14 +54,14 @@ function lookup(position: PositionId): PositionDef {
 //
 // Soundness: the C-major windows are at most 4 frets wide, and key offsets
 // are in [0, 11]. When wrapping, the resulting low fret is always ≥ 0 and
-// the high fret is always ≤ FRET_COUNT, so the wrap is always valid.
+// the high fret is always ≤ DEFAULT_END_FRET, so the wrap is always valid.
 export function getPositionWindow(key: string, position: PositionId): FretWindow {
   const { cMajorWindow } = lookup(position);
   const offset = getKeyOffset(key);
   const naturalLow = cMajorWindow[0] + offset;
   const naturalHigh = cMajorWindow[1] + offset;
 
-  if (naturalHigh <= FRET_COUNT) {
+  if (naturalHigh <= DEFAULT_END_FRET) {
     return [naturalLow, naturalHigh];
   }
   return [naturalLow - 12, naturalHigh - 12];

@@ -1,6 +1,6 @@
 import { ALL_NOTES_KEY } from "../components/KeySelector";
 import type { HighlightableRole } from "../components/Legend";
-import { FRET_COUNT } from "./constants";
+import { DEFAULT_END_FRET } from "./constants";
 import {
   STANDARD_TUNING,
   getDisplayName,
@@ -78,7 +78,7 @@ export function buildChordToneMarkers({
 
   for (let stringIndex = 0; stringIndex < STANDARD_TUNING.length; stringIndex++) {
     const openString = STANDARD_TUNING[stringIndex];
-    for (let fret = 0; fret <= FRET_COUNT; fret++) {
+    for (let fret = 0; fret <= DEFAULT_END_FRET; fret++) {
       const note = getNoteAtFret(openString, fret);
       const interval = getIntervalRole(key, note);
       if (interval === null) continue; // out of key — drop entirely

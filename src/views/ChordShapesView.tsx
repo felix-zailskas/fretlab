@@ -4,7 +4,7 @@ import { ALL_NOTES_KEY } from "../components/KeySelector";
 import { Legend } from "../components/Legend";
 import { StringSetToggles } from "../components/StringSetToggles";
 import { InversionPicker } from "../components/InversionPicker";
-import { FRET_COUNT } from "../theory/constants";
+import { DEFAULT_END_FRET } from "../theory/constants";
 import {
   buildChordShapeMarkers,
   type ChordShapesMode,
@@ -160,7 +160,7 @@ export function ChordShapesView({
           Select a string set to begin.
         </div>
       ) : (
-        <Fretboard markers={markers} fretCount={FRET_COUNT} />
+        <Fretboard markers={markers} fretCount={DEFAULT_END_FRET} />
       )}
 
       <Legend readOnly />

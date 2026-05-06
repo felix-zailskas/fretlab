@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { Fretboard } from "../components/Fretboard/Fretboard";
 import { ALL_NOTES_KEY } from "../components/KeySelector";
 import type { HighlightableRole } from "../components/Legend";
-import { FRET_COUNT } from "../theory/constants";
+import { DEFAULT_END_FRET } from "../theory/constants";
 import { roleFromChordTone, HIGHLIGHTABLE } from "../theory/chordTones";
 import {
   STANDARD_TUNING,
@@ -36,7 +36,7 @@ export function NoteMapView({
 
     for (let stringIndex = 0; stringIndex < STANDARD_TUNING.length; stringIndex++) {
       const openString = STANDARD_TUNING[stringIndex];
-      for (let fret = 0; fret <= FRET_COUNT; fret++) {
+      for (let fret = 0; fret <= DEFAULT_END_FRET; fret++) {
         const note = getNoteAtFret(openString, fret);
 
         let role: NoteDisplayRole;
@@ -65,5 +65,5 @@ export function NoteMapView({
     return result;
   }, [selectedKey, accidentalStyle, enabledHighlights, selectedChord]);
 
-  return <Fretboard markers={markers} fretCount={FRET_COUNT} />;
+  return <Fretboard markers={markers} fretCount={DEFAULT_END_FRET} />;
 }
