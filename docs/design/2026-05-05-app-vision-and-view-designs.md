@@ -339,12 +339,12 @@ After consolidation the dependency map is short:
 
 ## View completion map
 
-| View                      | Status      | Notes                                                                                                                                                                                                                    |
-| ------------------------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Note Map                  | Done        | Step 1 proof view; rendered by [NoteMapView.tsx](src/views/NoteMapView.tsx).                                                                                                                                             |
-| Scale Positions           | Done        | Consolidated CAGED-box + chord-tone view; rendered by [ScalePositionsView.tsx](src/views/ScalePositionsView.tsx). Spec: [design](../superpowers/specs/2026-05-05-chord-tones-in-scale-positions-design.md).              |
-| Chord Shapes              | Not started | Consolidates the originally-separate Shell Voicings (#4) and Triad Shapes (#5) tabs. Shells/Triads selector swaps the chord-diagram box grid and the ascending-up-the-neck section.                                      |
-| Diatonic chord row triads | Done        | Triads/sevenths toggle in [DiatonicChords.tsx](src/components/DiatonicChords.tsx); `getDiatonicTriads` in [scales.ts](src/theory/scales.ts). Spec: [design](../superpowers/specs/2026-05-05-chord-row-triads-design.md). |
+| View                      | Status | Notes                                                                                                                                                                                                                                                                                                |
+| ------------------------- | ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Note Map                  | Done   | Step 1 proof view; rendered by [NoteMapView.tsx](src/views/NoteMapView.tsx).                                                                                                                                                                                                                         |
+| Scale Positions           | Done   | Consolidated CAGED-box + chord-tone view; rendered by [ScalePositionsView.tsx](src/views/ScalePositionsView.tsx). Spec: [design](../superpowers/specs/2026-05-05-chord-tones-in-scale-positions-design.md).                                                                                          |
+| Chord Shapes              | Done   | Single-section ascending neck view; rendered by [ChordShapesView.tsx](src/views/ChordShapesView.tsx). Triads/Shells modes, multi-toggle string-set sub-selector, single-pick inversion (Triads only), cap-at-fits drop rule. Spec: [design](../superpowers/specs/2026-05-06-chord-shapes-design.md). |
+| Diatonic chord row triads | Done   | Triads/sevenths toggle in [DiatonicChords.tsx](src/components/DiatonicChords.tsx); `getDiatonicTriads` in [scales.ts](src/theory/scales.ts). Spec: [design](../superpowers/specs/2026-05-05-chord-row-triads-design.md).                                                                             |
 
 ---
 
