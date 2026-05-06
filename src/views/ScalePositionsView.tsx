@@ -122,20 +122,16 @@ export function ScalePositionsView({
           Show context notes
         </label>
       </div>
-      <div className="relative">
-        <Fretboard
-          markers={markers}
-          startFret={startFret}
-          endFret={endFret}
-          positionWindows={positionWindows}
-          overlapZones={overlapZones}
-        />
-        {selectedPositions.size === 0 && (
-          <div className="absolute inset-0 flex items-center justify-center text-white pointer-events-none">
-            Toggle a position to begin.
-          </div>
-        )}
-      </div>
+      <Fretboard
+        markers={markers}
+        startFret={startFret}
+        endFret={endFret}
+        positionWindows={positionWindows}
+        overlapZones={overlapZones}
+        emptyMessage={
+          selectedPositions.size === 0 ? "Toggle a position to begin." : undefined
+        }
+      />
     </div>
   );
 }

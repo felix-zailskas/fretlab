@@ -23,6 +23,9 @@ type FretboardProps = {
   endFret?: number;
   positionWindows?: ReadonlyArray<PositionWindow>;
   overlapZones?: ReadonlyArray<OverlapZone>;
+  // When set, an overlay with this message renders on top of the fretboard.
+  // The presence of the message is the signal — omit it to render normally.
+  emptyMessage?: string;
 };
 
 // PADDING.top reserves space above the board for position-window labels.
@@ -54,6 +57,7 @@ export function Fretboard({
   endFret = DEFAULT_END_FRET,
   positionWindows,
   overlapZones,
+  emptyMessage,
 }: FretboardProps) {
   const boardTop = PADDING.top;
   const boardBottom = PADDING.top + (NUM_STRINGS - 1) * STRING_SPACING;
@@ -117,177 +121,184 @@ export function Fretboard({
   }
 
   return (
-    <svg
-      viewBox={`0 0 ${totalWidth} ${totalHeight}`}
-      className="w-full"
-      preserveAspectRatio="xMidYMid meet"
-    >
-      {/* Fretboard background */}
-      <rect
-        x={nutX}
-        y={boardTop - 10}
-        width={boardWidth}
-        height={boardBottom - boardTop + 20}
-        rx={4}
-        fill="var(--color-fretboard)"
-      />
+    <div className="relative">
+      <svg
+        viewBox={`0 0 ${totalWidth} ${totalHeight}`}
+        className="w-full"
+        preserveAspectRatio="xMidYMid meet"
+      >
+        {/* Fretboard background */}
+        <rect
+          x={nutX}
+          y={boardTop - 10}
+          width={boardWidth}
+          height={boardBottom - boardTop + 20}
+          rx={4}
+          fill="var(--color-fretboard)"
+        />
 
-      {/* Position windows — faint fill, no continuous border (corner brackets
+        {/* Position windows — faint fill, no continuous border (corner brackets
           rendered separately below for the framing geometry). */}
-      {positionWindows?.map((win) => {
-        const leftX = windowLeftX(win.low);
-        const rightX = windowRightX(win.high);
-        return (
-          <rect
-            key={`window-fill-${win.id}`}
-            x={leftX}
-            y={boardTop - 10}
-            width={rightX - leftX}
-            height={boardBottom - boardTop + 20}
-            rx={3}
-            fill={POSITION_FILL}
-          />
-        );
-      })}
+        {positionWindows?.map((win) => {
+          const leftX = windowLeftX(win.low);
+          const rightX = windowRightX(win.high);
+          return (
+            <rect
+              key={`window-fill-${win.id}`}
+              x={leftX}
+              y={boardTop - 10}
+              width={rightX - leftX}
+              height={boardBottom - boardTop + 20}
+              rx={3}
+              fill={POSITION_FILL}
+            />
+          );
+        })}
 
-      {/* Overlap zones — continuous-bordered rectangles. Visually distinct from
+        {/* Overlap zones — continuous-bordered rectangles. Visually distinct from
           the bracketed position windows: positions = framed regions, overlaps
           = explicitly joined territory. */}
-      {overlapZones?.map((zone) => {
-        const leftX = windowLeftX(zone.low);
-        const rightX = windowRightX(zone.high);
-        return (
-          <rect
-            key={`overlap-${zone.id}`}
-            x={leftX}
-            y={boardTop - 10}
-            width={rightX - leftX}
-            height={boardBottom - boardTop + 20}
-            rx={3}
-            fill={OVERLAP_FILL}
-            stroke={OVERLAP_STROKE}
-            strokeWidth={OVERLAP_STROKE_WIDTH}
-          />
-        );
-      })}
+        {overlapZones?.map((zone) => {
+          const leftX = windowLeftX(zone.low);
+          const rightX = windowRightX(zone.high);
+          return (
+            <rect
+              key={`overlap-${zone.id}`}
+              x={leftX}
+              y={boardTop - 10}
+              width={rightX - leftX}
+              height={boardBottom - boardTop + 20}
+              rx={3}
+              fill={OVERLAP_FILL}
+              stroke={OVERLAP_STROKE}
+              strokeWidth={OVERLAP_STROKE_WIDTH}
+            />
+          );
+        })}
 
-      {/* Fret markers (dots) — rendered behind strings and notes */}
-      <FretMarkers
-        fretX={fretX}
-        boardTop={boardTop}
-        boardBottom={boardBottom}
-        startFret={startFret}
-        endFret={endFret}
-      />
+        {/* Fret markers (dots) — rendered behind strings and notes */}
+        <FretMarkers
+          fretX={fretX}
+          boardTop={boardTop}
+          boardBottom={boardBottom}
+          startFret={startFret}
+          endFret={endFret}
+        />
 
-      {/* Nut (when startFret === 0) or starting boundary (when startFret > 0) */}
-      <line
-        x1={nutX}
-        y1={boardTop - 10}
-        x2={nutX}
-        y2={boardBottom + 10}
-        stroke={startFret === 0 ? "var(--color-fg-primary)" : "var(--color-fret)"}
-        strokeWidth={startFret === 0 ? 4 : 1.5}
-      />
-
-      {/* Fret lines */}
-      {Array.from(
-        { length: endFret - effectiveStart },
-        (_, i) => effectiveStart + i + 1,
-      ).map((fret) => (
+        {/* Nut (when startFret === 0) or starting boundary (when startFret > 0) */}
         <line
-          key={fret}
-          x1={nutX + (fret - effectiveStart) * fretSpacing}
+          x1={nutX}
           y1={boardTop - 10}
-          x2={nutX + (fret - effectiveStart) * fretSpacing}
+          x2={nutX}
           y2={boardBottom + 10}
-          stroke="var(--color-fret)"
-          strokeWidth={1.5}
+          stroke={startFret === 0 ? "var(--color-fg-primary)" : "var(--color-fret)"}
+          strokeWidth={startFret === 0 ? 4 : 1.5}
         />
-      ))}
 
-      {/* Strings */}
-      {Array.from({ length: NUM_STRINGS }, (_, i) => i).map((stringIndex) => (
-        <FretboardString
-          key={stringIndex}
-          stringIndex={stringIndex}
-          y={stringY(stringIndex)}
-          xStart={nutX}
-          xEnd={nutX + boardWidth}
-        />
-      ))}
-
-      {/* Fret numbers */}
-      {Array.from(
-        { length: endFret - effectiveStart },
-        (_, i) => effectiveStart + i + 1,
-      ).map((fret) => (
-        <text
-          key={fret}
-          x={fretX(fret)}
-          y={boardBottom + 30}
-          textAnchor="middle"
-          fill="var(--color-scale)"
-          fontSize={11}
-          fontFamily="system-ui, sans-serif"
-        >
-          {fret}
-        </text>
-      ))}
-
-      {/* Position-window corner brackets — rendered above strings/markers so
-          they read as a frame in front of, not behind, the content. */}
-      {positionWindows?.map((win) => {
-        const leftX = windowLeftX(win.low);
-        const rightX = windowRightX(win.high);
-        const T = boardTop - 10;
-        const B = boardBottom + 10;
-        return (
-          <path
-            key={`brackets-${win.id}`}
-            d={bracketPath(leftX, T, rightX, B)}
-            fill="none"
-            stroke={POSITION_BRACKET_STROKE}
-            strokeWidth={POSITION_BRACKET_WIDTH}
-            strokeLinecap="round"
-            strokeLinejoin="miter"
+        {/* Fret lines */}
+        {Array.from(
+          { length: endFret - effectiveStart },
+          (_, i) => effectiveStart + i + 1,
+        ).map((fret) => (
+          <line
+            key={fret}
+            x1={nutX + (fret - effectiveStart) * fretSpacing}
+            y1={boardTop - 10}
+            x2={nutX + (fret - effectiveStart) * fretSpacing}
+            y2={boardBottom + 10}
+            stroke="var(--color-fret)"
+            strokeWidth={1.5}
           />
-        );
-      })}
+        ))}
 
-      {/* Note markers */}
-      {markers.map((marker, i) => (
-        <NoteCircle
-          key={`${marker.string}-${marker.fret}-${marker.role}-${i}`}
-          cx={fretCenterX(marker.fret)}
-          cy={stringY(marker.string)}
-          note={marker.note}
-          role={marker.role}
-        />
-      ))}
+        {/* Strings */}
+        {Array.from({ length: NUM_STRINGS }, (_, i) => i).map((stringIndex) => (
+          <FretboardString
+            key={stringIndex}
+            stringIndex={stringIndex}
+            y={stringY(stringIndex)}
+            xStart={nutX}
+            xEnd={nutX + boardWidth}
+          />
+        ))}
 
-      {/* Position-window labels — placed in the dedicated header strip above
-          the board (the boardTop padding reserves this space). */}
-      {positionWindows?.map((win) => {
-        const leftX = windowLeftX(win.low);
-        const rightX = windowRightX(win.high);
-        const centerX = (leftX + rightX) / 2;
-        return (
+        {/* Fret numbers */}
+        {Array.from(
+          { length: endFret - effectiveStart },
+          (_, i) => effectiveStart + i + 1,
+        ).map((fret) => (
           <text
-            key={`label-${win.id}`}
-            x={centerX}
-            y={22}
+            key={fret}
+            x={fretX(fret)}
+            y={boardBottom + 30}
             textAnchor="middle"
-            fontSize={12}
-            fontWeight={500}
+            fill="var(--color-scale)"
+            fontSize={11}
             fontFamily="system-ui, sans-serif"
-            fill="var(--color-fg-primary)"
-            style={{ letterSpacing: "0.04em" }}
           >
-            {win.label}
+            {fret}
           </text>
-        );
-      })}
-    </svg>
+        ))}
+
+        {/* Position-window corner brackets — rendered above strings/markers so
+          they read as a frame in front of, not behind, the content. */}
+        {positionWindows?.map((win) => {
+          const leftX = windowLeftX(win.low);
+          const rightX = windowRightX(win.high);
+          const T = boardTop - 10;
+          const B = boardBottom + 10;
+          return (
+            <path
+              key={`brackets-${win.id}`}
+              d={bracketPath(leftX, T, rightX, B)}
+              fill="none"
+              stroke={POSITION_BRACKET_STROKE}
+              strokeWidth={POSITION_BRACKET_WIDTH}
+              strokeLinecap="round"
+              strokeLinejoin="miter"
+            />
+          );
+        })}
+
+        {/* Note markers */}
+        {markers.map((marker, i) => (
+          <NoteCircle
+            key={`${marker.string}-${marker.fret}-${marker.role}-${i}`}
+            cx={fretCenterX(marker.fret)}
+            cy={stringY(marker.string)}
+            note={marker.note}
+            role={marker.role}
+          />
+        ))}
+
+        {/* Position-window labels — placed in the dedicated header strip above
+          the board (the boardTop padding reserves this space). */}
+        {positionWindows?.map((win) => {
+          const leftX = windowLeftX(win.low);
+          const rightX = windowRightX(win.high);
+          const centerX = (leftX + rightX) / 2;
+          return (
+            <text
+              key={`label-${win.id}`}
+              x={centerX}
+              y={22}
+              textAnchor="middle"
+              fontSize={12}
+              fontWeight={500}
+              fontFamily="system-ui, sans-serif"
+              fill="var(--color-fg-primary)"
+              style={{ letterSpacing: "0.04em" }}
+            >
+              {win.label}
+            </text>
+          );
+        })}
+      </svg>
+      {emptyMessage && (
+        <div className="absolute inset-0 flex items-center justify-center text-white pointer-events-none">
+          {emptyMessage}
+        </div>
+      )}
+    </div>
   );
 }

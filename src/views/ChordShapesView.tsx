@@ -139,34 +139,17 @@ export function ChordShapesView({
     );
   }
 
-  if (!selectedChord) {
-    return (
-      <div className="space-y-4">
-        <ShapeHeader
-          chordRowMode={chordRowMode}
-          onChordRowModeChange={onChordRowModeChange}
-          selectedChord={null}
-        />
-        <SubSelectorRow
-          mode={mode}
-          selectedStringSets={selectedStringSets}
-          selectedRootStrings={selectedRootStrings}
-          selectedInversions={selectedInversions}
-          onToggleStringSet={toggleStringSet}
-          onToggleRootString={toggleRootString}
-          onToggleInversion={toggleInversion}
-        />
-        <div className="text-fg-faint text-center py-20">
-          Select a chord to view shapes.
-        </div>
-      </div>
-    );
-  }
-
-  const activeSubSelectorEmpty =
-    mode === "triads"
+  const activeSubSelectorEmpty = selectedChord
+    ? mode === "triads"
       ? selectedStringSets.size === 0 || selectedInversions.size === 0
-      : selectedRootStrings.size === 0;
+      : selectedRootStrings.size === 0
+    : false;
+
+  const fretboardMessage = !selectedChord
+    ? "Select a chord to view shapes."
+    : activeSubSelectorEmpty
+      ? "Select a string set to begin."
+      : undefined;
 
   return (
     <div className="space-y-4">
@@ -184,13 +167,12 @@ export function ChordShapesView({
         onToggleRootString={toggleRootString}
         onToggleInversion={toggleInversion}
       />
-      {activeSubSelectorEmpty ? (
-        <div className="text-fg-faint text-center py-20">
-          Select a string set to begin.
-        </div>
-      ) : (
-        <Fretboard markers={visibleMarkers} startFret={startFret} endFret={endFret} />
-      )}
+      <Fretboard
+        markers={visibleMarkers}
+        startFret={startFret}
+        endFret={endFret}
+        emptyMessage={fretboardMessage}
+      />
     </div>
   );
 }
