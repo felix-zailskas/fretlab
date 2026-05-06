@@ -21,7 +21,7 @@ import type { NoteMarker } from "./types";
 export type StringSet = "1-2-3" | "2-3-4" | "3-4-5" | "4-5-6";
 export type RootString = "6th" | "5th";
 export type Inversion = "root" | "first" | "second";
-export type ChordShapesMode = "triads" | "shells";
+export type ChordShapesMode = "triads" | "sevenths";
 
 // One note's placement within a shape, expressed relative to the chord's root
 // fret on the shape's anchor string.
@@ -36,9 +36,9 @@ export type TriadShape = {
   positions: ShapePosition[]; // exactly 3 entries (root, third, fifth)
 };
 
-export type ShellShape = {
+export type SeventhShape = {
   rootString: number;
-  positions: ShapePosition[]; // exactly 3 entries (root, third, seventh)
+  positions: ShapePosition[]; // exactly 4 entries (root, third, fifth, seventh)
 };
 
 // Triad shape vocabulary. 4 string sets × 3 inversions × 3 qualities = 36 entries.
@@ -377,23 +377,25 @@ export const TRIAD_SHAPES: Record<
   },
 };
 
-// Shell shape vocabulary. 2 root strings × 4 chord qualities = 8 entries.
+// Full 7th-chord voicings (4 notes: R-3-5-7), anchored on either the 6th or
+// 5th string. 2 root strings × 4 chord qualities = 8 entries.
 //
-// 6th-string-root layout: R on string 6, 7 on string 4, 3 on string 3.
-// 5th-string-root layout: R on string 5, 7 on string 3, 3 on string 2.
+// 6th-string-root layout: R on string 6, 5 on string 5, 7 on string 4, 3 on
+// string 3 (the standard E-shape barre voicing).
+// 5th-string-root layout: R on string 5, 5 on string 4, 7 on string 3, 3 on
+// string 2 (the standard A-shape barre voicing).
 //
-// Quality differences come from whether the third is M3 or m3 and whether the
-// seventh is M7 or m7. m7 and m7b5 share the same R-♭3-♭7 layout — the
-// difference between them lives in the (omitted) 5th, so the shells are
-// visually identical. The display surfaces this by labelling the chord with
-// the correct symbol (e.g., Bm7b5 vs. a hypothetical Bm7) while reusing the
-// same fingering data.
-export const SHELL_SHAPES: Record<RootString, Record<ChordQuality, ShellShape>> = {
+// Quality is encoded by the offsets: M3=+1 vs m3=0 from the open string root,
+// P5=+2 vs d5=+1, M7=+1 vs m7=0. The B-string-adjacent third on the 5th-string
+// shape sits one fret higher than the 6th-string equivalent because of the
+// B-string tuning offset.
+export const SEVENTH_SHAPES: Record<RootString, Record<ChordQuality, SeventhShape>> = {
   "6th": {
     maj7: {
       rootString: 6,
       positions: [
         { string: 6, fretOffset: 0, role: "root" },
+        { string: 5, fretOffset: 2, role: "fifth" },
         { string: 4, fretOffset: 1, role: "seventh" },
         { string: 3, fretOffset: 1, role: "third" },
       ],
@@ -402,6 +404,7 @@ export const SHELL_SHAPES: Record<RootString, Record<ChordQuality, ShellShape>> 
       rootString: 6,
       positions: [
         { string: 6, fretOffset: 0, role: "root" },
+        { string: 5, fretOffset: 2, role: "fifth" },
         { string: 4, fretOffset: 0, role: "seventh" },
         { string: 3, fretOffset: 0, role: "third" },
       ],
@@ -410,6 +413,7 @@ export const SHELL_SHAPES: Record<RootString, Record<ChordQuality, ShellShape>> 
       rootString: 6,
       positions: [
         { string: 6, fretOffset: 0, role: "root" },
+        { string: 5, fretOffset: 2, role: "fifth" },
         { string: 4, fretOffset: 0, role: "seventh" },
         { string: 3, fretOffset: 1, role: "third" },
       ],
@@ -418,6 +422,7 @@ export const SHELL_SHAPES: Record<RootString, Record<ChordQuality, ShellShape>> 
       rootString: 6,
       positions: [
         { string: 6, fretOffset: 0, role: "root" },
+        { string: 5, fretOffset: 1, role: "fifth" },
         { string: 4, fretOffset: 0, role: "seventh" },
         { string: 3, fretOffset: 0, role: "third" },
       ],
@@ -428,6 +433,7 @@ export const SHELL_SHAPES: Record<RootString, Record<ChordQuality, ShellShape>> 
       rootString: 5,
       positions: [
         { string: 5, fretOffset: 0, role: "root" },
+        { string: 4, fretOffset: 2, role: "fifth" },
         { string: 3, fretOffset: 1, role: "seventh" },
         { string: 2, fretOffset: 2, role: "third" },
       ],
@@ -436,6 +442,7 @@ export const SHELL_SHAPES: Record<RootString, Record<ChordQuality, ShellShape>> 
       rootString: 5,
       positions: [
         { string: 5, fretOffset: 0, role: "root" },
+        { string: 4, fretOffset: 2, role: "fifth" },
         { string: 3, fretOffset: 0, role: "seventh" },
         { string: 2, fretOffset: 1, role: "third" },
       ],
@@ -444,6 +451,7 @@ export const SHELL_SHAPES: Record<RootString, Record<ChordQuality, ShellShape>> 
       rootString: 5,
       positions: [
         { string: 5, fretOffset: 0, role: "root" },
+        { string: 4, fretOffset: 2, role: "fifth" },
         { string: 3, fretOffset: 0, role: "seventh" },
         { string: 2, fretOffset: 2, role: "third" },
       ],
@@ -452,6 +460,7 @@ export const SHELL_SHAPES: Record<RootString, Record<ChordQuality, ShellShape>> 
       rootString: 5,
       positions: [
         { string: 5, fretOffset: 0, role: "root" },
+        { string: 4, fretOffset: 1, role: "fifth" },
         { string: 3, fretOffset: 0, role: "seventh" },
         { string: 2, fretOffset: 1, role: "third" },
       ],
@@ -471,7 +480,7 @@ export type BuildChordShapeMarkersInput =
       endFret: number;
     }
   | {
-      mode: "shells";
+      mode: "sevenths";
       chord: DiatonicChord;
       key: string;
       accidentalStyle: AccidentalStyle;
@@ -507,7 +516,7 @@ function getRootFrets(
 // Returns clusters in ascending root-fret order; no coupling between combos.
 function placeChordOnCombo(
   chord: { quality: string; notes: readonly string[] },
-  shape: TriadShape | ShellShape,
+  shape: TriadShape | SeventhShape,
   key: string,
   accidentalStyle: AccidentalStyle,
   startFret: number,
@@ -578,11 +587,11 @@ export function buildChordShapeMarkers(
     return result;
   }
 
-  // shells
+  // sevenths
   if (input.rootStrings.length === 0) return [];
   const result: NoteMarker[] = [];
   for (const rootString of input.rootStrings) {
-    const shape = (SHELL_SHAPES[rootString] as Record<string, ShellShape>)[
+    const shape = (SEVENTH_SHAPES[rootString] as Record<string, SeventhShape>)[
       input.chord.quality
     ];
     if (!shape) continue;

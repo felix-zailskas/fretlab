@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   TRIAD_SHAPES,
-  SHELL_SHAPES,
+  SEVENTH_SHAPES,
   type StringSet,
   type RootString,
   type Inversion,
@@ -102,12 +102,12 @@ describe("TRIAD_SHAPES — structure", () => {
   });
 });
 
-describe("SHELL_SHAPES — structure", () => {
+describe("SEVENTH_SHAPES — structure", () => {
   it("has all 2 root strings, 4 chord qualities (8 entries)", () => {
     let count = 0;
     for (const rs of ROOT_STRINGS) {
       for (const q of CHORD_QUALITIES) {
-        const shape = SHELL_SHAPES[rs][q];
+        const shape = SEVENTH_SHAPES[rs][q];
         expect(shape).toBeDefined();
         count++;
       }
@@ -115,13 +115,13 @@ describe("SHELL_SHAPES — structure", () => {
     expect(count).toBe(8);
   });
 
-  it("each shape has exactly 3 positions with role root/third/seventh", () => {
+  it("each shape has exactly 4 positions with roles root/third/fifth/seventh", () => {
     for (const rs of ROOT_STRINGS) {
       for (const q of CHORD_QUALITIES) {
-        const shape = SHELL_SHAPES[rs][q];
-        expect(shape.positions).toHaveLength(3);
+        const shape = SEVENTH_SHAPES[rs][q];
+        expect(shape.positions).toHaveLength(4);
         const roles = shape.positions.map((p) => p.role).sort();
-        expect(roles).toEqual(["root", "seventh", "third"]);
+        expect(roles).toEqual(["fifth", "root", "seventh", "third"]);
       }
     }
   });
@@ -129,7 +129,7 @@ describe("SHELL_SHAPES — structure", () => {
   it("the position with role=root has fretOffset 0 and string === rootString", () => {
     for (const rs of ROOT_STRINGS) {
       for (const q of CHORD_QUALITIES) {
-        const shape = SHELL_SHAPES[rs][q];
+        const shape = SEVENTH_SHAPES[rs][q];
         const root = shape.positions.find((p) => p.role === "root")!;
         expect(root.fretOffset).toBe(0);
         expect(root.string).toBe(shape.rootString);
@@ -139,25 +139,33 @@ describe("SHELL_SHAPES — structure", () => {
 
   it("6th-string-root has rootString 6; 5th has rootString 5", () => {
     for (const q of CHORD_QUALITIES) {
-      expect(SHELL_SHAPES["6th"][q].rootString).toBe(6);
-      expect(SHELL_SHAPES["5th"][q].rootString).toBe(5);
+      expect(SEVENTH_SHAPES["6th"][q].rootString).toBe(6);
+      expect(SEVENTH_SHAPES["5th"][q].rootString).toBe(5);
     }
   });
 
-  it("spot-check: 6th-string-root maj7 matches expected", () => {
-    expect(SHELL_SHAPES["6th"]["maj7"]).toEqual({
+  it("spot-check: 6th-string-root maj7 is the standard E-shape barre", () => {
+    expect(SEVENTH_SHAPES["6th"]["maj7"]).toEqual({
       rootString: 6,
       positions: [
         { string: 6, fretOffset: 0, role: "root" },
+        { string: 5, fretOffset: 2, role: "fifth" },
         { string: 4, fretOffset: 1, role: "seventh" },
         { string: 3, fretOffset: 1, role: "third" },
       ],
     });
   });
 
-  it("m7 and m7b5 shells are identical (both R-♭3-♭7); difference is harmonic, not visual", () => {
+  it("m7 and m7b5 differ only in the fifth (P5 vs d5)", () => {
     for (const rs of ROOT_STRINGS) {
-      expect(SHELL_SHAPES[rs]["m7"]).toEqual(SHELL_SHAPES[rs]["m7b5"]);
+      const m7 = SEVENTH_SHAPES[rs]["m7"];
+      const m7b5 = SEVENTH_SHAPES[rs]["m7b5"];
+      const nonFifth = (s: typeof m7) => s.positions.filter((p) => p.role !== "fifth");
+      expect(nonFifth(m7)).toEqual(nonFifth(m7b5));
+      const m7Fifth = m7.positions.find((p) => p.role === "fifth")!;
+      const m7b5Fifth = m7b5.positions.find((p) => p.role === "fifth")!;
+      // d5 sits one fret below P5.
+      expect(m7b5Fifth.fretOffset).toBe(m7Fifth.fretOffset - 1);
     }
   });
 });
@@ -184,11 +192,11 @@ describe("buildChordShapeMarkers — chord-centric", () => {
     ).toEqual([]);
   });
 
-  it("returns [] when key is ALL_NOTES_KEY (shells)", () => {
+  it("returns [] when key is ALL_NOTES_KEY (sevenths)", () => {
     const chord = getDiatonicChords("C", "sharp")[0];
     expect(
       buildChordShapeMarkers({
-        mode: "shells",
+        mode: "sevenths",
         chord,
         key: ALL_NOTES_KEY,
         accidentalStyle: "sharp",
@@ -231,11 +239,11 @@ describe("buildChordShapeMarkers — chord-centric", () => {
     ).toEqual([]);
   });
 
-  it("returns [] when rootStrings is empty (shells)", () => {
+  it("returns [] when rootStrings is empty (sevenths)", () => {
     const chord = getDiatonicChords("C", "sharp")[0];
     expect(
       buildChordShapeMarkers({
-        mode: "shells",
+        mode: "sevenths",
         chord,
         key: "C",
         accidentalStyle: "sharp",
@@ -320,10 +328,10 @@ describe("buildChordShapeMarkers — chord-centric", () => {
     ]);
   });
 
-  it("F major V (Shells), [6th] → C7 root at fret 8 on low E", () => {
+  it("F major V (Sevenths), [6th] → C7 4-note voicing rooted at fret 8 on low E", () => {
     const chord = getDiatonicChords("F", "flat")[4]; // V = C7
     const markers = buildChordShapeMarkers({
-      mode: "shells",
+      mode: "sevenths",
       chord,
       key: "F",
       accidentalStyle: "flat",
@@ -331,12 +339,16 @@ describe("buildChordShapeMarkers — chord-centric", () => {
       startFret: 0,
       endFret: DEFAULT_END_FRET,
     });
-    expect(markers).toHaveLength(3); // 1 placement × 3 markers
+    expect(markers).toHaveLength(4); // 1 placement × 4 markers (R-5-7-3)
     const root = markers.find((m) => m.role === "root");
-    expect(root).toBeDefined();
-    expect(root!.string).toBe(0); // low E = marker string 0
-    expect(root!.fret).toBe(8);
-    expect(root!.note).toBe("C");
+    expect(root).toEqual({ string: 0, fret: 8, note: "C", role: "root" });
+    // Standard E-shape C7 voicing.
+    const fifth = markers.find((m) => m.role === "fifth");
+    expect(fifth).toEqual({ string: 1, fret: 10, note: "G", role: "fifth" });
+    const seventh = markers.find((m) => m.role === "seventh");
+    expect(seventh).toEqual({ string: 2, fret: 8, note: "Bb", role: "seventh" });
+    const third = markers.find((m) => m.role === "third");
+    expect(third).toEqual({ string: 3, fret: 9, note: "E", role: "third" });
   });
 
   it("cap-at-fits: combos outside fret range produce no markers; others unaffected", () => {
