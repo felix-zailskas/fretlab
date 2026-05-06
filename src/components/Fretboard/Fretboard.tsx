@@ -172,7 +172,13 @@ export function Fretboard({
       })}
 
       {/* Fret markers (dots) — rendered behind strings and notes */}
-      <FretMarkers fretX={fretX} boardTop={boardTop} boardBottom={boardBottom} />
+      <FretMarkers
+        fretX={fretX}
+        boardTop={boardTop}
+        boardBottom={boardBottom}
+        startFret={startFret}
+        endFret={endFret}
+      />
 
       {/* Nut (when startFret === 0) or starting boundary (when startFret > 0) */}
       <line
