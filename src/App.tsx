@@ -163,12 +163,28 @@ function App() {
           </>
         )}
         {selectedView === "chord-shapes" && (
-          <ChordShapesView
-            selectedKey={selectedKey}
-            accidentalStyle={accidentalStyle}
-            startFret={startFret}
-            endFret={endFret}
-          />
+          <>
+            <ChordShapesView
+              selectedKey={selectedKey}
+              accidentalStyle={accidentalStyle}
+              startFret={startFret}
+              endFret={endFret}
+              selectedChord={selectedChord}
+              chordRowMode={chordRowMode}
+              enabledHighlights={enabledHighlights}
+            />
+            <div className="mt-4">
+              <Legend enabledRoles={enabledHighlights} onToggleRole={toggleHighlight} />
+            </div>
+            <DiatonicChords
+              selectedKey={selectedKey}
+              accidentalStyle={accidentalStyle}
+              selectedDegree={selectedChordDegree}
+              onSelectDegree={handleChordSelect}
+              mode={chordRowMode}
+              onModeChange={setChordRowMode}
+            />
+          </>
         )}
         {selectedView !== "note-map" &&
           selectedView !== "scale-positions" &&
