@@ -1,6 +1,5 @@
 import { ALL_NOTES_KEY } from "../components/KeySelector";
 import type { HighlightableRole } from "../components/Legend";
-import { DEFAULT_END_FRET } from "./constants";
 import {
   STANDARD_TUNING,
   getDisplayName,
@@ -50,6 +49,8 @@ export type BuildChordToneMarkersInput = {
   positions: ReadonlyArray<PositionId>;
   showContext: boolean;
   enabledHighlights: Set<HighlightableRole>;
+  startFret: number;
+  endFret: number;
 };
 
 // Pure function: given the Chord-Tones view's full input, returns the
@@ -70,6 +71,8 @@ export function buildChordToneMarkers({
   positions,
   showContext,
   enabledHighlights,
+  startFret,
+  endFret,
 }: BuildChordToneMarkersInput): NoteMarker[] {
   if (key === ALL_NOTES_KEY) return [];
   if (positions.length === 0) return [];
@@ -78,13 +81,13 @@ export function buildChordToneMarkers({
 
   for (let stringIndex = 0; stringIndex < STANDARD_TUNING.length; stringIndex++) {
     const openString = STANDARD_TUNING[stringIndex];
-    for (let fret = 0; fret <= DEFAULT_END_FRET; fret++) {
+    for (let fret = startFret; fret <= endFret; fret++) {
       const note = getNoteAtFret(openString, fret);
       const interval = getIntervalRole(key, note);
       if (interval === null) continue; // out of key — drop entirely
 
       const inWindow = positions.some((p) =>
-        isInPositionWindow(key, p, fret, 0, DEFAULT_END_FRET),
+        isInPositionWindow(key, p, fret, startFret, endFret),
       );
       if (!inWindow && !showContext) continue; // hide outside-position notes
 

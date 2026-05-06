@@ -87,6 +87,8 @@ export function ScalePositionsView({
         positions: positionsArray,
         showContext,
         enabledHighlights,
+        startFret: 0,
+        endFret: DEFAULT_END_FRET,
       }),
     [
       selectedKey,

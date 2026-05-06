@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { roleFromChordTone, HIGHLIGHTABLE, buildChordToneMarkers } from "./chordTones";
+import { DEFAULT_END_FRET } from "./constants";
 import { getDiatonicChords, getDiatonicTriads } from "./scales";
 import type { HighlightableRole } from "../components/Legend";
 import { ALL_NOTES_KEY } from "../components/KeySelector";
@@ -70,6 +71,8 @@ describe("buildChordToneMarkers", () => {
       positions: ["P1"],
       showContext: false,
       enabledHighlights: allRoles,
+      startFret: 0,
+      endFret: DEFAULT_END_FRET,
     });
     expect(markers).toEqual([]);
   });
@@ -82,6 +85,8 @@ describe("buildChordToneMarkers", () => {
       positions: [],
       showContext: false,
       enabledHighlights: allRoles,
+      startFret: 0,
+      endFret: DEFAULT_END_FRET,
     });
     expect(markers).toEqual([]);
   });
@@ -96,6 +101,8 @@ describe("buildChordToneMarkers", () => {
       positions: ["P1"],
       showContext: false,
       enabledHighlights: allRoles,
+      startFret: 0,
+      endFret: DEFAULT_END_FRET,
     });
     expect(markers.length).toBeGreaterThan(0);
     for (const m of markers) {
@@ -113,6 +120,8 @@ describe("buildChordToneMarkers", () => {
       positions: ["P1"],
       showContext: false,
       enabledHighlights: allRoles,
+      startFret: 0,
+      endFret: DEFAULT_END_FRET,
     });
     // String index convention: 0=low E, 1=A, 2=D, 3=G, 4=B, 5=high E.
     // Pick one representative cell for each chord tone within [0,3]:
@@ -137,6 +146,8 @@ describe("buildChordToneMarkers", () => {
       positions: ["P1"],
       showContext: false,
       enabledHighlights: allRoles,
+      startFret: 0,
+      endFret: DEFAULT_END_FRET,
     });
     // E is a C-major scale tone but not in Dm7 (D F A C).
     // E appears on the low E string at fret 0.
@@ -155,6 +166,8 @@ describe("buildChordToneMarkers", () => {
       positions: ["P1"],
       showContext: true,
       enabledHighlights: allRoles,
+      startFret: 0,
+      endFret: DEFAULT_END_FRET,
     });
     const outside = markers.filter((m) => m.fret > 3 && m.fret < 12);
     expect(outside.length).toBeGreaterThan(0);
@@ -172,6 +185,8 @@ describe("buildChordToneMarkers", () => {
       positions: ["P1"],
       showContext: false,
       enabledHighlights: without5,
+      startFret: 0,
+      endFret: DEFAULT_END_FRET,
     });
     // A string open = A, which would be 'fifth' of Dm7. With fifth toggled off,
     // it should demote to 'scale'.
@@ -191,6 +206,8 @@ describe("buildChordToneMarkers", () => {
       positions: ["P1", "P2"],
       showContext: false,
       enabledHighlights: allRoles,
+      startFret: 0,
+      endFret: DEFAULT_END_FRET,
     });
     for (const m of markers) {
       const inLowUnion = m.fret >= 0 && m.fret <= 5;
@@ -212,6 +229,8 @@ describe("buildChordToneMarkers", () => {
       positions: ["P1"],
       showContext: false,
       enabledHighlights: allRoles,
+      startFret: 0,
+      endFret: DEFAULT_END_FRET,
     });
     expect(markers.length).toBeGreaterThan(0);
     for (const m of markers) {
@@ -227,6 +246,8 @@ describe("buildChordToneMarkers", () => {
       positions: ["P1", "P2", "P3", "P4", "P5"],
       showContext: false,
       enabledHighlights: allRoles,
+      startFret: 0,
+      endFret: DEFAULT_END_FRET,
     });
     const maxFret = Math.max(...markers.map((m) => m.fret));
     expect(maxFret).toBeGreaterThan(10); // covers higher-neck cells
@@ -280,6 +301,8 @@ describe("buildChordToneMarkers with triads", () => {
       positions: ["P1"],
       showContext: false,
       enabledHighlights: allRoles,
+      startFret: 0,
+      endFret: DEFAULT_END_FRET,
     });
     expect(markers.length).toBeGreaterThan(0);
     for (const m of markers) {
@@ -295,6 +318,8 @@ describe("buildChordToneMarkers with triads", () => {
       positions: ["P1"],
       showContext: false,
       enabledHighlights: allRoles,
+      startFret: 0,
+      endFret: DEFAULT_END_FRET,
     });
     // String index convention: 0=low E, 1=A, 2=D, 3=G, 4=B, 5=high E.
     const find = (string: number, fret: number) =>
@@ -312,10 +337,56 @@ describe("buildChordToneMarkers with triads", () => {
       positions: ["P1"],
       showContext: false,
       enabledHighlights: allRoles,
+      startFret: 0,
+      endFret: DEFAULT_END_FRET,
     });
     // A string + fret 3 = C. In sevenths mode this would be 'seventh' of Dm7;
     // in triads mode it should be 'scale'.
     const c = markers.find((m) => m.string === 1 && m.fret === 3);
     expect(c?.role).toBe("scale");
+  });
+});
+
+describe("buildChordToneMarkers — narrowed range", () => {
+  const allRoles: Set<HighlightableRole> = new Set([
+    "root",
+    "third",
+    "fifth",
+    "seventh",
+  ]);
+
+  it("emits no markers when the only fitting position window falls outside the range", () => {
+    // P1 = C-shape window [0, 3] in C major. With startFret=5, that
+    // window is outside the visible range, so no markers.
+    const markers = buildChordToneMarkers({
+      key: "C",
+      chord: null,
+      accidentalStyle: "sharp",
+      positions: ["P1"],
+      showContext: false,
+      enabledHighlights: allRoles,
+      startFret: 5,
+      endFret: 12,
+    });
+    expect(markers).toEqual([]);
+  });
+
+  it("only emits markers within [startFret, endFret] when at least one fits", () => {
+    // P3 = G-shape window [4, 8] in C major fits inside [4, 8] exactly.
+    const markers = buildChordToneMarkers({
+      key: "C",
+      chord: null,
+      accidentalStyle: "sharp",
+      positions: ["P3"],
+      showContext: false,
+      enabledHighlights: allRoles,
+      startFret: 4,
+      endFret: 8,
+    });
+    expect(markers.length).toBeGreaterThan(0);
+    for (const m of markers) {
+      expect(m.fret).toBeGreaterThanOrEqual(4);
+      expect(m.fret).toBeLessThanOrEqual(8);
+    }
   });
 });
