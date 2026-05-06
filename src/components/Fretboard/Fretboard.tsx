@@ -256,9 +256,9 @@ export function Fretboard({
       })}
 
       {/* Note markers */}
-      {markers.map((marker) => (
+      {markers.map((marker, i) => (
         <NoteCircle
-          key={`${marker.string}-${marker.fret}`}
+          key={`${marker.string}-${marker.fret}-${marker.role}-${i}`}
           cx={fretCenterX(marker.fret)}
           cy={stringY(marker.string)}
           note={marker.note}
