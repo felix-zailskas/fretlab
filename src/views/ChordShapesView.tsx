@@ -6,6 +6,7 @@ import { StringSetToggles } from "../components/StringSetToggles";
 import { type ChordRowMode } from "../components/DiatonicChords";
 import {
   buildChordShapeMarkers,
+  type ChordShapesMode,
   type Inversion,
   type RootString,
   type StringSet,
@@ -89,7 +90,7 @@ export function ChordShapesView({
     });
   }, []);
 
-  const mode = chordRowMode === "sevenths" ? "shells" : "triads";
+  const mode: ChordShapesMode = chordRowMode;
 
   const markers = useMemo(() => {
     if (!selectedChord) return [];
@@ -106,7 +107,7 @@ export function ChordShapesView({
       });
     }
     return buildChordShapeMarkers({
-      mode: "shells",
+      mode: "sevenths",
       chord: selectedChord as DiatonicChord,
       key: selectedKey,
       accidentalStyle,
@@ -126,8 +127,16 @@ export function ChordShapesView({
     endFret,
   ]);
 
+  // Dim unselected roles to the muted treatment instead of removing them.
+  // The reference signal stays on the fretboard while the focus is on the
+  // role(s) the user actually wants to study.
   const visibleMarkers = useMemo(
-    () => markers.filter((m) => enabledHighlights.has(m.role as HighlightableRole)),
+    () =>
+      markers.map((m) =>
+        enabledHighlights.has(m.role as HighlightableRole)
+          ? m
+          : { ...m, role: "muted" as const },
+      ),
     [markers, enabledHighlights],
   );
 
@@ -220,7 +229,7 @@ function ShapeHeader({
               : "bg-surface text-fg-muted hover:bg-surface-raised"
           }`}
         >
-          Shell voicings
+          7th chord shapes
         </button>
       </div>
       {selectedChord ? (
@@ -236,7 +245,7 @@ function ShapeHeader({
 }
 
 type SubSelectorRowProps = {
-  mode: "triads" | "shells";
+  mode: ChordShapesMode;
   selectedStringSets: Set<StringSet>;
   selectedRootStrings: Set<RootString>;
   selectedInversions: Set<Inversion>;
