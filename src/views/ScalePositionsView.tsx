@@ -12,7 +12,7 @@ import { buildChordToneMarkers } from "../theory/chordTones";
 import {
   CAGED_POSITIONS,
   computeOverlapZones,
-  getPositionWindow,
+  getPositionWindows,
   type PositionId,
 } from "../theory/positions";
 import type { AccidentalStyle } from "../theory/notes";
@@ -61,20 +61,21 @@ export function ScalePositionsView({
 
   const positionWindows = useMemo<PositionWindow[]>(() => {
     if (selectedKey === ALL_NOTES_KEY) return [];
-    return CAGED_POSITIONS.filter((p) => selectedPositions.has(p.id)).map((p) => {
-      const [low, high] = getPositionWindow(selectedKey, p.id);
-      return {
-        id: p.id,
-        low,
-        high,
-        label: `${p.id} — ${p.shape}`,
-      };
-    });
+    return CAGED_POSITIONS.filter((p) => selectedPositions.has(p.id)).flatMap((p) =>
+      getPositionWindows(selectedKey, p.id, 0, DEFAULT_END_FRET).map(
+        ([low, high], octaveIndex) => ({
+          id: `${p.id}-${octaveIndex}`,
+          low,
+          high,
+          label: `${p.id} — ${p.shape}`,
+        }),
+      ),
+    );
   }, [selectedKey, selectedPositions]);
 
   const overlapZones = useMemo<OverlapZone[]>(() => {
     if (selectedKey === ALL_NOTES_KEY) return [];
-    return computeOverlapZones(selectedKey, positionsArray);
+    return computeOverlapZones(selectedKey, positionsArray, 0, DEFAULT_END_FRET);
   }, [selectedKey, positionsArray]);
 
   const markers = useMemo(

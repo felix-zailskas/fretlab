@@ -86,7 +86,9 @@ describe("buildChordToneMarkers", () => {
     expect(markers).toEqual([]);
   });
 
-  it("with positions=[P1] and showContext=false, every marker has fret <= 3", () => {
+  it("with positions=[P1] and showContext=false, every marker is in a P1 octave window", () => {
+    // C major P1 fits twice within [0, DEFAULT_END_FRET=15]: [0, 3] and
+    // [12, 15]. Every marker must land in one of those octave windows.
     const markers = buildChordToneMarkers({
       key: "C",
       chord: cMajor_ii(),
@@ -97,7 +99,9 @@ describe("buildChordToneMarkers", () => {
     });
     expect(markers.length).toBeGreaterThan(0);
     for (const m of markers) {
-      expect(m.fret).toBeLessThanOrEqual(3);
+      const inLow = m.fret >= 0 && m.fret <= 3;
+      const inHigh = m.fret >= 12 && m.fret <= 15;
+      expect(inLow || inHigh).toBe(true);
     }
   });
 
@@ -141,6 +145,9 @@ describe("buildChordToneMarkers", () => {
   });
 
   it('with showContext=true, at least one outside-window marker exists with role "muted"', () => {
+    // C major P1 fits as [0, 3] and [12, 15] within [0, 15]. The "outside"
+    // region (where context-only muted markers should render) is the gap
+    // [4, 11] between those octave windows.
     const markers = buildChordToneMarkers({
       key: "C",
       chord: cMajor_ii(),
@@ -149,7 +156,7 @@ describe("buildChordToneMarkers", () => {
       showContext: true,
       enabledHighlights: allRoles,
     });
-    const outside = markers.filter((m) => m.fret > 3);
+    const outside = markers.filter((m) => m.fret > 3 && m.fret < 12);
     expect(outside.length).toBeGreaterThan(0);
     for (const m of outside) {
       expect(m.role).toBe("muted");
@@ -173,8 +180,10 @@ describe("buildChordToneMarkers", () => {
   });
 
   it("with positions=[P1, P2], renders markers across the union of both windows", () => {
-    // C major: P1 = [0,3], P2 = [2,5]. Union = [0,5]. Should see markers
-    // at fret 4 (in P2 only) and fret 1 (in P1 only).
+    // C major within [0, 15]: P1 fits as [0, 3] and [12, 15]; P2 fits as
+    // [2, 5] (its +12 octave [14, 17] spills past 15). Union of all
+    // octave windows = [0, 5] ∪ [12, 15]. Should see markers at fret 4
+    // (in P2 only) and fret 1 (in P1 only).
     const markers = buildChordToneMarkers({
       key: "C",
       chord: cMajor_ii(),
@@ -184,7 +193,9 @@ describe("buildChordToneMarkers", () => {
       enabledHighlights: allRoles,
     });
     for (const m of markers) {
-      expect(m.fret).toBeLessThanOrEqual(5);
+      const inLowUnion = m.fret >= 0 && m.fret <= 5;
+      const inHighP1 = m.fret >= 12 && m.fret <= 15;
+      expect(inLowUnion || inHighP1).toBe(true);
     }
     expect(markers.some((m) => m.fret === 4)).toBe(true); // P2-only territory
     expect(markers.some((m) => m.fret === 1)).toBe(true); // P1-only territory

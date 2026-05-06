@@ -83,7 +83,9 @@ export function buildChordToneMarkers({
       const interval = getIntervalRole(key, note);
       if (interval === null) continue; // out of key — drop entirely
 
-      const inWindow = positions.some((p) => isInPositionWindow(key, p, fret));
+      const inWindow = positions.some((p) =>
+        isInPositionWindow(key, p, fret, 0, DEFAULT_END_FRET),
+      );
       if (!inWindow && !showContext) continue; // hide outside-position notes
 
       let role = roleFromChordTone(note, chord);
