@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useState } from "react";
 import { AccidentalToggle } from "./components/AccidentalToggle";
+import { FretRangeControl } from "./components/FretRangeControl";
 import { KeySelector, ALL_NOTES_KEY } from "./components/KeySelector";
 import { ViewSelector } from "./components/ViewSelector";
 import { Legend, type HighlightableRole } from "./components/Legend";
@@ -9,6 +10,7 @@ import { ChordShapesView } from "./views/ChordShapesView";
 import { NoteMapView } from "./views/NoteMapView";
 import { ScalePositionsView } from "./views/ScalePositionsView";
 import type { AccidentalStyle } from "./theory/notes";
+import { DEFAULT_END_FRET } from "./theory/constants";
 import { getDiatonicChords, getDiatonicTriads } from "./theory/scales";
 
 const DEFAULT_HIGHLIGHTS: HighlightableRole[] = ["root", "third", "fifth", "seventh"];
@@ -35,6 +37,13 @@ function App() {
   );
   const [selectedChordDegree, setSelectedChordDegree] = useState<number | null>(1);
   const [chordRowMode, setChordRowMode] = useState<ChordRowMode>("sevenths");
+  const [startFret, setStartFret] = useState(0);
+  const [endFret, setEndFret] = useState(DEFAULT_END_FRET);
+
+  const handleFretRangeChange = useCallback((start: number, end: number) => {
+    setStartFret(start);
+    setEndFret(end);
+  }, []);
 
   const selectedChord = useMemo(() => {
     if (selectedChordDegree === null || selectedKey === ALL_NOTES_KEY) return null;
@@ -91,6 +100,11 @@ function App() {
             accidentalStyle={accidentalStyle}
             onChange={handleAccidentalChange}
           />
+          <FretRangeControl
+            startFret={startFret}
+            endFret={endFret}
+            onChange={handleFretRangeChange}
+          />
         </div>
         <ViewSelector selectedView={selectedView} onViewChange={setSelectedView} />
         <ScaleDisplay
@@ -109,6 +123,8 @@ function App() {
               accidentalStyle={accidentalStyle}
               enabledHighlights={enabledHighlights}
               selectedChord={selectedChord}
+              startFret={startFret}
+              endFret={endFret}
             />
             <div className="mt-4">
               <Legend enabledRoles={enabledHighlights} onToggleRole={toggleHighlight} />
@@ -130,6 +146,8 @@ function App() {
               accidentalStyle={accidentalStyle}
               enabledHighlights={enabledHighlights}
               selectedChord={selectedChord}
+              startFret={startFret}
+              endFret={endFret}
             />
             <div className="mt-4">
               <Legend enabledRoles={enabledHighlights} onToggleRole={toggleHighlight} />
@@ -148,6 +166,8 @@ function App() {
           <ChordShapesView
             selectedKey={selectedKey}
             accidentalStyle={accidentalStyle}
+            startFret={startFret}
+            endFret={endFret}
           />
         )}
         {selectedView !== "note-map" &&

@@ -4,7 +4,6 @@ import { ALL_NOTES_KEY } from "../components/KeySelector";
 import { Legend } from "../components/Legend";
 import { StringSetToggles } from "../components/StringSetToggles";
 import { InversionPicker } from "../components/InversionPicker";
-import { DEFAULT_END_FRET } from "../theory/constants";
 import {
   buildChordShapeMarkers,
   type ChordShapesMode,
@@ -17,6 +16,8 @@ import type { AccidentalStyle } from "../theory/notes";
 type ChordShapesViewProps = {
   selectedKey: string;
   accidentalStyle: AccidentalStyle;
+  startFret: number;
+  endFret: number;
 };
 
 const STRING_SET_OPTIONS: ReadonlyArray<{ id: StringSet; label: string }> = [
@@ -34,6 +35,8 @@ const ROOT_STRING_OPTIONS: ReadonlyArray<{ id: RootString; label: string }> = [
 export function ChordShapesView({
   selectedKey,
   accidentalStyle,
+  startFret,
+  endFret,
 }: ChordShapesViewProps) {
   const [mode, setMode] = useState<ChordShapesMode>("triads");
   const [selectedStringSets, setSelectedStringSets] = useState<Set<StringSet>>(
@@ -70,8 +73,8 @@ export function ChordShapesView({
         accidentalStyle,
         stringSets: Array.from(selectedStringSets),
         inversion,
-        startFret: 0,
-        endFret: DEFAULT_END_FRET,
+        startFret,
+        endFret,
       });
     }
     return buildChordShapeMarkers({
@@ -79,8 +82,8 @@ export function ChordShapesView({
       key: selectedKey,
       accidentalStyle,
       rootStrings: Array.from(selectedRootStrings),
-      startFret: 0,
-      endFret: DEFAULT_END_FRET,
+      startFret,
+      endFret,
     });
   }, [
     mode,
@@ -89,6 +92,8 @@ export function ChordShapesView({
     selectedStringSets,
     selectedRootStrings,
     inversion,
+    startFret,
+    endFret,
   ]);
 
   if (selectedKey === ALL_NOTES_KEY) {
@@ -164,7 +169,7 @@ export function ChordShapesView({
           Select a string set to begin.
         </div>
       ) : (
-        <Fretboard markers={markers} startFret={0} endFret={DEFAULT_END_FRET} />
+        <Fretboard markers={markers} startFret={startFret} endFret={endFret} />
       )}
 
       <Legend readOnly />

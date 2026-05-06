@@ -2,7 +2,6 @@ import { useMemo } from "react";
 import { Fretboard } from "../components/Fretboard/Fretboard";
 import { ALL_NOTES_KEY } from "../components/KeySelector";
 import type { HighlightableRole } from "../components/Legend";
-import { DEFAULT_END_FRET } from "../theory/constants";
 import { roleFromChordTone, HIGHLIGHTABLE } from "../theory/chordTones";
 import {
   STANDARD_TUNING,
@@ -22,6 +21,8 @@ type NoteMapViewProps = {
   accidentalStyle: AccidentalStyle;
   enabledHighlights: Set<HighlightableRole>;
   selectedChord: DiatonicChord | DiatonicTriad | null;
+  startFret: number;
+  endFret: number;
 };
 
 export function NoteMapView({
@@ -29,6 +30,8 @@ export function NoteMapView({
   accidentalStyle,
   enabledHighlights,
   selectedChord,
+  startFret,
+  endFret,
 }: NoteMapViewProps) {
   const markers = useMemo(() => {
     const result: NoteMarker[] = [];
@@ -36,7 +39,7 @@ export function NoteMapView({
 
     for (let stringIndex = 0; stringIndex < STANDARD_TUNING.length; stringIndex++) {
       const openString = STANDARD_TUNING[stringIndex];
-      for (let fret = 0; fret <= DEFAULT_END_FRET; fret++) {
+      for (let fret = startFret; fret <= endFret; fret++) {
         const note = getNoteAtFret(openString, fret);
 
         let role: NoteDisplayRole;
@@ -63,7 +66,14 @@ export function NoteMapView({
     }
 
     return result;
-  }, [selectedKey, accidentalStyle, enabledHighlights, selectedChord]);
+  }, [
+    selectedKey,
+    accidentalStyle,
+    enabledHighlights,
+    selectedChord,
+    startFret,
+    endFret,
+  ]);
 
-  return <Fretboard markers={markers} startFret={0} endFret={DEFAULT_END_FRET} />;
+  return <Fretboard markers={markers} startFret={startFret} endFret={endFret} />;
 }

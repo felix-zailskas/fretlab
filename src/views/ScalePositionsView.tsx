@@ -7,7 +7,6 @@ import {
 import { PositionToggles } from "../components/PositionToggles";
 import { ALL_NOTES_KEY } from "../components/KeySelector";
 import type { HighlightableRole } from "../components/Legend";
-import { DEFAULT_END_FRET } from "../theory/constants";
 import { buildChordToneMarkers } from "../theory/chordTones";
 import {
   CAGED_POSITIONS,
@@ -23,6 +22,8 @@ type ScalePositionsViewProps = {
   accidentalStyle: AccidentalStyle;
   enabledHighlights: Set<HighlightableRole>;
   selectedChord: DiatonicChord | DiatonicTriad | null;
+  startFret: number;
+  endFret: number;
 };
 
 // Wider, neutral phrasing — the view serves both pure scale-position study
@@ -36,6 +37,8 @@ export function ScalePositionsView({
   accidentalStyle,
   enabledHighlights,
   selectedChord,
+  startFret,
+  endFret,
 }: ScalePositionsViewProps) {
   const [selectedPositions, setSelectedPositions] = useState<Set<PositionId>>(
     () => new Set(DEFAULT_POSITIONS),
@@ -62,7 +65,7 @@ export function ScalePositionsView({
   const positionWindows = useMemo<PositionWindow[]>(() => {
     if (selectedKey === ALL_NOTES_KEY) return [];
     return CAGED_POSITIONS.filter((p) => selectedPositions.has(p.id)).flatMap((p) =>
-      getPositionWindows(selectedKey, p.id, 0, DEFAULT_END_FRET).map(
+      getPositionWindows(selectedKey, p.id, startFret, endFret).map(
         ([low, high], octaveIndex) => ({
           id: `${p.id}-${octaveIndex}`,
           low,
@@ -71,12 +74,12 @@ export function ScalePositionsView({
         }),
       ),
     );
-  }, [selectedKey, selectedPositions]);
+  }, [selectedKey, selectedPositions, startFret, endFret]);
 
   const overlapZones = useMemo<OverlapZone[]>(() => {
     if (selectedKey === ALL_NOTES_KEY) return [];
-    return computeOverlapZones(selectedKey, positionsArray, 0, DEFAULT_END_FRET);
-  }, [selectedKey, positionsArray]);
+    return computeOverlapZones(selectedKey, positionsArray, startFret, endFret);
+  }, [selectedKey, positionsArray, startFret, endFret]);
 
   const markers = useMemo(
     () =>
@@ -87,8 +90,8 @@ export function ScalePositionsView({
         positions: positionsArray,
         showContext,
         enabledHighlights,
-        startFret: 0,
-        endFret: DEFAULT_END_FRET,
+        startFret,
+        endFret,
       }),
     [
       selectedKey,
@@ -97,6 +100,8 @@ export function ScalePositionsView({
       positionsArray,
       showContext,
       enabledHighlights,
+      startFret,
+      endFret,
     ],
   );
 
@@ -120,8 +125,8 @@ export function ScalePositionsView({
       <div className="relative">
         <Fretboard
           markers={markers}
-          startFret={0}
-          endFret={DEFAULT_END_FRET}
+          startFret={startFret}
+          endFret={endFret}
           positionWindows={positionWindows}
           overlapZones={overlapZones}
         />
