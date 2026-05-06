@@ -1,9 +1,7 @@
 const VIEWS = [
   { id: "note-map", label: "Note Map" },
   { id: "scale-positions", label: "Scale Positions" },
-  { id: "diatonic-chords", label: "Diatonic Chords" },
-  { id: "shell-voicings", label: "Shell Voicings" },
-  { id: "triad-shapes", label: "Triad Shapes" },
+  { id: "chord-shapes", label: "Chord Shapes" },
 ];
 
 type ViewSelectorProps = {

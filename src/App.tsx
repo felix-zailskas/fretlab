@@ -5,6 +5,7 @@ import { ViewSelector } from "./components/ViewSelector";
 import { Legend, type HighlightableRole } from "./components/Legend";
 import { ScaleDisplay } from "./components/ScaleDisplay";
 import { DiatonicChords, type ChordRowMode } from "./components/DiatonicChords";
+import { ChordShapesView } from "./views/ChordShapesView";
 import { NoteMapView } from "./views/NoteMapView";
 import { ScalePositionsView } from "./views/ScalePositionsView";
 import type { AccidentalStyle } from "./theory/notes";
@@ -143,9 +144,17 @@ function App() {
             />
           </>
         )}
-        {selectedView !== "note-map" && selectedView !== "scale-positions" && (
-          <div className="text-fg-faint text-center py-20">Coming soon</div>
+        {selectedView === "chord-shapes" && (
+          <ChordShapesView
+            selectedKey={selectedKey}
+            accidentalStyle={accidentalStyle}
+          />
         )}
+        {selectedView !== "note-map" &&
+          selectedView !== "scale-positions" &&
+          selectedView !== "chord-shapes" && (
+            <div className="text-fg-faint text-center py-20">Coming soon</div>
+          )}
       </main>
     </div>
   );
