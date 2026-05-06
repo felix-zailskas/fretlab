@@ -60,9 +60,10 @@ priority is by practice value:
 
 - The default landing view and the proof artifact for the Step 1 fretboard + theory
   layer.
-- For the selected key, all in-key notes render across frets 0–15 with Root / 3rd / 5th
-  / 7th in interval colors and the remaining scale tones muted. An "All notes" mode
-  disables key filtering.
+- For the selected key, all in-key notes render across the visible fret range (default
+  0–15, user-configurable via the global FretRangeControl up to fret 24) with Root / 3rd
+  / 5th / 7th in interval colors and the remaining scale tones muted. An "All notes"
+  mode disables key filtering.
 - A diatonic chord row sits above the fretboard. Selecting a chord remaps the highlights
   so that chord's R / 3 / 5 / 7 light up against the muted scale background — the same
   visual contract the other views will follow. Clicking the selected card again
@@ -288,7 +289,11 @@ that's when the Reference tab earns priority.
 - The **fretboard renderer is dumb.** It accepts `NoteMarker[]` and renders; computing
   which markers to display is the responsibility of each view, using the theory layer
   (per the Step 1 spec).
-- **Frets 0–15 minimum.** The Step 1 spec allows 0–15 or 0–17 — Step 1 chose 15.
+- **Visible fret range is user-configurable.** Default 0–15; ceiling is `MAX_FRET = 24`.
+  The global FretRangeControl in the header lets the user narrow the view (for box
+  drilling) or widen it (to see octave-up shapes). Step 1 picked 15 as the default; the
+  Configurable Fret Range work later turned that into a default rather than a hard
+  ceiling.
 - All theory in **pure functions** under `src/theory/`. No state-management library;
   React `useState` lifted to `App` is sufficient.
 - **Chord construction formulas** are explicit:
@@ -305,11 +310,17 @@ that's when the Reference tab earns priority.
 Pieces of shared infrastructure that earlier views needed are now in place:
 
 - **CAGED position model** — built and validated by the Scale Positions view. Encoded as
-  5 fret-windows anchored to C major (one per CAGED shape) plus a per-key wrap rule that
-  prefers high-neck placement and only octave-wraps when the natural window is entirely
-  past `FRET_COUNT`.
-- **`FRET_COUNT` constant** — global single source of truth for the highest fret
-  rendered (currently 15).
+  5 fret-windows anchored to C major (one per CAGED shape). `getPositionWindows` returns
+  every octave that fits fully inside the user-configured `[startFret, endFret]` range,
+  so wide ranges show the same box twice (e.g., P1 in C major at `[0,3]` and `[12,15]`)
+  and narrow ranges drop boxes that don't fit.
+- **`DEFAULT_END_FRET` and `MAX_FRET` constants** — `DEFAULT_END_FRET = 15` is the
+  default upper bound; `MAX_FRET = 24` is the absolute UI ceiling. Both live in
+  `src/theory/constants.ts`. Replaces the original single `FRET_COUNT` constant.
+- **`FretRangeControl` popover** — global header control that owns the user-selected
+  `[startFret, endFret]` range. The range threads through every theory pipeline
+  (`buildChordToneMarkers`, `buildChordShapeMarkers`, `getPositionWindows`,
+  `computeOverlapZones`) and the renderer (`Fretboard`, `FretMarkers`).
 - **`roleFromChordTone` helper** — pure-function chord-tone-role resolution, shared
   across Note Map and Scale Positions.
 

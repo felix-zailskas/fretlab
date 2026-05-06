@@ -32,9 +32,10 @@ roadmap).
 
 ![Short recording of the Note Map tab — cycling through keys (C → G → D → E♭) to show how the in-key notes shift across the neck. Then clicking through the diatonic chord row to watch each chord's R / 3 / 5 / 7 light up. Toggling individual roles (3rd, 5th, 7th) in the Legend to demote them to plain scale tones. Switching the accidental toggle from sharp to flat. Switching the key to "All Notes" to disable key filtering and see every note on the neck.](docs/images/note-map.gif)
 
-The default landing view. For the selected key, all in-key notes render across frets
-0–15. Root / 3rd / 5th / 7th appear in their interval colors; the rest of the scale (2nd
-/ 4th / 6th) is muted.
+The default landing view. For the selected key, all in-key notes render across the
+visible fret range (default 0–15, user-configurable via the FretRangeControl popover up
+to fret 24). Root / 3rd / 5th / 7th appear in their interval colors; the rest of the
+scale (2nd / 4th / 6th) is muted.
 
 A row of diatonic chord cards (I through vii°) sits below the fretboard. Selecting a
 chord remaps the highlights so that chord's R / 3 / 5 / 7 light up against the muted
@@ -47,6 +48,8 @@ highlights so every in-key note renders as a plain scale tone.
 - 12-key selector plus an "All Notes" mode that disables key filtering
 - Sharp / flat accidental toggle (with automatic enharmonic key swap so you stay on the
   same scale)
+- Configurable fret range (default 0–15, ceiling 24) via a header popover; the chosen
+  range applies to every view
 - 7 diatonic chord cards with a triads / sevenths toggle (R/3/5 or R/3/5/7 highlighting)
 - Legend with R / 3 / 5 / 7 toggles to selectively show or hide chord-tone roles
 
@@ -57,10 +60,10 @@ highlights so every in-key note renders as a plain scale tone.
 
 ### Scale Positions
 
-![Short recording of the Scale Positions tab — starting in C major with P1 selected (corner-bracketed at frets 0–3, labeled "P1 — E" above the board). Toggling P2 on, second box appears at frets 2–5 with a brighter outlined overlap rectangle at frets 2–3. Toggling P3 on, three boxes total with two overlap zones. Toggling the I chord card off — markers shift from chord-tone highlighting to plain major-scale R / 3 / 5 / 7. Switching key to G — boxes shift up the neck; P5 wraps to the low frets. Toggling "Show context notes" on — out-of-position in-key notes render in muted color.](docs/images/scale-positions.gif)
+![Short recording of the Scale Positions tab — starting in C major with P1 selected (corner-bracketed at frets 0–3, labeled "P1 — C" above the board). Toggling P2 on, second box appears at frets 2–5 with a brighter outlined overlap rectangle at frets 2–3. Toggling P3 on, three boxes total with two overlap zones. Toggling the I chord card off — markers shift from chord-tone highlighting to plain major-scale R / 3 / 5 / 7. Switching key to G — boxes shift up the neck; P5 wraps to the low frets. Toggling "Show context notes" on — out-of-position in-key notes render in muted color.](docs/images/scale-positions.gif)
 
 A consolidated CAGED-box practice tool. Each selected position renders as a framed
-region on the neck with a label (e.g. `P1 — E` for the first position, E-shape). When
+region on the neck with a label (e.g. `P1 — C` for the first position, C-shape). When
 two or more boxes overlap, the shared frets render as a brighter outlined zone —
 reinforcing that the CAGED shapes are connected pieces of one continuous map, not
 isolated islands.
@@ -77,10 +80,11 @@ The view supports two complementary practice modes via the same controls:
 
 **Features**
 
-- Independent toggles for the 5 CAGED positions (P1 E-shape through P5 G-shape); any
-  combination is valid
-- Per-key window placement with smart wrap (high-neck preferred; only octave-wraps when
-  the natural window falls past the visible neck)
+- Independent toggles for the 5 CAGED positions (P1 C-shape through P5 D-shape, the
+  canonical CAGED order ascending from open in C major); any combination is valid
+- Multi-octave window placement: every octave that fits fully inside the configured
+  visible fret range renders as its own bracketed box, so a wide range can show the same
+  position twice on the neck
 - Corner-bracket framing on each selected position
 - Brighter outlined fill for overlap zones between adjacent boxes
 - "Show context notes" toggle: render in-key notes outside the selected positions in
