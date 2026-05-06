@@ -164,7 +164,7 @@ export function ChordShapesView({
           Select a string set to begin.
         </div>
       ) : (
-        <Fretboard markers={markers} fretCount={DEFAULT_END_FRET} />
+        <Fretboard markers={markers} startFret={0} endFret={DEFAULT_END_FRET} />
       )}
 
       <Legend readOnly />

@@ -19,7 +19,8 @@ export type OverlapZone = {
 
 type FretboardProps = {
   markers: NoteMarker[];
-  fretCount?: number;
+  startFret?: number;
+  endFret?: number;
   positionWindows?: ReadonlyArray<PositionWindow>;
   overlapZones?: ReadonlyArray<OverlapZone>;
 };
@@ -49,28 +50,36 @@ const OVERLAP_STROKE_WIDTH = 1.5;
 
 export function Fretboard({
   markers,
-  fretCount = DEFAULT_END_FRET,
+  startFret = 0,
+  endFret = DEFAULT_END_FRET,
   positionWindows,
   overlapZones,
 }: FretboardProps) {
   const boardTop = PADDING.top;
   const boardBottom = PADDING.top + (NUM_STRINGS - 1) * STRING_SPACING;
   const boardWidth = 900;
-  const fretSpacing = boardWidth / fretCount;
+
+  // effectiveStart preserves today's "fretCount = endFret" visual scale
+  // when startFret = 0 (the pre-nut zone is bonus, outside boardWidth).
+  // When startFret > 0, slots startFret..endFret fit fully inside boardWidth.
+  const effectiveStart = Math.max(startFret - 1, 0);
+  const visibleSlots = endFret - effectiveStart;
+  const fretSpacing = boardWidth / visibleSlots;
+
   const nutX = PADDING.left;
   const totalWidth = PADDING.left + boardWidth + PADDING.right;
   const totalHeight = boardBottom + PADDING.bottom;
 
   // Returns the x position at the center of a fret (between fret n-1 and fret n).
-  // For fret 0 (open), returns a position to the left of the nut.
+  // For fret 0 (open) when startFret = 0, returns a position to the left of the nut.
   function fretCenterX(fret: number): number {
-    if (fret === 0) return nutX - 20;
-    return nutX + (fret - 0.5) * fretSpacing;
+    if (fret === 0 && startFret === 0) return nutX - 20;
+    return nutX + (fret - effectiveStart - 0.5) * fretSpacing;
   }
 
   // Returns the x position of the fret wire itself (for dot markers).
   function fretX(fret: number): number {
-    return nutX + (fret - 0.5) * fretSpacing;
+    return nutX + (fret - effectiveStart - 0.5) * fretSpacing;
   }
 
   // String index 0 = low E = bottom, index 5 = high E = top
@@ -82,10 +91,11 @@ export function Fretboard({
   // the rectangle visually contains open-note markers (which render at
   // nutX - 20 with radius ~13).
   function windowLeftX(low: number): number {
-    return low === 0 ? nutX - 35 : nutX + (low - 1) * fretSpacing;
+    if (low === 0 && startFret === 0) return nutX - 35;
+    return nutX + (low - effectiveStart - 1) * fretSpacing;
   }
   function windowRightX(high: number): number {
-    return nutX + high * fretSpacing;
+    return nutX + (high - effectiveStart) * fretSpacing;
   }
 
   // Generates an SVG path describing four L-shaped corner brackets at the
@@ -164,23 +174,26 @@ export function Fretboard({
       {/* Fret markers (dots) — rendered behind strings and notes */}
       <FretMarkers fretX={fretX} boardTop={boardTop} boardBottom={boardBottom} />
 
-      {/* Nut */}
+      {/* Nut (when startFret === 0) or starting boundary (when startFret > 0) */}
       <line
         x1={nutX}
         y1={boardTop - 10}
         x2={nutX}
         y2={boardBottom + 10}
-        stroke="var(--color-fg-primary)"
-        strokeWidth={4}
+        stroke={startFret === 0 ? "var(--color-fg-primary)" : "var(--color-fret)"}
+        strokeWidth={startFret === 0 ? 4 : 1.5}
       />
 
       {/* Fret lines */}
-      {Array.from({ length: fretCount }, (_, i) => i + 1).map((fret) => (
+      {Array.from(
+        { length: endFret - effectiveStart },
+        (_, i) => effectiveStart + i + 1,
+      ).map((fret) => (
         <line
           key={fret}
-          x1={nutX + fret * fretSpacing}
+          x1={nutX + (fret - effectiveStart) * fretSpacing}
           y1={boardTop - 10}
-          x2={nutX + fret * fretSpacing}
+          x2={nutX + (fret - effectiveStart) * fretSpacing}
           y2={boardBottom + 10}
           stroke="var(--color-fret)"
           strokeWidth={1.5}
@@ -199,10 +212,13 @@ export function Fretboard({
       ))}
 
       {/* Fret numbers */}
-      {Array.from({ length: fretCount }, (_, i) => i + 1).map((fret) => (
+      {Array.from(
+        { length: endFret - effectiveStart },
+        (_, i) => effectiveStart + i + 1,
+      ).map((fret) => (
         <text
           key={fret}
-          x={nutX + (fret - 0.5) * fretSpacing}
+          x={fretX(fret)}
           y={boardBottom + 30}
           textAnchor="middle"
           fill="var(--color-scale)"

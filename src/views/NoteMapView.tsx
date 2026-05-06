@@ -65,5 +65,5 @@ export function NoteMapView({
     return result;
   }, [selectedKey, accidentalStyle, enabledHighlights, selectedChord]);
 
-  return <Fretboard markers={markers} fretCount={DEFAULT_END_FRET} />;
+  return <Fretboard markers={markers} startFret={0} endFret={DEFAULT_END_FRET} />;
 }

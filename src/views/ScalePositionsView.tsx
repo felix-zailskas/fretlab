@@ -120,7 +120,8 @@ export function ScalePositionsView({
       <div className="relative">
         <Fretboard
           markers={markers}
-          fretCount={DEFAULT_END_FRET}
+          startFret={0}
+          endFret={DEFAULT_END_FRET}
           positionWindows={positionWindows}
           overlapZones={overlapZones}
         />
