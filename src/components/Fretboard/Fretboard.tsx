@@ -109,7 +109,7 @@ export function Fretboard({
   return (
     <svg
       viewBox={`0 0 ${totalWidth} ${totalHeight}`}
-      className="w-full max-w-6xl"
+      className="w-full"
       preserveAspectRatio="xMidYMid meet"
     >
       {/* Fretboard background */}

@@ -74,7 +74,7 @@ function App() {
 
   return (
     <div className="min-h-screen bg-surface text-fg-primary p-4">
-      <header className="max-w-6xl mx-auto space-y-4 mb-6">
+      <header className="max-w-[90rem] mx-auto space-y-4 mb-6">
         <h1 className="text-2xl font-bold">Fretlab</h1>
         <div className="flex flex-col sm:flex-row sm:items-end gap-4">
           <div>
@@ -101,7 +101,7 @@ function App() {
         />
       </header>
 
-      <main className="max-w-6xl mx-auto">
+      <main className="max-w-[90rem] mx-auto">
         {selectedView === "note-map" && (
           <>
             <NoteMapView

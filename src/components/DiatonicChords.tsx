@@ -89,19 +89,19 @@ export function DiatonicChords({
               type="button"
               onClick={() => onSelectDegree(chord.degree)}
               aria-pressed={isSelected}
-              className={`flex flex-col items-center justify-center gap-3 px-4 py-8 min-h-[10rem] rounded-xl border-2 shadow-lg cursor-pointer transition-colors ${
+              className={`flex flex-col items-center justify-center gap-1.5 px-3 py-4 min-h-[6.5rem] rounded-xl border-2 shadow-lg cursor-pointer transition-colors ${
                 isSelected
                   ? "border-line-selected bg-surface-active"
                   : `${QUALITY_ACCENT[chord.quality]} hover:border-line-hover`
               }`}
             >
-              <span className="text-lg text-fg-muted font-mono font-semibold">
+              <span className="text-sm text-fg-muted font-mono font-semibold">
                 {chord.romanNumeral}
               </span>
-              <span className="text-3xl font-bold text-fg-emphasis leading-none">
+              <span className="text-xl font-bold text-fg-emphasis leading-none">
                 {chord.symbol}
               </span>
-              <span className="text-lg text-fg-secondary tracking-wider font-medium">
+              <span className="text-xs text-fg-secondary tracking-wider font-medium">
                 {chord.notes.join(" – ")}
               </span>
             </button>
