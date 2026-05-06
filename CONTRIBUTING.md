@@ -109,7 +109,7 @@ Outdated docs are treated as a bug.
 ## For Agents
 
 This project follows a structured **research → plan → implement** workflow powered by
-the [Superpowers plugin](https://superpowers.so) for Claude Code. Contributions from
+the [Superpowers plugin](https://github.com/obra/superpowers) for Claude Code. Contributions from
 agents must follow this convention.
 
 ### Workflow
