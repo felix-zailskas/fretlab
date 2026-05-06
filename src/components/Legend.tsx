@@ -12,12 +12,39 @@ const LEGEND_ITEMS: { label: string; role: HighlightableRole; color: string }[] 
   { label: "7th", role: "seventh", color: "var(--color-seventh)" },
 ];
 
-type LegendProps = {
-  enabledRoles: Set<HighlightableRole>;
-  onToggleRole: (role: HighlightableRole) => void;
-};
+type LegendProps =
+  | {
+      readOnly: true;
+    }
+  | {
+      readOnly?: false;
+      enabledRoles: Set<HighlightableRole>;
+      onToggleRole: (role: HighlightableRole) => void;
+    };
 
-export function Legend({ enabledRoles, onToggleRole }: LegendProps) {
+export function Legend(props: LegendProps) {
+  if (props.readOnly) {
+    // Static color reference — no click handlers, all swatches always lit.
+    return (
+      <div className="flex gap-3 text-sm">
+        {LEGEND_ITEMS.map((item) => (
+          <span
+            key={item.label}
+            className="flex items-center gap-1.5 px-2 py-1 rounded"
+          >
+            <span
+              className="inline-block w-3 h-3 rounded-full"
+              style={{ backgroundColor: item.color }}
+            />
+            <span className="text-fg-secondary">{item.label}</span>
+          </span>
+        ))}
+      </div>
+    );
+  }
+
+  // Interactive mode — click toggles the role's display.
+  const { enabledRoles, onToggleRole } = props;
   return (
     <div className="flex gap-3 text-sm">
       {LEGEND_ITEMS.map((item) => {
