@@ -1,5 +1,10 @@
 # Fretlab
 
+## Development work
+
+When working on changes in this repository make sure to adhere to the guidelines laid
+out in the [CONTRIBUTING.md](./CONTRIBUTING.md)
+
 ## Before Every Commit
 
 ALWAYS run the following before committing:
