@@ -122,7 +122,7 @@ export function ScalePositionsView({
           overlapZones={overlapZones}
         />
         {selectedPositions.size === 0 && (
-          <div className="absolute inset-0 flex items-center justify-center text-fg-faint pointer-events-none">
+          <div className="absolute inset-0 flex items-center justify-center text-white pointer-events-none">
             Toggle a position to begin.
           </div>
         )}
