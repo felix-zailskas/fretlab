@@ -10,7 +10,8 @@ This document captures the initial design intent for Fretlab.
   sits next to the user during practice (laptop or iPad on a music stand) as a key-aware
   "cheat sheet."
 - **Practice areas it supports:** fretboard memorization, chord-tone soloing, diatonic
-  harmony, shell voicings, diatonic triads, CAGED scale-position connection.
+  harmony, 7th-chord voicings (close / drop-2 / drop-3 / drop-2&4), diatonic triads,
+  CAGED scale-position connection.
 - **Fast switching is a core constraint.** Changing key or view must be instant. No
   animations that interrupt practice flow.
 - **Consistent coloring across all views.** Root / 3rd / 5th / 7th have fixed interval
@@ -32,9 +33,11 @@ priority is by practice value:
    and "Scale Positions"; consolidated once the multi-position implementation made the
    split redundant).
 3. **Chord Shapes** — consolidated view replacing the originally-planned Shell Voicing
-   Diagrams (#4) and Diatonic Triad Shapes (#5). Vertical chord-diagram boxes on top,
-   ascending-up-the-neck fretboard on bottom, with a top-level Shells/Triads selector.
-   One tab, one mental model: _look up a shape, see it ascend the neck._
+   Diagrams (#4) and Diatonic Triad Shapes (#5). Chord-centric: pick a chord, every
+   fitting placement renders ascending up the neck in the visible fret range. Triads
+   mode covers 3-note inversions across 4 string groups; 7th chord shapes mode covers
+   4-note voicings under a Close / Drop 2 / Drop 3 / Drop 2&4 voicing-system selector.
+   One tab, one mental model: _pick a chord, see it ascend the neck._
 4. **Diatonic chord row triads** — small extension. The chord row already on screen in
    Note Map / Scale Positions gains a triad mode alongside the existing seventh-chord
    mode. Replaces what was originally a standalone "Diatonic Chord Reference" tab — the
@@ -50,11 +53,14 @@ priority is by practice value:
 > Positions → Chord Shapes). Two consolidations underlie this: (a) the
 > originally-separate **Diatonic Chord Reference** is folded into the chord row already
 > rendered in Note Map / Scale Positions — adding a triads/sevenths toggle there serves
-> the same lookup intent without a dedicated tab; (b) **Shell Voicing Diagrams** and
-> **Diatonic Triad Shapes** merge into a single **Chord Shapes** view because both share
-> the same two-part skeleton (chord-diagram box grid on top, ascending-up-the-neck
-> fretboard on bottom). The per-view sections below describe the underlying material
-> that the consolidated views render.
+> the same lookup intent without a dedicated tab; (b) the originally-planned **Shell
+> Voicing Diagrams** and **Diatonic Triad Shapes** merge into a single **Chord Shapes**
+> view, chord-centric: pick a chord, every fitting placement renders ascending up the
+> neck. Triads mode covers 3-note inversions across 4 string groups; 7th chord shapes
+> mode covers 4-note voicings under a 4-system voicing selector (close / drop-2 / drop-3
+> / drop-2&4). The chord-diagram-box grid that V0 envisioned was deferred — see the
+> Reference tab section below. The per-view sections below describe the underlying
+> material that the consolidated views render.
 
 ### Note Map _(implemented in Step 1)_
 
@@ -146,43 +152,59 @@ controls serve both practice intents.
 
 ### Chord Shapes
 
-A consolidated view that handles both **shell-voicing lookup** (#4 in the original plan)
-and **triad-shape lookup** (#5). Originally planned as two separate tabs; merged because
-both share the same two-part skeleton — a grid of vertical chord-diagram boxes on top,
-an ascending-up-the-neck fretboard on bottom — and a single tab covering both is shorter
-to navigate during practice.
+A consolidated view that handles both shell-voicing lookup (#4 in the original plan) and
+triad-shape lookup (#5). The view is **chord-centric**: the user picks a single chord
+from the diatonic row and the fretboard renders every fitting placement of that chord
+across the visible fret range — no global "the 7 diatonic shapes ascending" contract.
+Compared to the V0 design (chord-diagram box grid on top, ascending-neck fretboard on
+bottom) this dropped the box grid; that fingering reference is deferred to the Reference
+tab section.
 
-- **Top-level selector:** Shells / Triads. Swaps the grid contents and the
-  bottom-section logic.
-- **Top section — chord-diagram box grid.** Shape contents depend on the selector:
-  - **Shells:** root + 3rd + 7th. Two families × four chord types = 8 boxes.
-    - Two families indexed by root string: 6th-string-root, 5th-string-root.
-    - Four chord types per family: maj7, m7, dom7, m7♭5.
-    - m7♭5 has the same fingering shape as m7 in some contexts — call this out
-      explicitly so the user understands the difference is harmonic, not visual.
-  - **Triads:** root + 3rd + 5th. Four string groups × three qualities × three
-    inversions = 36 boxes.
-    - Four string groups: 1-2-3, 2-3-4, 3-4-5, 4-5-6.
-    - Three qualities per string group: major, minor, diminished.
-    - Three inversions per quality: root position, 1st, 2nd.
-  - Per-shape display: vertical chord-diagram boxes (4–5 frets tall) showing fingers,
-    interval labels (R, 3, 5/7), and the chord-type/inversion label.
-- **Bottom section — ascending up the neck.** A fretboard rendering of the 7 diatonic
-  shapes ascending up the neck in the selected key.
-  - **Shells mode:** the 7 diatonic shell voicings (e.g. C major: Cmaj7 at fret 8
-    6th-string, Dm7 at 10, Em7 at 12, …) — "the shell voicing scale." Sub-selector:
-    which root string (6th or 5th).
-  - **Triads mode:** the 7 diatonic triads on a chosen string group ascending up the
-    neck — "the triad scale." Sub-selector: which string group (1-2-3, 2-3-4, 3-4-5,
-    4-5-6).
-- Layout matches the other fretboard views: the bottom section sits where Note Map /
-  Scale Positions place their fretboard. The Shells/Triads selector and the
-  mode-specific sub-selector sit above it.
-- Shared building blocks (now internal to this view):
-  - **`ChordDiagramBox` component** — vertical 4–5-fret diagram with R/3/X labels and a
-    chord-symbol header, used by both modes.
-  - **Ascending-up-the-neck rendering** — fretboard slice showing 7 markers up the neck
-    with chord-symbol labels, used by both modes.
+- **Mode toggle (shared with the diatonic chord row).** A
+  `Triad shapes / 7th chord shapes` toggle drives both this view and the chord row below
+  the fretboard. The two stay in sync — changing the toggle in either place updates
+  both.
+- **Triad shapes mode.** Major / minor / diminished triad inversions across 4 3-string
+  groups (1-2-3, 2-3-4, 3-4-5, 4-5-6) and 3 inversions (root / 1st / 2nd) — 36 entries
+  in the shape table. Sub-selectors: string group (multi-toggle) + inversion
+  (multi-toggle).
+- **7th chord shapes mode.** Full 4-note voicings (R / 3 / 5 / 7) under a voicing-system
+  selector with 4 options:
+  - **Close** — 1-3-5-7 stacked within an octave, on the 3 adjacent 4-string sets.
+  - **Drop 2** — 2nd-from-top dropped an octave; on the same 3 adjacent 4-string sets.
+    The standard E-shape and A-shape barre voicings are root-position drop-2 on 3-4-5-6
+    and 2-3-4-5.
+  - **Drop 3** — 3rd-from-top dropped an octave; played on string sets that skip an
+    inner string (`6-4-3-2`, `5-3-2-1`).
+  - **Drop 2&4** — both 2nd and 4th from top dropped; very wide voicings on `6-5-3-2`
+    and `5-4-2-1` (skip between the dropped pair and the upper pair).
+  - All systems support all 4 inversions (root / 1st / 2nd / 3rd) and all 4 chord
+    qualities (maj7, m7, 7, m7♭5) → 160 voicings total in the generated table.
+- **Cross-system shared selection.** String-set and inversion selections persist as the
+  user toggles the voicing system. String-set sharing uses a `low / mid / high` position
+  abstraction: "low" = bass on string 6, "mid" = bass on 5, "high" = bass on 4. The same
+  position selection maps to the corresponding system-specific id (e.g. drop-2's
+  `3-4-5-6` ↔ drop-3's `6-4-3-2`). Drop-3 and Drop-2&4 only have low and mid positions;
+  "high" stays in the user's set but renders nothing in those systems.
+- **Cap-at-fits rule.** A voicing is rendered only if every note's fret falls inside
+  `[startFret, endFret]`. Voicings whose shape doesn't fit are silently dropped.
+- **Generator, not a hand-typed table.** `SEVENTH_SHAPES` is built at module load by a
+  single algorithm: take the close-position pitches for the requested close inversion,
+  drop the configured indices an octave, sort low → high, normalize so the bass is at
+  pitch 0. Cross-checked in tests against the known E-shape barre, A-shape barre,
+  stairstep close root on 1-2-3-4, drop-3 root on 6-4-3-2, and drop-2&4 root on 6-5-3-2.
+- **Legend treatment: dim, don't hide.** Unlike Note Map / Scale Positions where
+  unselected Legend roles disappear, Chord Shapes demotes them to `muted` so the chord
+  shape stays recognizable when the user is focused on a single role. The reference
+  signal of the surrounding chord tones doesn't vanish.
+- Layout matches the other fretboard views. The view-specific controls stack above the
+  fretboard: chord-shape language (Triads / 7ths) → voicing-system selector (sevenths
+  only) → string-set + inversion sub-selectors.
+- Implementation specs:
+  [`2026-05-06-chord-shapes-design.md`](../superpowers/specs/2026-05-06-chord-shapes-design.md)
+  for the original V1 (drop-2 + triads),
+  [`2026-05-06-chord-shapes-chord-centric-design.md`](../superpowers/specs/2026-05-06-chord-shapes-chord-centric-design.md)
+  for the chord-centric redesign that produced today's view.
 
 ### Future: Modal practice mode
 
@@ -295,7 +317,10 @@ that's when the Reference tab earns priority.
   Configurable Fret Range work later turned that into a default rather than a hard
   ceiling.
 - All theory in **pure functions** under `src/theory/`. No state-management library;
-  React `useState` lifted to `App` is sufficient.
+  React `useState` lifted to `App` is sufficient. Per-view selector state is bundled
+  into custom hooks (`useChordShapesState`, `useScalePositionsState`) that live next to
+  the view file and are instantiated once at the App level — keeps `App.tsx` from
+  bloating as views grow more selectors, and means selections survive tab switches.
 - **Chord construction formulas** are explicit:
   - Triads: maj = 1, 3, 5; min = 1, ♭3, 5; dim = 1, ♭3, ♭5.
   - Sevenths: maj7 = 1, 3, 5, 7; m7 = 1, ♭3, 5, ♭7; dom7 = 1, 3, 5, ♭7; m7♭5 = 1, ♭3,
@@ -324,17 +349,27 @@ Pieces of shared infrastructure that earlier views needed are now in place:
 - **`roleFromChordTone` helper** — pure-function chord-tone-role resolution, shared
   across Note Map and Scale Positions.
 
-What still needs building, per the consolidated 3-tab plan:
+What was added since the original list:
 
 - **`getDiatonicTriads(key)`** — sibling of `getDiatonicChords`, returning R/3/5 (no
-  7th). Used by both the chord-row triads extension and the Chord Shapes view's bottom
-  section in Triads mode.
-- **`ChordDiagramBox` component** — vertical 4–5-fret diagram with R/3/X labels and a
-  chord-symbol header. Internal to Chord Shapes; used by both Shells and Triads modes.
-- **Ascending-up-the-neck fretboard rendering** — the bottom section of Chord Shapes.
-  Different rendering contract from the existing `Fretboard` (key-anchored 7-marker
-  progression vs. all-notes-on-neck); decide during design whether this is a new
-  component or a configuration of the existing `Fretboard`.
+  7th). Powers the chord-row triads toggle and the Chord Shapes view's Triads mode.
+- **`buildChordShapeMarkers`** — chord-centric pipeline in
+  [`src/theory/chordShapes.ts`](../../src/theory/chordShapes.ts). Takes one
+  `DiatonicTriad | DiatonicChord` plus the view's sub-selector state and emits every
+  fitting placement on the fretboard. Reuses the existing `Fretboard` component as-is
+  (no separate ascending-neck renderer needed; the chord-centric pipeline produces the
+  markers and the same dumb renderer draws them).
+- **Drop-voicing generator** — `SEVENTH_SHAPES` is built at module load by a single
+  algorithm parameterized by `(system, stringSet, inversion, quality)`: take the
+  close-position pitches, drop the configured indices an octave, sort, normalize. Adding
+  a new voicing system or string set is a data change, not a code change.
+- **Per-view state hooks** — `useChordShapesState` and `useScalePositionsState` bundle
+  each view's `useState` calls + handlers and live next to the view. App instantiates
+  them once so state survives tab switches.
+
+The originally-planned `ChordDiagramBox` component was not built — V1 Chord Shapes
+narrowed to the ascending-neck section, deferring the box-grid fingering reference to
+the Reference tab (see "Future: Reference tab").
 
 ---
 
@@ -344,20 +379,20 @@ After consolidation the dependency map is short:
 
 - **Diatonic chord row triads** — extends the existing `DiatonicChords` component.
   Touches Note Map and Scale Positions only insofar as both render that component.
-- **Chord Shapes** — standalone new view. Internally shares `ChordDiagramBox` and the
-  ascending-up-the-neck rendering between its Shells and Triads modes. Independent of
-  Note Map / Scale Positions.
+- **Chord Shapes** — standalone view that reuses the `Fretboard` renderer; theory
+  pipeline (`buildChordShapeMarkers`) is shared between Triads and 7th chord shapes
+  modes. Independent of Note Map / Scale Positions.
 
 ---
 
 ## View completion map
 
-| View                      | Status | Notes                                                                                                                                                                                                                                                                                                |
-| ------------------------- | ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Note Map                  | Done   | Step 1 proof view; rendered by [NoteMapView.tsx](src/views/NoteMapView.tsx).                                                                                                                                                                                                                         |
-| Scale Positions           | Done   | Consolidated CAGED-box + chord-tone view; rendered by [ScalePositionsView.tsx](src/views/ScalePositionsView.tsx). Spec: [design](../superpowers/specs/2026-05-05-chord-tones-in-scale-positions-design.md).                                                                                          |
-| Chord Shapes              | Done   | Single-section ascending neck view; rendered by [ChordShapesView.tsx](src/views/ChordShapesView.tsx). Triads/Shells modes, multi-toggle string-set sub-selector, single-pick inversion (Triads only), cap-at-fits drop rule. Spec: [design](../superpowers/specs/2026-05-06-chord-shapes-design.md). |
-| Diatonic chord row triads | Done   | Triads/sevenths toggle in [DiatonicChords.tsx](src/components/DiatonicChords.tsx); `getDiatonicTriads` in [scales.ts](src/theory/scales.ts). Spec: [design](../superpowers/specs/2026-05-05-chord-row-triads-design.md).                                                                             |
+| View                      | Status | Notes                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| ------------------------- | ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Note Map                  | Done   | Step 1 proof view; rendered by [NoteMapView.tsx](src/views/NoteMapView.tsx).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| Scale Positions           | Done   | Consolidated CAGED-box + chord-tone view; rendered by [ScalePositionsView.tsx](src/views/ScalePositionsView.tsx). Spec: [design](../superpowers/specs/2026-05-05-chord-tones-in-scale-positions-design.md).                                                                                                                                                                                                                                                                                                                                                                                           |
+| Chord Shapes              | Done   | Chord-centric ascending-neck view; rendered by [ChordShapesView.tsx](src/views/ChordShapesView.tsx). Triads / 7th chord shapes modes; 7ths exposes a Close / Drop 2 / Drop 3 / Drop 2&4 voicing-system selector with cross-system shared low/mid/high position state and shared inversion state. Multi-toggle string-set + multi-toggle inversion sub-selectors. Cap-at-fits drop rule. Legend roles dim instead of hide. Specs: [V1 design](../superpowers/specs/2026-05-06-chord-shapes-design.md), [chord-centric redesign](../superpowers/specs/2026-05-06-chord-shapes-chord-centric-design.md). |
+| Diatonic chord row triads | Done   | Triads/sevenths toggle in [DiatonicChords.tsx](src/components/DiatonicChords.tsx); `getDiatonicTriads` in [scales.ts](src/theory/scales.ts). Spec: [design](../superpowers/specs/2026-05-05-chord-row-triads-design.md).                                                                                                                                                                                                                                                                                                                                                                              |
 
 ---
 

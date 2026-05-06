@@ -23,10 +23,9 @@ by default). The Legend stays on screen so you always know what each color means
 
 ## Views
 
-Each tab in Fretlab answers a different practice question. Two views are implemented
-today; one more is planned (see the
-[vision document](docs/design/2026-05-05-app-vision-and-view-designs.md) for the full
-roadmap).
+Each tab in Fretlab answers a different practice question. Three views ship today (see
+the [vision document](docs/design/2026-05-05-app-vision-and-view-designs.md) for the
+full roadmap and what's deferred).
 
 ### Note Map
 
@@ -100,20 +99,51 @@ The view supports two complementary practice modes via the same controls:
 - _Position transitions_ — toggle two adjacent positions and use the overlap zone as a
   pivot region to practice moving between boxes.
 
-### Coming soon
+### Chord Shapes
 
-One additional view is on the roadmap — see the
-[vision document](docs/design/2026-05-05-app-vision-and-view-designs.md) for the full
-description:
+![Short recording of the Chord Shapes tab — starting in C major with the I chord (Cmaj7) selected and the 7th chord shapes mode active. Cycling the voicing-system selector through Close → Drop 2 → Drop 3 → Drop 2&4 to watch the same chord render as four different 4-note shapes ascending the neck. Adding a second string-position toggle to render the same voicing on a different anchor string. Adding a second inversion (1st Inversion) to render both voicings stacked. Switching the chord-row mode to Triads — the voicing selector hides, the string-set toggles switch to 1-2-3 / 2-3-4 / 3-4-5 / 4-5-6, and triad shapes ascend the neck. Toggling 3rd off in the Legend — the third markers dim to muted gray instead of disappearing, keeping the reference signal visible.](docs/images/chord-shapes.gif)
 
-- **Chord Shapes** — vertical chord-diagram boxes on top with a Shells / Triads
-  selector, and an ascending-up-the-neck fretboard on the bottom that maps the 7
-  diatonic shapes in the selected key. Shells mode covers root + 3 + 7 voicings on the
-  6th and 5th strings (maj7, m7, dom7, m7♭5); Triads mode covers major / minor /
-  diminished triad inversions across four string groups. One tab, one mental model:
-  _look up a shape, see it ascend the neck._
+A chord-centric ascending-neck view: pick a chord from the diatonic row and Fretlab
+renders every fitting placement of that chord across the visible fret range. The view
+has two modes (driven by the same triads / sevenths toggle that drives the chord row):
 
-The originally-planned _Diatonic Chord Reference_ tab has been folded into the existing
+- **Triad shapes** — major / minor / diminished triad inversions across four 3-string
+  groups (1-2-3, 2-3-4, 3-4-5, 4-5-6) and three inversions (root / 1st / 2nd).
+- **7th chord shapes** — full 4-note voicings (R / 3 / 5 / 7) generated from a unified
+  close-voicing → drop pipeline. A voicing-system selector (Close / Drop 2 / Drop 3 /
+  Drop 2&4) sits above the sub-selectors. Each system exposes its own valid string sets
+  (e.g. drop-2 uses the adjacent 4-string sets, drop-3 uses skipped-middle sets like
+  6-4-3-2). All four inversions (root / 1st / 2nd / 3rd) are available.
+
+String-set and inversion selections are **shared across voicing systems** via a low /
+mid / high position abstraction — switching from drop-2 to drop-3 with the "low"
+position selected automatically maps `3-4-5-6` to `6-4-3-2` so your hand stays in the
+same neck region. Drop-3 and Drop-2&4 only have low and mid positions; if your active
+selection includes "high", those systems silently render nothing for that toggle.
+
+**Features**
+
+- Triads / sevenths mode toggle (shared with the diatonic chord row below the fretboard,
+  so changing mode in either place stays in sync)
+- Voicing-system selector in sevenths mode: Close, Drop 2, Drop 3, Drop 2&4 — 160 total
+  voicings across 4 systems × valid string sets × 4 inversions × 4 qualities
+- String-set + inversion sub-selectors; multiple toggles ON stack their voicings on the
+  same fretboard
+- **Dim, don't hide:** unselected Legend roles render as muted gray on this view instead
+  of disappearing, so the chord shape stays recognizable when you're focused on a single
+  role
+
+**During practice**
+
+- _Voicing comparison_ — _"What does Cmaj7 look like as a drop-2 vs. drop-3?"_ Same
+  chord, swap the voicing-system toggle, see both shapes side-by-side as you cycle.
+- _Inversion drilling_ — _"Where do I find Cmaj7 with the 3 in the bass?"_ Toggle 1st
+  inversion only and the view shows every placement that fits the visible fret range.
+- _Diatonic comping_ — _"Which 7th chord shapes ascend the neck for a I-vi-ii-V in G?"_
+  Pick each chord in turn; the same string-set + inversion stays selected so the shapes
+  render at comparable positions.
+
+The originally-planned _Diatonic Chord Reference_ tab was folded into the existing
 diatonic chord row's triads / sevenths toggle, so the reference content is available
 directly in Note Map and Scale Positions without an extra tab.
 
@@ -156,6 +186,27 @@ The dev server prints a local URL (typically `http://localhost:5173/`).
 - [`docs/superpowers/plans/`](docs/superpowers/plans) — implementation plans tracked
   task-by-task
 - [`docs/practice/`](docs/practice) — the practice plan that motivates this tool
+
+## Theory references
+
+The 4-system 7th-chord voicing taxonomy in Chord Shapes (close, drop-2, drop-3,
+drop-2&4) was cross-checked against these sources during design:
+
+- [jazzguitar.be — Drop 2 Chords](https://www.jazzguitar.be/blog/drop-2-chords/) —
+  drop-2 inversions and string-set conventions on adjacent 4-string sets.
+- [learnjazzstandards.com — Drop 2 Voicings](https://www.learnjazzstandards.com/blog/drop-2-voicings/)
+  — the close-voicing → drop-2 derivation, with the four bass-position labels.
+- [fundamental-changes.com — Jazz Guitar Voicings](https://www.fundamental-changes.com/jazz-guitar-voicings/)
+  — overview of close, drop-2, drop-3, and drop-2&4 with worked Cmaj7 examples.
+- [guitarwiz.app — Drop 3 Voicings on Guitar](https://guitarwiz.app/articles/drop-3-voicings-guitar/)
+  — the skipped-middle-string convention for drop-3 (`6-4-3-2`, `5-3-2-1`).
+- [jazz-guitar-licks.com — Drop 2&4 Voicings](https://www.jazz-guitar-licks.com/blog/what-are-drop-2-4-chords-advanced-guitar-voicings.html)
+  — drop-2&4 stacking and string-skip layout.
+
+The shape table itself isn't copied from any source; it's generated by a single
+algorithm in [`src/theory/chordShapes.ts`](src/theory/chordShapes.ts) (close-voicing
+pitches → drop indices → sort → normalize) and spot-checked against known voicings from
+the references above.
 
 ## License
 
