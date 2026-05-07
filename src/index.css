@@ -33,6 +33,10 @@
   --color-characteristic: #f5d76e; /* warm gold — distinct from R/3/5/7 palette */
   --color-mode: #f59e0b; /* amber — modal-active accent, distinct from root blue */
 
+  /* UI selection — distinct from --color-root so musical-root blue can mean
+     only "musical root note" in the legend and on the fretboard. */
+  --color-selection: #2563eb;
+
   /* Fretboard render */
   --color-fretboard: #292524;
   --color-string: #9ca3af;
