@@ -13,7 +13,7 @@ type AccidentalToggleProps = {
 export function AccidentalToggle({ accidentalStyle, onChange }: AccidentalToggleProps) {
   const activeIndex = OPTIONS.findIndex((o) => o.value === accidentalStyle);
   return (
-    <div className="relative inline-flex rounded overflow-hidden border border-line">
+    <div className="relative inline-grid grid-cols-2 rounded overflow-hidden border border-line">
       <div
         aria-hidden="true"
         className="absolute top-0 bottom-0 left-0 w-1/2 bg-surface-active transition-transform duration-200 ease-out"

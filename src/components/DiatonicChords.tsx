@@ -74,7 +74,7 @@ export function DiatonicChords({
           Diatonic chords
         </h2>
         <div
-          className="relative inline-flex rounded overflow-hidden border border-line"
+          className="relative inline-grid grid-cols-2 rounded overflow-hidden border border-line"
           role="radiogroup"
           aria-label="Chord row mode"
         >
