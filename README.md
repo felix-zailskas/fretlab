@@ -23,6 +23,10 @@ mode, chord, and position changes; no animations that interrupt you; consistent 
 across all views (R / 3rd / 5th / 7th have fixed colors, and out-of-key notes are hidden
 by default). The Legend stays on screen so you always know what each color means.
 
+A header **theme toggle** cycles Auto / Light / Dark — Auto follows the system
+`prefers-color-scheme`, with a small icon and label that reveals which mode Auto is
+currently resolving to so you can tell at a glance.
+
 ## Views
 
 Each tab in Fretlab answers a different practice question. Three views ship today, plus
@@ -199,12 +203,24 @@ adds capability without disturbing major-scale practice.
 - _Working with modal harmony_ — `♭IIImaj7` in Dorian or `♯ivø7` in Lydian read directly
   off the chord row, no mental transposition.
 
+## Keyboard shortcuts
+
+A few shortcuts speed up the most common practice flows. They're disabled while focus is
+in a text input, and modifier keys (⌘ / Ctrl / Alt) are ignored so they don't interfere
+with browser shortcuts.
+
+| Key     | Action                                                                         |
+| ------- | ------------------------------------------------------------------------------ |
+| `1`–`7` | Select diatonic chord degree I through vii° (press the active degree to clear) |
+| `t`     | Switch the chord row to **Triads**                                             |
+| `s`     | Switch the chord row to **Sevenths**                                           |
+
 ## Getting started
 
 Fretlab is a Vite + React + TypeScript app. To run it locally:
 
 ```bash
-git clone https://github.com/<your-handle>/fretlab.git
+git clone https://github.com/felix-zailskas/fretlab.git
 cd fretlab
 npm install
 npm run dev

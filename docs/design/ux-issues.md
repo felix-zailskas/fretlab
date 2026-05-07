@@ -190,5 +190,6 @@ Remaining items to revisit:
 - **§6 row 2** — tab content crossfade (needs route transition state machinery).
 - **§7 rows 2-3** — popover asymmetric exit animation, custom number stepper.
 - **§13 row 2** — note-circle stagger entry on key/mode change.
-- **§15 row 1** — arrow-key key cycling (needs to share key-list arrays with KeySelector).
+- **§15 row 1** — arrow-key key cycling (needs to share key-list arrays with
+  KeySelector).
 - **§15 row 2** — system-wide tooltip pass for ii°, maj7, mode names, etc.

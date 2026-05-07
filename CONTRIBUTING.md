@@ -100,8 +100,7 @@ prevents a compromised upstream tag from silently changing the code that runs in
 When a contribution adds or changes user-visible behavior, the following documents must
 be kept up to date in the same PR:
 
-- **README.md** — feature descriptions under the relevant view section, and the "Coming
-  soon" list if a planned view ships or its scope changes
+- **README.md** — feature descriptions under the relevant view section
 - **`docs/design/`** — the relevant design note, or a new one if the view/feature is new
 
 Outdated docs are treated as a bug.

@@ -35,3 +35,6 @@ coverage/
 
 # Superpowers brainstorming visual companion (transient mockups)
 .superpowers/
+
+# Asset-recording temp dir (Playwright WebM + ffmpeg palettes)
+scripts/.recording-tmp/
