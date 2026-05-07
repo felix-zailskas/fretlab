@@ -31,6 +31,8 @@ type ScalePositionsViewProps = {
   mode?: Mode;
 };
 
+// Wider, neutral phrasing — the view serves both pure scale-position study
+// and chord-tone targeting.
 const EMPTY_KEY_MESSAGE = "Select a key to view scale positions.";
 
 export function ScalePositionsView({
