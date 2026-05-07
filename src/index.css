@@ -53,6 +53,9 @@
     --color-fg-muted: #6b5e52;
     --color-fg-faint: #9c8e83;
     --color-fg-emphasis: #0a0704;
+    --color-fretboard: #3d2010;
+    --color-string: #c4a07a;
+    --color-fret: #7a5540;
   }
 }
 
@@ -69,6 +72,9 @@
   --color-fg-muted: #6b5e52;
   --color-fg-faint: #9c8e83;
   --color-fg-emphasis: #0a0704;
+  --color-fretboard: #3d2010;
+  --color-string: #c4a07a;
+  --color-fret: #7a5540;
 }
 
 :root[data-theme="dark"] {
