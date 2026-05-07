@@ -172,9 +172,14 @@ function triadQualityFromIntervals(
   if (thirdSemitones === 4 && fifthSemitones === 7) return "maj";
   if (thirdSemitones === 3 && fifthSemitones === 7) return "min";
   if (thirdSemitones === 3 && fifthSemitones === 6) return "dim";
-  // Modal scales do not produce other triad qualities. Fall through with a
-  // safe default to avoid crashes if a future mode breaks this invariant.
-  return "min";
+  // The 7 modes of the major scale never produce other triad qualities.
+  // If a future mode (e.g. harmonic / melodic minor parents — see
+  // docs/design/2026-05-07-modal-parent-scales-extension.md) introduces
+  // augmented triads (4/8) or other patterns, throw loudly so the test
+  // suite surfaces the gap rather than silently mislabeling the chord.
+  throw new Error(
+    `triadQualityFromIntervals: unsupported pattern third=${thirdSemitones}, fifth=${fifthSemitones}`,
+  );
 }
 
 function buildTriadRomanNumeral(
