@@ -21,7 +21,7 @@ export function useChordShapesState() {
     () => new Set<StringSet>(["1-2-3"]),
   );
   const [selectedInversions, setSelectedInversions] = useState<Set<Inversion>>(
-    () => new Set<Inversion>(["root"]),
+    () => new Set<Inversion>(["root", "first", "second"]),
   );
   const [selectedVoicingSystem, setSelectedVoicingSystem] =
     useState<VoicingSystem>("drop2");
