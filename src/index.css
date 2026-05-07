@@ -91,3 +91,46 @@
   --color-fg-faint: #6b7280;
   --color-fg-emphasis: #ffffff;
 }
+
+/* Universal button polish — applies to every <button> in the app.
+   Scope intentionally global: see docs/design/ux-issues.md §1. */
+@layer components {
+  button {
+    transition:
+      background-color 160ms ease-out,
+      color 160ms ease-out,
+      border-color 160ms ease-out,
+      transform 100ms ease-out;
+  }
+
+  button:not(:disabled):active {
+    transform: scale(0.97);
+  }
+
+  button:focus-visible {
+    outline: 2px solid var(--color-root);
+    outline-offset: 2px;
+  }
+}
+
+/* Touch devices: clear hover styles immediately after release so taps
+   don't leave controls "stuck" in hover state. */
+@media (hover: none) {
+  button:hover {
+    background-color: revert;
+    color: revert;
+    border-color: revert;
+  }
+}
+
+/* Respect users who request reduced motion — collapses every transition
+   and animation to near-zero without removing the visual end-state. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
