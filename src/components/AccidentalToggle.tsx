@@ -1,8 +1,8 @@
 import type { AccidentalStyle } from "../theory/notes";
 
-const OPTIONS: { value: AccidentalStyle; label: string }[] = [
-  { value: "flat", label: "♭" },
-  { value: "sharp", label: "♯" },
+const OPTIONS: { value: AccidentalStyle; label: string; title: string }[] = [
+  { value: "flat", label: "♭", title: "Flat spelling" },
+  { value: "sharp", label: "♯", title: "Sharp spelling" },
 ];
 
 type AccidentalToggleProps = {
@@ -11,17 +11,25 @@ type AccidentalToggleProps = {
 };
 
 export function AccidentalToggle({ accidentalStyle, onChange }: AccidentalToggleProps) {
+  const activeIndex = OPTIONS.findIndex((o) => o.value === accidentalStyle);
   return (
-    <div className="inline-flex rounded overflow-hidden border border-line">
+    <div className="relative inline-flex rounded overflow-hidden border border-line">
+      <div
+        aria-hidden="true"
+        className="absolute top-0 bottom-0 left-0 w-1/2 bg-surface-active transition-transform duration-200 ease-out"
+        style={{ transform: `translateX(${activeIndex * 100}%)` }}
+      />
       {OPTIONS.map((opt) => (
         <button
           key={opt.value}
+          type="button"
           onClick={() => onChange(opt.value)}
           aria-pressed={accidentalStyle === opt.value}
-          className={`px-3 py-1.5 text-sm font-semibold transition-colors cursor-pointer ${
+          title={opt.title}
+          className={`relative z-10 px-3 py-3 text-sm font-semibold cursor-pointer ${
             accidentalStyle === opt.value
-              ? "bg-surface-active text-fg-emphasis"
-              : "bg-surface text-fg-muted hover:bg-surface-raised"
+              ? "text-fg-emphasis"
+              : "text-fg-muted hover:text-fg-secondary"
           }`}
         >
           {opt.label}
