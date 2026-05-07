@@ -1,5 +1,10 @@
 import { describe, it, expect } from "vitest";
-import { getModalScaleNotes, parentMajorOf, getModalIntervalRole } from "./modes";
+import {
+  getModalScaleNotes,
+  parentMajorOf,
+  getModalIntervalRole,
+  getCharacteristicNotes,
+} from "./modes";
 import { getIntervalRole } from "./scales";
 
 describe("getModalScaleNotes", () => {
@@ -188,5 +193,35 @@ describe("getModalIntervalRole", () => {
         getIntervalRole("C", note),
       );
     }
+  });
+});
+
+describe("getCharacteristicNotes", () => {
+  it("returns [] for Ionian and Aeolian", () => {
+    expect(getCharacteristicNotes("C", "ionian")).toEqual([]);
+    expect(getCharacteristicNotes("D", "aeolian")).toEqual([]);
+  });
+
+  it("returns the natural 6 for Dorian", () => {
+    // C Dorian's ♮6 is A
+    expect(getCharacteristicNotes("C", "dorian")).toEqual(["A"]);
+    // D Dorian's ♮6 is B
+    expect(getCharacteristicNotes("D", "dorian")).toEqual(["B"]);
+  });
+
+  it("returns the ♭2 for Phrygian (Db with flat spelling for C tonic)", () => {
+    expect(getCharacteristicNotes("C", "phrygian", "flat")).toEqual(["Db"]);
+  });
+
+  it("returns the ♯4 for Lydian (F# with sharp spelling for C tonic)", () => {
+    expect(getCharacteristicNotes("C", "lydian", "sharp")).toEqual(["F#"]);
+  });
+
+  it("returns the ♭7 for Mixolydian (Bb with flat spelling for C tonic)", () => {
+    expect(getCharacteristicNotes("C", "mixolydian", "flat")).toEqual(["Bb"]);
+  });
+
+  it("returns the ♭5 for Locrian (Gb with flat spelling for C tonic)", () => {
+    expect(getCharacteristicNotes("C", "locrian", "flat")).toEqual(["Gb"]);
   });
 });

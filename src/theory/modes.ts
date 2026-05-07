@@ -137,3 +137,12 @@ export function getModalIntervalRole(
   if (idx === -1) return null;
   return INTERVAL_NAMES[idx];
 }
+
+export function getCharacteristicNotes(
+  key: string,
+  mode: Mode,
+  accidentalStyle?: AccidentalStyle,
+): string[] {
+  const scale = getModalScaleNotes(key, mode, accidentalStyle);
+  return CHARACTERISTIC_DEGREES[mode].map((degreeIdx) => scale[degreeIdx]);
+}
