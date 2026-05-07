@@ -14,18 +14,21 @@ lookup.
 
 Fretlab visualizes music theory directly on the guitar neck. Pick a key, pick a chord,
 pick one or more CAGED positions, and the relevant notes light up in interval colors
-(root / 3rd / 5th / 7th) against a faint scale background.
+(root / 3rd / 5th / 7th) against a faint scale background. A header-level mode selector
+extends practice to the seven parallel modes — switching to Dorian, Lydian, Phrygian,
+etc. re-anchors every view to the modal scale.
 
 The whole interface is designed for **fast switching during practice**: instant key,
-chord, and position changes; no animations that interrupt you; consistent coloring
+mode, chord, and position changes; no animations that interrupt you; consistent coloring
 across all views (R / 3rd / 5th / 7th have fixed colors, and out-of-key notes are hidden
 by default). The Legend stays on screen so you always know what each color means.
 
 ## Views
 
-Each tab in Fretlab answers a different practice question. Three views ship today (see
-the [vision document](docs/design/2026-05-05-app-vision-and-view-designs.md) for the
-full roadmap and what's deferred).
+Each tab in Fretlab answers a different practice question. Three views ship today, plus
+the cross-cutting [Modal practice mode](#modal-practice-mode) that augments all of them
+(see the [vision document](docs/design/2026-05-05-app-vision-and-view-designs.md) for
+the full roadmap and what's deferred).
 
 ### Note Map
 
@@ -146,6 +149,55 @@ selection includes "high", those systems silently render nothing for that toggle
 The originally-planned _Diatonic Chord Reference_ tab was folded into the existing
 diatonic chord row's triads / sevenths toggle, so the reference content is available
 directly in Note Map and Scale Positions without an extra tab.
+
+## Modal practice mode
+
+![Short recording of Modal practice mode — starting in C Ionian, then cycling through the seven modes (Ionian → Dorian → Phrygian → Lydian → Mixolydian → Aeolian → Locrian) using the Mode selector in the header. As each mode is selected, the ScaleDisplay relabels the degree pills with modal accidentals (♭3, ♯4, ♭2, etc.), the diatonic chord row recomputes with modal Roman numerals (i7 / ♭IIImaj7 / ♯ivø7 / etc.), and a subtle gold ring appears on the fretboard around each mode's characteristic note (Dorian's ♮6, Lydian's ♯4, Phrygian's ♭2, Mixolydian's ♭7, Locrian's ♭5). Switching keys to D Lydian shows the spelling auto-flipping to sharps (parent A major); switching to D Phrygian flips back to flats (parent B♭ major). Manually toggling the accidental override and watching it stick until the next mode change.](docs/images/modal-mode.gif)
+
+A header-level **Mode selector** sits next to the Key selector and turns Fretlab into a
+parallel-modes practice tool. The seven modes of the major scale — Ionian, Dorian,
+Phrygian, Lydian, Mixolydian, Aeolian, Locrian — are all reachable by clicking once.
+Whenever a non-Ionian mode is active, the entire app re-anchors:
+
+- **Diatonic chord row** recomputes against the modal scale (e.g. C Dorian shows
+  `i7, ii7, ♭IIImaj7, IV7, v7, viø7, ♭VIImaj7`).
+- **ScaleDisplay** relabels degrees with modal accidentals (`♭3`, `♯4`, etc.) so the
+  difference from same-root major is immediately visible.
+- **Scale Positions** reanchors its CAGED windows to the mode's _parent major scale_
+  (e.g. C Dorian uses B♭ major's CAGED positions). Position labels drop the C/A/G/E/D
+  shape suffix in non-Ionian modes since those names refer to major-scale fingerings.
+- **Characteristic-tone overlay** — a subtle gold ring on the fretboard around each
+  mode's defining tone: Dorian's ♮6, Lydian's ♯4, Phrygian's ♭2, Mixolydian's ♭7,
+  Locrian's ♭5. Ionian and Aeolian (the references) have no characteristic-tone ring.
+- **Spelling auto-adjusts** to the parent major's natural preference. Picking D Lydian
+  flips the accidental toggle to sharps (parent A major); picking D Phrygian flips it to
+  flats (parent B♭ major). Manual override is still available — toggle the accidental
+  yourself and the override sticks until the next key/mode change.
+
+For Ionian (the default), behavior is byte-identical to a non-modal Fretlab — modal mode
+adds capability without disturbing major-scale practice.
+
+**Features**
+
+- 7-mode selector in the app header alongside Key
+- Cross-cutting effect: Note Map, Scale Positions, and Chord Shapes all respect the
+  active mode
+- Modal Roman numerals on the chord row (`♭IIImaj7`, `viø7`, `♯ivø7`, etc.)
+- Modal degree labels (`1, 2, ♭3, 4, 5, 6, ♭7` for Dorian, etc.) with whole/half-step
+  pattern reshuffled per mode
+- Parent-major-anchored CAGED windows in Scale Positions for non-Ionian modes
+- Characteristic-tone gold ring on the fretboard
+- Accidental auto-set: spelling follows the parent major scale; user override sticks
+  until next key/mode change
+
+**During practice**
+
+- _Modal jam_ — vamp on Dm7 in D Dorian; the modal chord row + characteristic ♮6 are
+  visible without leaving the view.
+- _Mode comparison_ — flip between C Lydian and C Mixolydian; the ♯4 ↔ ♭7 swap is
+  visible on the fretboard ring overlay and in the ScaleDisplay degree labels.
+- _Working with modal harmony_ — `♭IIImaj7` in Dorian or `♯ivø7` in Lydian read directly
+  off the chord row, no mental transposition.
 
 ## Getting started
 
