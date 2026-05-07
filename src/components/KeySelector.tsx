@@ -52,7 +52,7 @@ export function KeySelector({
     <div className="flex flex-wrap items-center gap-1">
       <button
         onClick={() => onKeyChange(ALL_NOTES_KEY)}
-        className={`px-3 py-3 rounded text-sm font-semibold border transition-colors cursor-pointer ${
+        className={`px-3 py-2.5 pointer-coarse:py-3 rounded text-sm font-semibold border transition-colors cursor-pointer ${
           isAllSelected
             ? "bg-selection text-fg-emphasis border-selection"
             : "bg-transparent text-fg-secondary border-line hover:bg-surface-raised"
@@ -65,7 +65,7 @@ export function KeySelector({
         <button
           key={key}
           onClick={() => onKeyChange(key)}
-          className={`px-3 py-3 min-w-[2.5rem] rounded text-sm font-semibold transition-colors cursor-pointer ${
+          className={`min-w-[2.5rem] px-3 py-2.5 pointer-coarse:py-3 rounded text-sm font-semibold transition-colors cursor-pointer ${
             selectedKey === key
               ? "bg-selection text-fg-emphasis"
               : "bg-surface-raised text-fg-secondary hover:bg-surface-active"

@@ -31,7 +31,7 @@ export function ViewSelector({ selectedView, onViewChange }: ViewSelectorProps) 
           role="tab"
           aria-selected={selectedView === view.id}
           onClick={() => onViewChange(view.id)}
-          className={`relative z-10 px-3 py-3 text-sm font-medium cursor-pointer ${
+          className={`relative z-10 px-3 py-2.5 pointer-coarse:py-3 text-sm font-medium cursor-pointer ${
             selectedView === view.id
               ? "text-fg-emphasis"
               : "text-fg-muted hover:text-fg-secondary"

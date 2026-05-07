@@ -26,7 +26,7 @@ export function AccidentalToggle({ accidentalStyle, onChange }: AccidentalToggle
           onClick={() => onChange(opt.value)}
           aria-pressed={accidentalStyle === opt.value}
           title={opt.title}
-          className={`relative z-10 px-3 py-3 text-sm font-semibold cursor-pointer ${
+          className={`relative z-10 px-3 py-2.5 pointer-coarse:py-3 text-sm font-semibold cursor-pointer ${
             accidentalStyle === opt.value
               ? "text-fg-emphasis"
               : "text-fg-muted hover:text-fg-secondary"
