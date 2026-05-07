@@ -47,6 +47,37 @@ export function getNoteAtFret(openString: string, fret: number): string {
 
 export type AccidentalStyle = "sharp" | "flat";
 
+// Natural accidental preference for each major-scale tonic.
+// Sharp keys (1+ sharps in the signature):  G, D, A, E, B, F#, C#
+// Flat keys  (1+ flats  in the signature):  F, Bb, Eb, Ab, Db, Gb, Cb
+// Theoretical sharp keys (D#, G#, A#) fall back to the flat enharmonic's
+// preference (Eb, Ab, Bb), since those are the keys players actually use.
+// C major has no accidentals — returns null (callers preserve current style).
+const NATURAL_ACCIDENTAL: Record<string, AccidentalStyle | null> = {
+  C: null,
+  "C#": "sharp",
+  Db: "flat",
+  D: "sharp",
+  "D#": "flat",
+  Eb: "flat",
+  E: "sharp",
+  F: "flat",
+  "F#": "sharp",
+  Gb: "flat",
+  G: "sharp",
+  "G#": "flat",
+  Ab: "flat",
+  A: "sharp",
+  "A#": "flat",
+  Bb: "flat",
+  B: "sharp",
+  Cb: "flat",
+};
+
+export function naturalAccidentalForKey(key: string): AccidentalStyle | null {
+  return NATURAL_ACCIDENTAL[key] ?? null;
+}
+
 export function getDisplayName(
   note: string,
   key: string,

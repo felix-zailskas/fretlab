@@ -7,6 +7,7 @@ import {
   getCharacteristicNoteIndexSet,
   getModalDiatonicTriads,
   getModalDiatonicChords,
+  naturalAccidentalForKeyMode,
 } from "./modes";
 import { getIntervalRole, getDiatonicTriads, getDiatonicChords } from "./scales";
 
@@ -453,5 +454,29 @@ describe("getModalDiatonicChords", () => {
       "7",
       "m7",
     ]);
+  });
+});
+
+describe("naturalAccidentalForKeyMode", () => {
+  it("D Lydian's parent (A major) prefers sharps", () => {
+    expect(naturalAccidentalForKeyMode("D", "lydian")).toBe("sharp");
+  });
+
+  it("D Phrygian's parent (Bb major) prefers flats", () => {
+    expect(naturalAccidentalForKeyMode("D", "phrygian")).toBe("flat");
+  });
+
+  it("D Dorian's parent (C major) is neutral — returns null", () => {
+    expect(naturalAccidentalForKeyMode("D", "dorian")).toBeNull();
+  });
+
+  it("Ionian preserves the input key's preference", () => {
+    expect(naturalAccidentalForKeyMode("F", "ionian")).toBe("flat");
+    expect(naturalAccidentalForKeyMode("G", "ionian")).toBe("sharp");
+    expect(naturalAccidentalForKeyMode("C", "ionian")).toBeNull();
+  });
+
+  it("F Lydian's parent (C major) is neutral", () => {
+    expect(naturalAccidentalForKeyMode("F", "lydian")).toBeNull();
   });
 });

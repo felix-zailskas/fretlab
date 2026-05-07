@@ -2,6 +2,7 @@ import {
   CHROMATIC_SCALE,
   getDisplayName,
   getNoteIndex,
+  naturalAccidentalForKey,
   type AccidentalStyle,
 } from "./notes";
 import type {
@@ -130,6 +131,19 @@ export function parentMajorOf(tonic: string, mode: Mode): string {
   const tonicIdx = getNoteIndex(tonic);
   const parentIdx = (tonicIdx + PARENT_MAJOR_OFFSET[mode] + 12) % 12;
   return CHROMATIC_SCALE[parentIdx];
+}
+
+// Returns the natural accidental preference for a (key, mode) pair, derived
+// from the parent major scale. Returns null when the parent is C major
+// (no preference) — callers should preserve the current style in that case.
+export function naturalAccidentalForKeyMode(
+  key: string,
+  mode: Mode,
+): AccidentalStyle | null {
+  // parentMajorOf returns the input verbatim for Ionian; for non-Ionian it
+  // returns the sharp-form chromatic name. Either way, naturalAccidentalForKey
+  // handles both forms.
+  return naturalAccidentalForKey(parentMajorOf(key, mode));
 }
 
 export function getModalIntervalRole(

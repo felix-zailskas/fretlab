@@ -1,5 +1,11 @@
 import { describe, it, expect } from "vitest";
-import { getNoteIndex, getNoteAtFret, getDisplayName, STANDARD_TUNING } from "./notes";
+import {
+  getNoteIndex,
+  getNoteAtFret,
+  getDisplayName,
+  naturalAccidentalForKey,
+  STANDARD_TUNING,
+} from "./notes";
 
 describe("getNoteIndex", () => {
   it("returns correct index for natural notes", () => {
@@ -107,5 +113,34 @@ describe("getDisplayName", () => {
   it("falls back to per-key inference when accidentalStyle is undefined", () => {
     expect(getDisplayName("C#", "F")).toBe("Db");
     expect(getDisplayName("C#", "G")).toBe("C#");
+  });
+});
+
+describe("naturalAccidentalForKey", () => {
+  it("returns 'sharp' for sharp-side major keys", () => {
+    for (const k of ["G", "D", "A", "E", "B", "F#", "C#"]) {
+      expect(naturalAccidentalForKey(k)).toBe("sharp");
+    }
+  });
+
+  it("returns 'flat' for flat-side major keys", () => {
+    for (const k of ["F", "Bb", "Eb", "Ab", "Db", "Gb", "Cb"]) {
+      expect(naturalAccidentalForKey(k)).toBe("flat");
+    }
+  });
+
+  it("returns null for C (no accidentals)", () => {
+    expect(naturalAccidentalForKey("C")).toBeNull();
+  });
+
+  it("returns 'flat' for theoretical sharp keys (D#, G#, A#)", () => {
+    expect(naturalAccidentalForKey("D#")).toBe("flat");
+    expect(naturalAccidentalForKey("G#")).toBe("flat");
+    expect(naturalAccidentalForKey("A#")).toBe("flat");
+  });
+
+  it("returns null for unknown keys", () => {
+    expect(naturalAccidentalForKey("X")).toBeNull();
+    expect(naturalAccidentalForKey("all")).toBeNull();
   });
 });

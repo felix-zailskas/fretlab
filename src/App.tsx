@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useReducer, useState } from "react";
 import { AccidentalToggle } from "./components/AccidentalToggle";
 import { FretRangeControl } from "./components/FretRangeControl";
 import { KeySelector, ALL_NOTES_KEY } from "./components/KeySelector";
@@ -17,6 +17,7 @@ import { DEFAULT_END_FRET } from "./theory/constants";
 import {
   getModalDiatonicChords,
   getModalDiatonicTriads,
+  naturalAccidentalForKeyMode,
   type Mode,
 } from "./theory/modes";
 
@@ -35,11 +36,60 @@ const ENHARMONIC_KEY_SWAP: Record<string, string> = {
   "A#": "Bb",
 };
 
+type TonalState = {
+  key: string;
+  mode: Mode;
+  accidentalStyle: AccidentalStyle;
+};
+
+type TonalAction =
+  | { type: "set-key"; key: string }
+  | { type: "set-mode"; mode: Mode }
+  | { type: "set-accidental"; style: AccidentalStyle };
+
+function tonalReducer(state: TonalState, action: TonalAction): TonalState {
+  switch (action.type) {
+    case "set-key": {
+      // Auto-set accidental to the parent major's natural preference.
+      // Neutral parent (C major) preserves the current style.
+      const natural = naturalAccidentalForKeyMode(action.key, state.mode);
+      return {
+        key: action.key,
+        mode: state.mode,
+        accidentalStyle: natural ?? state.accidentalStyle,
+      };
+    }
+    case "set-mode": {
+      // Same auto-set logic on mode change. If the natural style differs
+      // from current AND the current key has an enharmonic in the other
+      // style, swap the key so the active key remains visible in the
+      // KeySelector list (which is filtered by accidentalStyle).
+      const natural = naturalAccidentalForKeyMode(state.key, action.mode);
+      if (natural !== null && natural !== state.accidentalStyle) {
+        const swapped = ENHARMONIC_KEY_SWAP[state.key] ?? state.key;
+        return { key: swapped, mode: action.mode, accidentalStyle: natural };
+      }
+      return { ...state, mode: action.mode };
+    }
+    case "set-accidental": {
+      // Manual toggle: change style and swap the key if it has an enharmonic
+      // in the other style. The override sticks until the next set-key or
+      // set-mode action — there's no useEffect re-applying the natural style.
+      if (state.accidentalStyle === action.style) return state;
+      const swapped = ENHARMONIC_KEY_SWAP[state.key] ?? state.key;
+      return { key: swapped, mode: state.mode, accidentalStyle: action.style };
+    }
+  }
+}
+
 function App() {
-  const [selectedKey, setSelectedKey] = useState("C");
-  const [mode, setMode] = useState<Mode>("ionian");
+  const [tonal, dispatchTonal] = useReducer(tonalReducer, {
+    key: "C",
+    mode: "ionian",
+    accidentalStyle: "sharp",
+  });
+  const { key: selectedKey, mode, accidentalStyle } = tonal;
   const [selectedView, setSelectedView] = useState("note-map");
-  const [accidentalStyle, setAccidentalStyle] = useState<AccidentalStyle>("flat");
   const [enabledHighlights, setEnabledHighlights] = useState<Set<HighlightableRole>>(
     () => new Set(DEFAULT_HIGHLIGHTS),
   );
@@ -84,20 +134,6 @@ function App() {
     });
   }, []);
 
-  const handleAccidentalChange = useCallback((next: AccidentalStyle) => {
-    setAccidentalStyle((prev) => {
-      if (prev !== next) {
-        // Swap the selected key to its enharmonic equivalent so we stay on the same scale.
-        setSelectedKey((prevKey) =>
-          prevKey === ALL_NOTES_KEY
-            ? prevKey
-            : (ENHARMONIC_KEY_SWAP[prevKey] ?? prevKey),
-        );
-      }
-      return next;
-    });
-  }, []);
-
   const isAllNotesKey = selectedKey === ALL_NOTES_KEY;
 
   return (
@@ -109,7 +145,7 @@ function App() {
           <div className="flex items-center gap-4">
             <AccidentalToggle
               accidentalStyle={accidentalStyle}
-              onChange={handleAccidentalChange}
+              onChange={(style) => dispatchTonal({ type: "set-accidental", style })}
             />
             <FretRangeControl
               startFret={startFret}
@@ -129,7 +165,7 @@ function App() {
               <KeySelector
                 selectedKey={selectedKey}
                 accidentalStyle={accidentalStyle}
-                onKeyChange={setSelectedKey}
+                onKeyChange={(key) => dispatchTonal({ type: "set-key", key })}
               />
             </div>
             <div>
@@ -138,7 +174,7 @@ function App() {
               </label>
               <ModeSelector
                 mode={mode}
-                onModeChange={setMode}
+                onModeChange={(mode) => dispatchTonal({ type: "set-mode", mode })}
                 disabled={isAllNotesKey}
               />
             </div>
