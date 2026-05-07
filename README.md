@@ -208,6 +208,16 @@ algorithm in [`src/theory/chordShapes.ts`](src/theory/chordShapes.ts) (close-voi
 pitches → drop indices → sort → normalize) and spot-checked against known voicings from
 the references above.
 
+## Music-theory references
+
+The modal-practice-mode design draws on these sources:
+
+- [Mode (music) — Wikipedia](<https://en.wikipedia.org/wiki/Mode_(music)>)
+- [Music Modes: Major and Minor — Berklee Online](https://online.berklee.edu/takenote/music-modes-major-and-minor/)
+- [The Seven Modes — The Nandi Method](https://thenandimethod.com/lesson/the-seven-modes/)
+- [Modal Schemas — Open Music Theory](https://viva.pressbooks.pub/openmusictheory/chapter/modal-schemas/)
+- [Roman Numerals of Diatonic Seventh Chords — University of Puget Sound](https://musictheory.pugetsound.edu/mt21c/RomanNumeralsOfDiatonicSeventhChords.html)
+
 ## License
 
 Released under the [MIT License](LICENSE). Copyright © 2026 Felix Zailskas.
