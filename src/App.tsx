@@ -12,82 +12,11 @@ import { NoteMapView } from "./views/NoteMapView";
 import { ScalePositionsView } from "./views/ScalePositionsView";
 import { useChordShapesState } from "./views/useChordShapesState";
 import { useScalePositionsState } from "./views/useScalePositionsState";
-import type { AccidentalStyle } from "./theory/notes";
 import { DEFAULT_END_FRET } from "./theory/constants";
-import {
-  getModalDiatonicChords,
-  getModalDiatonicTriads,
-  naturalAccidentalForKeyMode,
-  type Mode,
-} from "./theory/modes";
+import { getModalDiatonicChords, getModalDiatonicTriads } from "./theory/modes";
+import { tonalReducer } from "./tonalReducer";
 
 const DEFAULT_HIGHLIGHTS: HighlightableRole[] = ["root", "third", "fifth", "seventh"];
-
-const ENHARMONIC_KEY_SWAP: Record<string, string> = {
-  Db: "C#",
-  Eb: "D#",
-  Gb: "F#",
-  Ab: "G#",
-  Bb: "A#",
-  "C#": "Db",
-  "D#": "Eb",
-  "F#": "Gb",
-  "G#": "Ab",
-  "A#": "Bb",
-};
-
-type TonalState = {
-  key: string;
-  mode: Mode;
-  accidentalStyle: AccidentalStyle;
-};
-
-type TonalAction =
-  | { type: "set-key"; key: string }
-  | { type: "set-mode"; mode: Mode }
-  | { type: "set-accidental"; style: AccidentalStyle };
-
-function tonalReducer(state: TonalState, action: TonalAction): TonalState {
-  switch (action.type) {
-    case "set-key": {
-      // Auto-set accidental to the parent major's natural preference.
-      // Neutral parent (C major) preserves the current style. When the natural
-      // style differs from current, also swap the key to its enharmonic so
-      // the active key remains visible in the KeySelector list (which is
-      // filtered by accidentalStyle). Mirrors the swap logic in set-mode.
-      const natural = naturalAccidentalForKeyMode(action.key, state.mode);
-      if (natural !== null && natural !== state.accidentalStyle) {
-        const swapped = ENHARMONIC_KEY_SWAP[action.key] ?? action.key;
-        return { key: swapped, mode: state.mode, accidentalStyle: natural };
-      }
-      return {
-        key: action.key,
-        mode: state.mode,
-        accidentalStyle: state.accidentalStyle,
-      };
-    }
-    case "set-mode": {
-      // Same auto-set logic on mode change. If the natural style differs
-      // from current AND the current key has an enharmonic in the other
-      // style, swap the key so the active key remains visible in the
-      // KeySelector list (which is filtered by accidentalStyle).
-      const natural = naturalAccidentalForKeyMode(state.key, action.mode);
-      if (natural !== null && natural !== state.accidentalStyle) {
-        const swapped = ENHARMONIC_KEY_SWAP[state.key] ?? state.key;
-        return { key: swapped, mode: action.mode, accidentalStyle: natural };
-      }
-      return { ...state, mode: action.mode };
-    }
-    case "set-accidental": {
-      // Manual toggle: change style and swap the key if it has an enharmonic
-      // in the other style. The override sticks until the next set-key or
-      // set-mode action — there's no useEffect re-applying the natural style.
-      if (state.accidentalStyle === action.style) return state;
-      const swapped = ENHARMONIC_KEY_SWAP[state.key] ?? state.key;
-      return { key: swapped, mode: state.mode, accidentalStyle: action.style };
-    }
-  }
-}
 
 function App() {
   const [tonal, dispatchTonal] = useReducer(tonalReducer, {
