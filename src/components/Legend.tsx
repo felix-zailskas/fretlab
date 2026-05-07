@@ -5,11 +5,36 @@ export type HighlightableRole = Extract<
   "root" | "third" | "fifth" | "seventh"
 >;
 
-const LEGEND_ITEMS: { label: string; role: HighlightableRole; color: string }[] = [
-  { label: "Root", role: "root", color: "var(--color-root)" },
-  { label: "3rd", role: "third", color: "var(--color-third)" },
-  { label: "5th", role: "fifth", color: "var(--color-fifth)" },
-  { label: "7th", role: "seventh", color: "var(--color-seventh)" },
+const LEGEND_ITEMS: {
+  label: string;
+  role: HighlightableRole;
+  color: string;
+  title: string;
+}[] = [
+  {
+    label: "Root",
+    role: "root",
+    color: "var(--color-root)",
+    title: "Root note (1st degree) — the chord's tonal center",
+  },
+  {
+    label: "3rd",
+    role: "third",
+    color: "var(--color-third)",
+    title: "Third — defines major (M3) or minor (m3) quality",
+  },
+  {
+    label: "5th",
+    role: "fifth",
+    color: "var(--color-fifth)",
+    title: "Fifth — perfect, diminished, or augmented",
+  },
+  {
+    label: "7th",
+    role: "seventh",
+    color: "var(--color-seventh)",
+    title: "Seventh — adds color (maj7, m7, 7, m7♭5)",
+  },
 ];
 
 type LegendProps = {
@@ -26,13 +51,14 @@ export function Legend({ enabledRoles, onToggleRole }: LegendProps) {
           <button
             key={item.label}
             onClick={() => onToggleRole(item.role)}
-            className={`flex items-center gap-1.5 px-2 py-1 rounded transition-opacity cursor-pointer hover:bg-surface-raised ${
+            title={item.title}
+            className={`flex items-center gap-1.5 px-2 py-2 rounded transition-opacity duration-150 ease-out cursor-pointer hover:bg-surface-raised ${
               isEnabled ? "opacity-100" : "opacity-40"
             }`}
             aria-pressed={isEnabled}
           >
             <span
-              className="inline-block w-3 h-3 rounded-full"
+              className="inline-block w-4 h-4 rounded-full"
               style={{ backgroundColor: item.color }}
             />
             <span className="text-fg-secondary">{item.label}</span>
