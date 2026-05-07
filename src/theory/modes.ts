@@ -4,7 +4,7 @@ import {
   getNoteIndex,
   type AccidentalStyle,
 } from "./notes";
-import type { ScaleStep } from "./scales";
+import type { DiatonicTriad, ScaleStep, TriadQuality } from "./scales";
 import type { IntervalRole } from "./types";
 
 const INTERVAL_NAMES: IntervalRole[] = [
@@ -145,4 +145,72 @@ export function getCharacteristicNotes(
 ): string[] {
   const scale = getModalScaleNotes(key, mode, accidentalStyle);
   return CHARACTERISTIC_DEGREES[mode].map((degreeIdx) => scale[degreeIdx]);
+}
+
+// Modal degree-prefix derived from the same-root major scale's degree label.
+// Ionian: '1','2',… → '', Dorian: '1','2','♭3','4',… → '','','♭','',…
+function modalDegreePrefix(mode: Mode, position: number): string {
+  const label = MODE_DEGREE_LABELS[mode][position];
+  if (label.startsWith("♭")) return "♭";
+  if (label.startsWith("♯")) return "♯";
+  return "";
+}
+
+const TRIAD_BASE_NUMERALS = ["I", "II", "III", "IV", "V", "VI", "VII"];
+
+const TRIAD_QUALITY_SUFFIX: Record<TriadQuality, string> = {
+  maj: "",
+  min: "m",
+  dim: "°",
+};
+
+// Determines triad quality from three semitone-offset pitches above the root.
+function triadQualityFromIntervals(
+  thirdSemitones: number,
+  fifthSemitones: number,
+): TriadQuality {
+  if (thirdSemitones === 4 && fifthSemitones === 7) return "maj";
+  if (thirdSemitones === 3 && fifthSemitones === 7) return "min";
+  if (thirdSemitones === 3 && fifthSemitones === 6) return "dim";
+  // Modal scales do not produce other triad qualities. Fall through with a
+  // safe default to avoid crashes if a future mode breaks this invariant.
+  return "min";
+}
+
+function buildTriadRomanNumeral(
+  mode: Mode,
+  position: number,
+  quality: TriadQuality,
+): string {
+  const prefix = modalDegreePrefix(mode, position);
+  const base = TRIAD_BASE_NUMERALS[position];
+  const numeral = quality === "maj" ? base : base.toLowerCase();
+  const suffix = quality === "dim" ? "°" : "";
+  return `${prefix}${numeral}${suffix}`;
+}
+
+export function getModalDiatonicTriads(
+  key: string,
+  mode: Mode,
+  accidentalStyle?: AccidentalStyle,
+): DiatonicTriad[] {
+  const scale = getModalScaleNotes(key, mode, accidentalStyle);
+  const intervals = MODE_INTERVALS[mode];
+  return scale.map((root, i) => {
+    const thirdInterval = intervals[(i + 2) % 7] - intervals[i];
+    const fifthInterval = intervals[(i + 4) % 7] - intervals[i];
+    // (i+2) and (i+4) wrap into the next octave for high positions; normalize
+    // into [0, 11] so triadQualityFromIntervals can compare against canonical
+    // semitone targets (maj=4/7, min=3/7, dim=3/6).
+    const third = ((thirdInterval % 12) + 12) % 12;
+    const fifth = ((fifthInterval % 12) + 12) % 12;
+    const quality = triadQualityFromIntervals(third, fifth);
+    return {
+      degree: i + 1,
+      romanNumeral: buildTriadRomanNumeral(mode, i, quality),
+      quality,
+      symbol: root + TRIAD_QUALITY_SUFFIX[quality],
+      notes: [root, scale[(i + 2) % 7], scale[(i + 4) % 7]],
+    };
+  });
 }

@@ -4,8 +4,9 @@ import {
   parentMajorOf,
   getModalIntervalRole,
   getCharacteristicNotes,
+  getModalDiatonicTriads,
 } from "./modes";
-import { getIntervalRole } from "./scales";
+import { getIntervalRole, getDiatonicTriads } from "./scales";
 
 describe("getModalScaleNotes", () => {
   it("returns C Ionian (= C major)", () => {
@@ -223,5 +224,108 @@ describe("getCharacteristicNotes", () => {
 
   it("returns the ♭5 for Locrian (Gb with flat spelling for C tonic)", () => {
     expect(getCharacteristicNotes("C", "locrian", "flat")).toEqual(["Gb"]);
+  });
+});
+
+describe("getModalDiatonicTriads", () => {
+  it("Ionian output matches getDiatonicTriads", () => {
+    expect(getModalDiatonicTriads("C", "ionian")).toEqual(getDiatonicTriads("C"));
+  });
+
+  it("C Dorian triads (i, ii, ♭III, IV, v, vi°, ♭VII)", () => {
+    const triads = getModalDiatonicTriads("C", "dorian", "flat");
+    expect(triads.map((t) => t.symbol)).toEqual([
+      "Cm",
+      "Dm",
+      "Eb",
+      "F",
+      "Gm",
+      "A°",
+      "Bb",
+    ]);
+    expect(triads.map((t) => t.romanNumeral)).toEqual([
+      "i",
+      "ii",
+      "♭III",
+      "IV",
+      "v",
+      "vi°",
+      "♭VII",
+    ]);
+    expect(triads.map((t) => t.quality)).toEqual([
+      "min",
+      "min",
+      "maj",
+      "maj",
+      "min",
+      "dim",
+      "maj",
+    ]);
+  });
+
+  it("C Phrygian triad qualities (i, ♭II, ♭III, iv, v°, ♭VI, ♭vii)", () => {
+    const triads = getModalDiatonicTriads("C", "phrygian", "flat");
+    expect(triads.map((t) => t.quality)).toEqual([
+      "min",
+      "maj",
+      "maj",
+      "min",
+      "dim",
+      "maj",
+      "min",
+    ]);
+    expect(triads.map((t) => t.romanNumeral)).toEqual([
+      "i",
+      "♭II",
+      "♭III",
+      "iv",
+      "v°",
+      "♭VI",
+      "♭vii",
+    ]);
+  });
+
+  it("C Lydian triad qualities (I, II, iii, ♯iv°, V, vi, vii)", () => {
+    const triads = getModalDiatonicTriads("C", "lydian", "sharp");
+    expect(triads.map((t) => t.quality)).toEqual([
+      "maj",
+      "maj",
+      "min",
+      "dim",
+      "maj",
+      "min",
+      "min",
+    ]);
+    expect(triads.map((t) => t.romanNumeral)).toEqual([
+      "I",
+      "II",
+      "iii",
+      "♯iv°",
+      "V",
+      "vi",
+      "vii",
+    ]);
+  });
+
+  it("C Locrian triad qualities (i°, ♭II, ♭iii, iv, ♭V, ♭VI, ♭vii)", () => {
+    const triads = getModalDiatonicTriads("C", "locrian", "flat");
+    expect(triads.map((t) => t.quality)).toEqual([
+      "dim",
+      "maj",
+      "min",
+      "min",
+      "maj",
+      "maj",
+      "min",
+    ]);
+    expect(triads.map((t) => t.romanNumeral)).toEqual([
+      "i°",
+      "♭II",
+      "♭iii",
+      "iv",
+      "♭V",
+      "♭VI",
+      "♭vii",
+    ]);
   });
 });
