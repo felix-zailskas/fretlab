@@ -25,7 +25,10 @@ export function ModeSelector({ mode, onModeChange, disabled }: ModeSelectorProps
       role="radiogroup"
       aria-label="Mode"
       aria-disabled={disabled}
-      className={`flex flex-wrap gap-1 ${disabled ? "opacity-40 pointer-events-none" : ""}`}
+      title={disabled ? "Select a key first" : undefined}
+      className={`flex flex-wrap gap-1 ${
+        disabled ? "opacity-40 pointer-events-none cursor-not-allowed" : ""
+      }`}
     >
       {MODES.map((m) => (
         <button
@@ -35,7 +38,7 @@ export function ModeSelector({ mode, onModeChange, disabled }: ModeSelectorProps
           aria-checked={mode === m}
           onClick={() => onModeChange(m)}
           disabled={disabled}
-          className={`px-3 py-1.5 rounded text-sm font-semibold transition-colors cursor-pointer ${
+          className={`min-w-[6.5rem] px-3 py-1.5 rounded text-sm font-semibold transition-colors cursor-pointer ${
             mode === m
               ? mode === "ionian"
                 ? "bg-surface-active text-fg-emphasis"
