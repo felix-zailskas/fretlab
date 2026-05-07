@@ -59,6 +59,8 @@ export function ScaleDisplay({
   return (
     <div className="overflow-x-auto overflow-y-clip">
       <div
+        role="list"
+        aria-label={`${selectedKey} ${MODE_DISPLAY_NAME[mode]} scale degrees`}
         className="inline-grid items-center gap-x-2 gap-y-1 text-sm"
         style={gridStyle}
       >
@@ -80,6 +82,8 @@ export function ScaleDisplay({
           return (
             <div
               key={`pill-${i}-${note}`}
+              role="listitem"
+              aria-label={`Degree ${labels[i]}, ${note}`}
               className={`flex items-baseline gap-1 px-2 py-1 rounded border ${pillClasses}`}
               style={{ gridRow: 1, gridColumn: i + 2 }}
             >
