@@ -164,7 +164,7 @@ function App() {
 
         {/* Focal-control row: tonal-center selectors */}
         <div className="px-4 pt-4 space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-end gap-4 flex-wrap">
+          <div className="flex flex-col xl:flex-row xl:items-end gap-4">
             <div>
               <label className="text-xs text-fg-muted uppercase tracking-wide block mb-1">
                 Key
