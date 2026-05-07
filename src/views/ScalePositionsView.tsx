@@ -114,9 +114,16 @@ export function ScalePositionsView({
     ],
   );
 
-  if (selectedKey === ALL_NOTES_KEY) {
-    return <div className="text-fg-faint text-center py-20">{EMPTY_KEY_MESSAGE}</div>;
-  }
+  // No early return for ALL_NOTES_KEY — keep the fretboard mounted so the
+  // page layout (and the fretboard's vertical position) doesn't shift when
+  // the user toggles between a real key and All. The empty-state message
+  // surfaces inside the Fretboard via the emptyMessage prop instead.
+  const fretboardEmptyMessage =
+    selectedKey === ALL_NOTES_KEY
+      ? EMPTY_KEY_MESSAGE
+      : selectedPositions.size === 0
+        ? "Toggle a position to begin."
+        : undefined;
 
   return (
     <div className="space-y-4">
@@ -126,9 +133,7 @@ export function ScalePositionsView({
         endFret={endFret}
         positionWindows={positionWindows}
         overlapZones={overlapZones}
-        emptyMessage={
-          selectedPositions.size === 0 ? "Toggle a position to begin." : undefined
-        }
+        emptyMessage={fretboardEmptyMessage}
       />
       <div className="flex flex-wrap items-center gap-x-6 gap-y-3 min-h-9 max-[1319px]:min-h-20">
         <Legend enabledRoles={enabledHighlights} onToggleRole={onToggleRole} />

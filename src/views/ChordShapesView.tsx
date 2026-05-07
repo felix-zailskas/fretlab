@@ -183,25 +183,23 @@ export function ChordShapesView({
     [markers, enabledHighlights],
   );
 
-  if (selectedKey === ALL_NOTES_KEY) {
-    return (
-      <div className="text-fg-faint text-center py-20">
-        Select a key to view chord shapes.
-      </div>
-    );
-  }
-
+  // No early return for ALL_NOTES_KEY — keep the fretboard mounted so the
+  // page layout doesn't shift when the user toggles between a real key and
+  // All. The empty-state surfaces via emptyMessage instead.
   const activeSubSelectorEmpty = selectedChord
     ? mode === "triads"
       ? selectedStringSets.size === 0 || selectedInversions.size === 0
       : activeSeventhStringSets.length === 0 || selectedSeventhInversions.size === 0
     : false;
 
-  const fretboardMessage = !selectedChord
-    ? "Select a chord to view shapes."
-    : activeSubSelectorEmpty
-      ? "Select a string set to begin."
-      : undefined;
+  const fretboardMessage =
+    selectedKey === ALL_NOTES_KEY
+      ? "Select a key to view chord shapes."
+      : !selectedChord
+        ? "Select a chord to view shapes."
+        : activeSubSelectorEmpty
+          ? "Select a string set to begin."
+          : undefined;
 
   return (
     <div className="space-y-4">

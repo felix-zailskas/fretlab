@@ -69,10 +69,7 @@ export function DiatonicChords({
 
   return (
     <section className="mt-8">
-      <div className="flex items-center justify-between mb-3 gap-4">
-        <h2 className="text-sm text-fg-secondary tracking-wide font-medium">
-          Diatonic chords
-        </h2>
+      <div className="flex items-center justify-start mb-3">
         <div
           className="relative inline-grid grid-cols-2 rounded overflow-hidden border border-line"
           role="radiogroup"
