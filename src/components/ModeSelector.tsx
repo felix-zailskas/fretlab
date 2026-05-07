@@ -35,7 +35,7 @@ export function ModeSelector({ mode, onModeChange, disabled }: ModeSelectorProps
           aria-checked={mode === m}
           onClick={() => onModeChange(m)}
           disabled={disabled}
-          className={`px-3 py-1.5 rounded text-sm font-semibold transition-colors cursor-pointer ${
+          className={`px-3 py-3 rounded text-sm font-semibold transition-colors cursor-pointer ${
             mode === m
               ? mode === "ionian"
                 ? "bg-surface-active text-fg-emphasis"
