@@ -6,7 +6,7 @@ import {
 } from "../components/Fretboard/Fretboard";
 import { PositionToggles } from "../components/PositionToggles";
 import { ALL_NOTES_KEY } from "../components/KeySelector";
-import type { HighlightableRole } from "../components/Legend";
+import { Legend, type HighlightableRole } from "../components/Legend";
 import { buildChordToneMarkers } from "../theory/chordTones";
 import {
   CAGED_POSITIONS,
@@ -22,6 +22,7 @@ type ScalePositionsViewProps = {
   selectedKey: string;
   accidentalStyle: AccidentalStyle;
   enabledHighlights: Set<HighlightableRole>;
+  onToggleRole: (role: HighlightableRole) => void;
   selectedChord: DiatonicChord | DiatonicTriad | null;
   startFret: number;
   endFret: number;
@@ -39,6 +40,7 @@ export function ScalePositionsView({
   selectedKey,
   accidentalStyle,
   enabledHighlights,
+  onToggleRole,
   selectedChord,
   startFret,
   endFret,
@@ -118,17 +120,6 @@ export function ScalePositionsView({
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center gap-6">
-        <PositionToggles selected={selectedPositions} onToggle={togglePosition} />
-        <label className="inline-flex items-center gap-2 text-sm text-fg-secondary cursor-pointer">
-          <input
-            type="checkbox"
-            checked={showContext}
-            onChange={(e) => setShowContext(e.target.checked)}
-          />
-          Show context notes
-        </label>
-      </div>
       <Fretboard
         markers={markers}
         startFret={startFret}
@@ -139,6 +130,19 @@ export function ScalePositionsView({
           selectedPositions.size === 0 ? "Toggle a position to begin." : undefined
         }
       />
+      <div className="flex flex-wrap items-center gap-x-6 gap-y-3 min-h-9 max-[1319px]:min-h-20">
+        <Legend enabledRoles={enabledHighlights} onToggleRole={onToggleRole} />
+        <span aria-hidden="true" className="w-px h-6 bg-line self-center" />
+        <PositionToggles selected={selectedPositions} onToggle={togglePosition} />
+        <label className="inline-flex items-center gap-2 text-sm text-fg-secondary cursor-pointer">
+          <input
+            type="checkbox"
+            checked={showContext}
+            onChange={(e) => setShowContext(e.target.checked)}
+          />
+          Show context notes
+        </label>
+      </div>
     </div>
   );
 }

@@ -5,7 +5,7 @@ import { FretRangeControl } from "./components/FretRangeControl";
 import { KeySelector, ALL_NOTES_KEY } from "./components/KeySelector";
 import { ModeSelector } from "./components/ModeSelector";
 import { ViewSelector } from "./components/ViewSelector";
-import { Legend, type HighlightableRole } from "./components/Legend";
+import { type HighlightableRole } from "./components/Legend";
 import { ScaleDisplay } from "./components/ScaleDisplay";
 import { DiatonicChords, type ChordRowMode } from "./components/DiatonicChords";
 import { ChordShapesView } from "./views/ChordShapesView";
@@ -184,19 +184,25 @@ function App() {
               />
             </div>
           </div>
-          <ViewSelector selectedView={selectedView} onViewChange={setSelectedView} />
-          {isAllNotesKey && (
-            <p className="text-fg-muted text-sm">
-              Pick a key above to see scales and chords.
-            </p>
-          )}
-          <ScaleDisplay
-            selectedKey={selectedKey}
-            accidentalStyle={accidentalStyle}
-            selectedChord={selectedChord}
-            enabledRoles={enabledHighlights}
-            mode={mode}
-          />
+          <div className="flex flex-wrap items-center justify-between gap-x-8 gap-y-3">
+            <ViewSelector
+              selectedView={selectedView}
+              onViewChange={setSelectedView}
+            />
+            {isAllNotesKey ? (
+              <p className="text-fg-muted text-sm">
+                Pick a key above to see scales and chords.
+              </p>
+            ) : (
+              <ScaleDisplay
+                selectedKey={selectedKey}
+                accidentalStyle={accidentalStyle}
+                selectedChord={selectedChord}
+                enabledRoles={enabledHighlights}
+                mode={mode}
+              />
+            )}
+          </div>
         </div>
       </header>
 
@@ -211,14 +217,12 @@ function App() {
               selectedKey={selectedKey}
               accidentalStyle={accidentalStyle}
               enabledHighlights={enabledHighlights}
+              onToggleRole={toggleHighlight}
               selectedChord={selectedChord}
               startFret={startFret}
               endFret={endFret}
               mode={mode}
             />
-            <div className="mt-4">
-              <Legend enabledRoles={enabledHighlights} onToggleRole={toggleHighlight} />
-            </div>
             <DiatonicChords
               selectedKey={selectedKey}
               accidentalStyle={accidentalStyle}
@@ -236,15 +240,13 @@ function App() {
               selectedKey={selectedKey}
               accidentalStyle={accidentalStyle}
               enabledHighlights={enabledHighlights}
+              onToggleRole={toggleHighlight}
               selectedChord={selectedChord}
               startFret={startFret}
               endFret={endFret}
               controls={scalePositionsControls}
               mode={mode}
             />
-            <div className="mt-4">
-              <Legend enabledRoles={enabledHighlights} onToggleRole={toggleHighlight} />
-            </div>
             <DiatonicChords
               selectedKey={selectedKey}
               accidentalStyle={accidentalStyle}
@@ -265,14 +267,11 @@ function App() {
               endFret={endFret}
               selectedChord={selectedChord}
               chordRowMode={chordRowMode}
-              onChordRowModeChange={setChordRowMode}
               enabledHighlights={enabledHighlights}
+              onToggleRole={toggleHighlight}
               controls={chordShapesControls}
               modalMode={mode}
             />
-            <div className="mt-4">
-              <Legend enabledRoles={enabledHighlights} onToggleRole={toggleHighlight} />
-            </div>
             <DiatonicChords
               selectedKey={selectedKey}
               accidentalStyle={accidentalStyle}

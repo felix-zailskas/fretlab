@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { Fretboard } from "../components/Fretboard/Fretboard";
 import { ALL_NOTES_KEY } from "../components/KeySelector";
-import type { HighlightableRole } from "../components/Legend";
+import { Legend, type HighlightableRole } from "../components/Legend";
 import { roleFromChordTone, HIGHLIGHTABLE } from "../theory/chordTones";
 import {
   STANDARD_TUNING,
@@ -22,6 +22,7 @@ type NoteMapViewProps = {
   selectedKey: string;
   accidentalStyle: AccidentalStyle;
   enabledHighlights: Set<HighlightableRole>;
+  onToggleRole: (role: HighlightableRole) => void;
   selectedChord: DiatonicChord | DiatonicTriad | null;
   startFret: number;
   endFret: number;
@@ -34,6 +35,7 @@ export function NoteMapView({
   selectedKey,
   accidentalStyle,
   enabledHighlights,
+  onToggleRole,
   selectedChord,
   startFret,
   endFret,
@@ -89,5 +91,16 @@ export function NoteMapView({
     mode,
   ]);
 
-  return <Fretboard markers={markers} startFret={startFret} endFret={endFret} />;
+  return (
+    <div className="space-y-4">
+      <Fretboard markers={markers} startFret={startFret} endFret={endFret} />
+      {/* min-h reserves the height of the tallest sibling-view controls bar so
+          the diatonic chord row sits at the same y on every view. At ≥1320px
+          everything fits on one row (~36px); below that, Chord Shapes Sevenths
+          wraps to two rows (~80px) and the other views match it. */}
+      <div className="flex flex-wrap items-center gap-x-6 gap-y-3 min-h-9 max-[1319px]:min-h-20">
+        <Legend enabledRoles={enabledHighlights} onToggleRole={onToggleRole} />
+      </div>
+    </div>
+  );
 }

@@ -44,7 +44,11 @@ type LegendProps = {
 
 export function Legend({ enabledRoles, onToggleRole }: LegendProps) {
   return (
-    <div className="flex gap-3 text-sm">
+    <div
+      className="inline-flex rounded overflow-hidden border border-line"
+      role="group"
+      aria-label="Highlight roles"
+    >
       {LEGEND_ITEMS.map((item) => {
         const isEnabled = enabledRoles.has(item.role);
         return (
@@ -52,16 +56,18 @@ export function Legend({ enabledRoles, onToggleRole }: LegendProps) {
             key={item.label}
             onClick={() => onToggleRole(item.role)}
             title={item.title}
-            className={`flex items-center gap-1.5 px-2 py-2 rounded transition-opacity duration-150 ease-out cursor-pointer hover:bg-surface-raised ${
-              isEnabled ? "opacity-100" : "opacity-40"
-            }`}
             aria-pressed={isEnabled}
+            className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-semibold transition-colors cursor-pointer ${
+              isEnabled
+                ? "bg-surface-active text-fg-emphasis"
+                : "bg-surface text-fg-muted hover:bg-surface-raised"
+            }`}
           >
             <span
-              className="inline-block w-4 h-4 rounded-full"
+              className="inline-block w-3 h-3 rounded-full shrink-0"
               style={{ backgroundColor: item.color }}
             />
-            <span className="text-fg-secondary">{item.label}</span>
+            <span>{item.label}</span>
           </button>
         );
       })}

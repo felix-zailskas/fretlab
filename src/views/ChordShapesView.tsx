@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { Fretboard } from "../components/Fretboard/Fretboard";
 import { ALL_NOTES_KEY } from "../components/KeySelector";
-import { type HighlightableRole } from "../components/Legend";
+import { Legend, type HighlightableRole } from "../components/Legend";
 import { StringSetToggles } from "../components/StringSetToggles";
 import { type ChordRowMode } from "../components/DiatonicChords";
 import {
@@ -29,8 +29,8 @@ type ChordShapesViewProps = {
   endFret: number;
   selectedChord: DiatonicTriad | DiatonicChord | null;
   chordRowMode: ChordRowMode;
-  onChordRowModeChange: (mode: ChordRowMode) => void;
   enabledHighlights: Set<HighlightableRole>;
+  onToggleRole: (role: HighlightableRole) => void;
   controls: ChordShapesControls;
   modalMode: Mode;
 };
@@ -87,8 +87,8 @@ export function ChordShapesView({
   endFret,
   selectedChord,
   chordRowMode,
-  onChordRowModeChange,
   enabledHighlights,
+  onToggleRole,
   controls,
   modalMode,
 }: ChordShapesViewProps) {
@@ -205,93 +205,34 @@ export function ChordShapesView({
 
   return (
     <div className="space-y-4">
-      <ShapeHeader
-        chordRowMode={chordRowMode}
-        onChordRowModeChange={onChordRowModeChange}
-        selectedChord={selectedChord}
-      />
-      {mode === "sevenths" ? (
-        <VoicingSystemSelector
-          selected={selectedVoicingSystem}
-          onChange={setSelectedVoicingSystem}
-        />
-      ) : null}
-      <SubSelectorRow
-        mode={mode}
-        selectedStringSets={selectedStringSets}
-        selectedSeventhPositions={selectedSeventhPositions}
-        selectedInversions={selectedInversions}
-        selectedSeventhInversions={selectedSeventhInversions}
-        seventhPositionOptions={seventhPositionOptions}
-        onToggleStringSet={toggleStringSet}
-        onToggleSeventhPosition={toggleSeventhPosition}
-        onToggleInversion={toggleInversion}
-        onToggleSeventhInversion={toggleSeventhInversion}
-      />
       <Fretboard
         markers={visibleMarkers}
         startFret={startFret}
         endFret={endFret}
         emptyMessage={fretboardMessage}
       />
-    </div>
-  );
-}
-
-type ShapeHeaderProps = {
-  chordRowMode: ChordRowMode;
-  onChordRowModeChange: (mode: ChordRowMode) => void;
-  selectedChord: DiatonicTriad | DiatonicChord | null;
-};
-
-function ShapeHeader({
-  chordRowMode,
-  onChordRowModeChange,
-  selectedChord,
-}: ShapeHeaderProps) {
-  return (
-    <div className="flex flex-wrap items-center gap-x-4 gap-y-2 pb-3 border-b border-line">
-      <span className="text-xs uppercase tracking-wide text-fg-muted">Showing</span>
-      <div
-        className="inline-flex rounded overflow-hidden border border-line"
-        role="radiogroup"
-        aria-label="Chord-shape language"
-      >
-        <button
-          type="button"
-          role="radio"
-          aria-checked={chordRowMode === "triads"}
-          onClick={() => onChordRowModeChange("triads")}
-          className={`px-3 py-1.5 text-sm font-semibold transition-colors cursor-pointer ${
-            chordRowMode === "triads"
-              ? "bg-surface-active text-fg-emphasis"
-              : "bg-surface text-fg-muted hover:bg-surface-raised"
-          }`}
-        >
-          Triad shapes
-        </button>
-        <button
-          type="button"
-          role="radio"
-          aria-checked={chordRowMode === "sevenths"}
-          onClick={() => onChordRowModeChange("sevenths")}
-          className={`px-3 py-1.5 text-sm font-semibold transition-colors cursor-pointer ${
-            chordRowMode === "sevenths"
-              ? "bg-surface-active text-fg-emphasis"
-              : "bg-surface text-fg-muted hover:bg-surface-raised"
-          }`}
-        >
-          7th chord shapes
-        </button>
+      <div className="flex flex-wrap items-center gap-x-6 gap-y-3 min-h-9 max-[1319px]:min-h-20">
+        <Legend enabledRoles={enabledHighlights} onToggleRole={onToggleRole} />
+        <span aria-hidden="true" className="w-px h-6 bg-line self-center" />
+        {mode === "sevenths" ? (
+          <VoicingSystemSelector
+            selected={selectedVoicingSystem}
+            onChange={setSelectedVoicingSystem}
+          />
+        ) : null}
+        <SubSelectorRow
+          mode={mode}
+          selectedStringSets={selectedStringSets}
+          selectedSeventhPositions={selectedSeventhPositions}
+          selectedInversions={selectedInversions}
+          selectedSeventhInversions={selectedSeventhInversions}
+          seventhPositionOptions={seventhPositionOptions}
+          onToggleStringSet={toggleStringSet}
+          onToggleSeventhPosition={toggleSeventhPosition}
+          onToggleInversion={toggleInversion}
+          onToggleSeventhInversion={toggleSeventhInversion}
+        />
       </div>
-      {selectedChord ? (
-        <div className="flex items-baseline gap-2 text-sm">
-          <span className="font-semibold text-fg-primary">{selectedChord.symbol}</span>
-          <span className="text-fg-muted">{selectedChord.notes.join(" • ")}</span>
-        </div>
-      ) : (
-        <span className="text-sm text-fg-faint italic">no chord selected</span>
-      )}
     </div>
   );
 }
@@ -303,30 +244,27 @@ type VoicingSystemSelectorProps = {
 
 function VoicingSystemSelector({ selected, onChange }: VoicingSystemSelectorProps) {
   return (
-    <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-      <span className="text-xs uppercase tracking-wide text-fg-muted">Voicing</span>
-      <div
-        className="inline-flex rounded overflow-hidden border border-line"
-        role="radiogroup"
-        aria-label="Voicing system"
-      >
-        {VOICING_SYSTEM_ORDER.map((system) => (
-          <button
-            key={system}
-            type="button"
-            role="radio"
-            aria-checked={selected === system}
-            onClick={() => onChange(system)}
-            className={`px-3 py-1.5 text-sm font-semibold transition-colors cursor-pointer ${
-              selected === system
-                ? "bg-surface-active text-fg-emphasis"
-                : "bg-surface text-fg-muted hover:bg-surface-raised"
-            }`}
-          >
-            {VOICING_SYSTEM_LABELS[system]}
-          </button>
-        ))}
-      </div>
+    <div
+      className="inline-flex rounded overflow-hidden border border-line"
+      role="radiogroup"
+      aria-label="Voicing system"
+    >
+      {VOICING_SYSTEM_ORDER.map((system) => (
+        <button
+          key={system}
+          type="button"
+          role="radio"
+          aria-checked={selected === system}
+          onClick={() => onChange(system)}
+          className={`px-3 py-1.5 text-sm font-semibold transition-colors cursor-pointer ${
+            selected === system
+              ? "bg-surface-active text-fg-emphasis"
+              : "bg-surface text-fg-muted hover:bg-surface-raised"
+          }`}
+        >
+          {VOICING_SYSTEM_LABELS[system]}
+        </button>
+      ))}
     </div>
   );
 }

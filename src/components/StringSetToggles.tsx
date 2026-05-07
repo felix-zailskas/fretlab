@@ -17,7 +17,11 @@ export function StringSetToggles<Id extends string>({
   ariaLabel,
 }: StringSetTogglesProps<Id>) {
   return (
-    <div className="flex flex-wrap gap-3 text-sm" role="group" aria-label={ariaLabel}>
+    <div
+      className="inline-flex rounded overflow-hidden border border-line"
+      role="group"
+      aria-label={ariaLabel}
+    >
       {options.map((opt) => {
         const isOn = selected.has(opt.id);
         return (
@@ -25,12 +29,14 @@ export function StringSetToggles<Id extends string>({
             key={opt.id}
             type="button"
             onClick={() => onToggle(opt.id)}
-            className={`px-2 py-2 rounded transition-opacity duration-150 ease-out cursor-pointer hover:bg-surface-raised ${
-              isOn ? "opacity-100" : "opacity-40"
-            }`}
             aria-pressed={isOn}
+            className={`px-3 py-1.5 text-sm font-semibold transition-colors cursor-pointer ${
+              isOn
+                ? "bg-surface-active text-fg-emphasis"
+                : "bg-surface text-fg-muted hover:bg-surface-raised"
+            }`}
           >
-            <span className="font-medium text-fg-primary">{opt.label}</span>
+            {opt.label}
           </button>
         );
       })}
