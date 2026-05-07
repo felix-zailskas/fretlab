@@ -14,16 +14,30 @@ type NoteCircleProps = {
   cy: number;
   note: string;
   role: NoteDisplayRole;
+  isCharacteristic?: boolean;
 };
 
-export function NoteCircle({ cx, cy, note, role }: NoteCircleProps) {
+export function NoteCircle({ cx, cy, note, role, isCharacteristic }: NoteCircleProps) {
   const color = ROLE_COLORS[role];
   const isMuted = role === "muted";
   const radius = isMuted ? 10 : 13;
   const fontSize = isMuted ? 9 : 11;
+  // Ring radius sits 3px outside the fill circle; 2px stroke keeps it
+  // readable but visually subordinate to the role color.
+  const ringRadius = radius + 3;
 
   return (
     <g opacity={isMuted ? 0.4 : 1}>
+      {isCharacteristic && (
+        <circle
+          cx={cx}
+          cy={cy}
+          r={ringRadius}
+          fill="none"
+          stroke="var(--color-characteristic)"
+          strokeWidth={2}
+        />
+      )}
       <circle cx={cx} cy={cy} r={radius} fill={color} />
       <text
         x={cx}

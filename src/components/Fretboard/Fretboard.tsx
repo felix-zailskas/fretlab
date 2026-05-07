@@ -268,6 +268,7 @@ export function Fretboard({
             cy={stringY(marker.string)}
             note={marker.note}
             role={marker.role}
+            isCharacteristic={marker.isCharacteristic}
           />
         ))}
 
