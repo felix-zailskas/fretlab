@@ -22,15 +22,19 @@ type ModeSelectorProps = {
 export function ModeSelector({ mode, onModeChange, disabled }: ModeSelectorProps) {
   return (
     <div
-      className={`flex flex-wrap gap-1 ${disabled ? "opacity-40 pointer-events-none" : ""}`}
+      role="radiogroup"
+      aria-label="Mode"
       aria-disabled={disabled}
+      className={`flex flex-wrap gap-1 ${disabled ? "opacity-40 pointer-events-none" : ""}`}
     >
       {MODES.map((m) => (
         <button
           key={m}
+          type="button"
+          role="radio"
+          aria-checked={mode === m}
           onClick={() => onModeChange(m)}
           disabled={disabled}
-          aria-pressed={mode === m}
           className={`px-3 py-1.5 rounded text-sm font-semibold transition-colors cursor-pointer ${
             mode === m
               ? mode === "ionian"
