@@ -1,6 +1,6 @@
 # Fretlab
 
-[![CI](https://github.com/felix-zailskas/fretlab/actions/workflows/ci.yml/badge.svg)](https://github.com/felix-zailskas/fretlab/actions/workflows/ci.yml)
+[![CI](https://github.com/felix-zailskas/fretlab/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/felix-zailskas/fretlab/actions/workflows/ci.yml?query=branch%3Amain)
 [![Deploy to GitHub Pages](https://github.com/felix-zailskas/fretlab/actions/workflows/deploy.yml/badge.svg)](https://github.com/felix-zailskas/fretlab/actions/workflows/deploy.yml)
 [![License: MIT](https://img.shields.io/github/license/felix-zailskas/fretlab?cacheSeconds=0)](LICENSE)
 
