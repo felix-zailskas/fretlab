@@ -17,7 +17,7 @@ export function PositionToggles({ selected, onToggle }: PositionTogglesProps) {
             key={opt.id}
             type="button"
             onClick={() => onToggle(opt.id)}
-            className={`flex items-baseline gap-1.5 px-2 py-1 rounded transition-opacity cursor-pointer hover:bg-surface-raised ${
+            className={`flex items-baseline gap-1.5 px-2 py-2 rounded transition-opacity cursor-pointer hover:bg-surface-raised ${
               isOn ? "opacity-100" : "opacity-40"
             }`}
             aria-pressed={isOn}

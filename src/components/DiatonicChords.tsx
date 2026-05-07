@@ -73,7 +73,7 @@ export function DiatonicChords({
               role="radio"
               aria-checked={mode === opt.value}
               onClick={() => onModeChange(opt.value)}
-              className={`px-3 py-1.5 text-sm font-semibold transition-colors cursor-pointer ${
+              className={`px-3 py-3 text-sm font-semibold transition-colors cursor-pointer ${
                 mode === opt.value
                   ? "bg-surface-active text-fg-emphasis"
                   : "bg-surface text-fg-muted hover:bg-surface-raised"
