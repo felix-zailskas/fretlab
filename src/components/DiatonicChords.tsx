@@ -34,6 +34,16 @@ const QUALITY_ACCENT: Record<ChordQuality | TriadQuality, string> = {
   dim: "border-line bg-surface-raised",
 };
 
+const QUALITY_NAMES: Record<ChordQuality | TriadQuality, string> = {
+  maj7: "major seventh",
+  m7: "minor seventh",
+  "7": "dominant seventh",
+  m7b5: "half-diminished",
+  maj: "major triad",
+  min: "minor triad",
+  dim: "diminished triad",
+};
+
 const MODE_OPTIONS: { value: ChordRowMode; label: string }[] = [
   { value: "triads", label: "Triads" },
   { value: "sevenths", label: "Sevenths" },
@@ -100,6 +110,7 @@ export function DiatonicChords({
               type="button"
               onClick={() => onSelectDegree(chord.degree)}
               aria-pressed={isSelected}
+              title={`${chord.romanNumeral} — ${chord.symbol} (${QUALITY_NAMES[chord.quality]}): ${chord.notes.join(", ")}`}
               className={`flex flex-col items-center justify-center gap-1.5 px-3 py-4 min-h-[6.5rem] rounded-xl border-2 shadow-sm cursor-pointer transition-colors active:scale-[0.98] ${
                 isSelected
                   ? "border-line-selected bg-surface-active ring-2 ring-root ring-inset"

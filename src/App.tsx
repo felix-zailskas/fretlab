@@ -49,6 +49,38 @@ function App() {
     }
   }, [themeMode]);
 
+  // Keyboard shortcuts: 1-7 select chord degree, t/s toggle chord row mode.
+  // Skipped if focus is in an input/textarea so we don't hijack typing.
+  useEffect(() => {
+    function handleKey(e: KeyboardEvent) {
+      if (
+        e.target instanceof HTMLInputElement ||
+        e.target instanceof HTMLTextAreaElement
+      ) {
+        return;
+      }
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+
+      if (e.key >= "1" && e.key <= "7") {
+        const degree = parseInt(e.key, 10);
+        setSelectedChordDegree((prev) => (prev === degree ? null : degree));
+        return;
+      }
+
+      const lower = e.key.toLowerCase();
+      if (lower === "t") {
+        setChordRowMode("triads");
+        return;
+      }
+      if (lower === "s") {
+        setChordRowMode("sevenths");
+        return;
+      }
+    }
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, []);
+
   const cycleTheme = useCallback(() => {
     setThemeMode((prev) =>
       prev === "auto" ? "light" : prev === "light" ? "dark" : "auto",
@@ -153,6 +185,11 @@ function App() {
             </div>
           </div>
           <ViewSelector selectedView={selectedView} onViewChange={setSelectedView} />
+          {isAllNotesKey && (
+            <p className="text-fg-muted text-sm">
+              Pick a key above to see scales and chords.
+            </p>
+          )}
           <ScaleDisplay
             selectedKey={selectedKey}
             accidentalStyle={accidentalStyle}
