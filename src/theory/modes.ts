@@ -5,6 +5,17 @@ import {
   type AccidentalStyle,
 } from "./notes";
 import type { ScaleStep } from "./scales";
+import type { IntervalRole } from "./types";
+
+const INTERVAL_NAMES: IntervalRole[] = [
+  "root",
+  "second",
+  "third",
+  "fourth",
+  "fifth",
+  "sixth",
+  "seventh",
+];
 
 export type Mode =
   | "ionian"
@@ -113,4 +124,16 @@ export function parentMajorOf(tonic: string, mode: Mode): string {
   const tonicIdx = getNoteIndex(tonic);
   const parentIdx = (tonicIdx + PARENT_MAJOR_OFFSET[mode] + 12) % 12;
   return CHROMATIC_SCALE[parentIdx];
+}
+
+export function getModalIntervalRole(
+  key: string,
+  mode: Mode,
+  note: string,
+): IntervalRole | null {
+  const semitones = (getNoteIndex(note) - getNoteIndex(key) + 12) % 12;
+  const intervals = MODE_INTERVALS[mode];
+  const idx = intervals.indexOf(semitones as (typeof intervals)[number]);
+  if (idx === -1) return null;
+  return INTERVAL_NAMES[idx];
 }

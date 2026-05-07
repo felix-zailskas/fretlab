@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { getModalScaleNotes, parentMajorOf } from "./modes";
+import { getModalScaleNotes, parentMajorOf, getModalIntervalRole } from "./modes";
+import { getIntervalRole } from "./scales";
 
 describe("getModalScaleNotes", () => {
   it("returns C Ionian (= C major)", () => {
@@ -153,5 +154,39 @@ describe("parentMajorOf", () => {
     // parentMajorOf returns CHROMATIC_SCALE entries (sharp-form). Callers
     // that need flat spelling apply getDisplayName separately.
     expect(parentMajorOf("C", "dorian")).toBe("A#");
+  });
+});
+
+describe("getModalIntervalRole", () => {
+  it("returns 'root' for the modal tonic", () => {
+    expect(getModalIntervalRole("C", "dorian", "C")).toBe("root");
+    expect(getModalIntervalRole("D", "phrygian", "D")).toBe("root");
+  });
+
+  it("returns 'third' for the modal third (regardless of major/minor quality)", () => {
+    // C Dorian: ♭3 = Eb (sharp form D#)
+    expect(getModalIntervalRole("C", "dorian", "D#")).toBe("third");
+    // C Lydian: 3 = E
+    expect(getModalIntervalRole("C", "lydian", "E")).toBe("third");
+  });
+
+  it("returns 'seventh' for the modal seventh", () => {
+    // C Mixolydian: ♭7 = Bb (sharp form A#)
+    expect(getModalIntervalRole("C", "mixolydian", "A#")).toBe("seventh");
+  });
+
+  it("returns null for notes not in the mode", () => {
+    // C Lydian has F# not F
+    expect(getModalIntervalRole("C", "lydian", "F")).toBeNull();
+    // C Phrygian has Db not D
+    expect(getModalIntervalRole("C", "phrygian", "D")).toBeNull();
+  });
+
+  it("Ionian behaves identically to getIntervalRole", () => {
+    for (const note of ["C", "D", "E", "F", "G", "A", "B", "C#", "F#"]) {
+      expect(getModalIntervalRole("C", "ionian", note)).toBe(
+        getIntervalRole("C", note),
+      );
+    }
   });
 });
