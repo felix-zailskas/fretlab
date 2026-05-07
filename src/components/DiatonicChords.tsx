@@ -55,6 +55,8 @@ export function DiatonicChords({
       ? getModalDiatonicChords(selectedKey, modalMode, accidentalStyle)
       : getModalDiatonicTriads(selectedKey, modalMode, accidentalStyle);
 
+  const activeIndex = MODE_OPTIONS.findIndex((o) => o.value === mode);
+
   return (
     <section className="mt-8">
       <div className="flex items-center justify-between mb-3 gap-4">
@@ -62,10 +64,15 @@ export function DiatonicChords({
           Diatonic chords
         </h2>
         <div
-          className="inline-flex rounded overflow-hidden border border-line"
+          className="relative inline-flex rounded overflow-hidden border border-line"
           role="radiogroup"
           aria-label="Chord row mode"
         >
+          <div
+            aria-hidden="true"
+            className="absolute top-0 bottom-0 left-0 w-1/2 bg-surface-active transition-transform duration-200 ease-out"
+            style={{ transform: `translateX(${activeIndex * 100}%)` }}
+          />
           {MODE_OPTIONS.map((opt) => (
             <button
               key={opt.value}
@@ -73,10 +80,10 @@ export function DiatonicChords({
               role="radio"
               aria-checked={mode === opt.value}
               onClick={() => onModeChange(opt.value)}
-              className={`px-3 py-3 text-sm font-semibold transition-colors cursor-pointer ${
+              className={`relative z-10 px-3 py-3 text-sm font-semibold cursor-pointer ${
                 mode === opt.value
-                  ? "bg-surface-active text-fg-emphasis"
-                  : "bg-surface text-fg-muted hover:bg-surface-raised"
+                  ? "text-fg-emphasis"
+                  : "text-fg-muted hover:text-fg-secondary"
               }`}
             >
               {opt.label}
@@ -93,9 +100,9 @@ export function DiatonicChords({
               type="button"
               onClick={() => onSelectDegree(chord.degree)}
               aria-pressed={isSelected}
-              className={`flex flex-col items-center justify-center gap-1.5 px-3 py-4 min-h-[6.5rem] rounded-xl border-2 shadow-lg cursor-pointer transition-colors ${
+              className={`flex flex-col items-center justify-center gap-1.5 px-3 py-4 min-h-[6.5rem] rounded-xl border-2 shadow-sm cursor-pointer transition-colors active:scale-[0.98] ${
                 isSelected
-                  ? "border-line-selected bg-surface-active"
+                  ? "border-line-selected bg-surface-active ring-2 ring-root ring-inset"
                   : `${QUALITY_ACCENT[chord.quality]} hover:border-line-hover`
               }`}
             >
