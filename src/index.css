@@ -23,19 +23,27 @@
   --color-fg-faint: #6b7280;
   --color-fg-emphasis: #ffffff;
 
-  /* Theory roles — chord/scale interval colors */
-  --color-root: #3b82f6;
-  --color-third: #f59e0b;
-  --color-fifth: #10b981;
-  --color-seventh: #8b5cf6;
+  /* Theory roles — chord/scale interval colors. Balanced palette: similar
+     perceptual weight across R/3/5/7 so none dominates; root gets slightly
+     more chroma to read as the anchor. Hues spread ~60-70° apart, skipping
+     yellow to avoid clashing with --color-characteristic. */
+  --color-root: #d96a7c;
+  --color-third: #4faa8d;
+  --color-fifth: #5e94c2;
+  --color-seventh: #9d80c0;
   --color-scale: #6b7280;
   --color-muted: #374151;
-  --color-characteristic: #f5d76e; /* warm gold — distinct from R/3/5/7 palette */
-  --color-mode: #f59e0b; /* amber — modal-active accent, distinct from root blue */
+  /* Modal accents — derived from the chord-tone palette: hue 90° (OKLCH) sits
+     at the midpoint of the biggest gap between R/3/5/7 hues, so this color is
+     maximally distant from every chord tone. Same L/C weight as the palette
+     so it doesn't overpower the markers. */
+  --color-mode: #b3a76b;
+  --color-characteristic: var(--color-mode);
 
-  /* UI selection — distinct from --color-root so musical-root blue can mean
-     only "musical root note" in the legend and on the fretboard. */
-  --color-selection: #2563eb;
+  /* UI selection — references --color-fifth so the key selector's "selected"
+     state stays in sync with the chord-tone palette and re-uses an established
+     hue rather than introducing another blue. */
+  --color-selection: var(--color-fifth);
 
   /* Fretboard render */
   --color-fretboard: #292524;

@@ -168,15 +168,17 @@ export function ChordShapesView({
     endFret,
   ]);
 
-  // Dim unselected roles to the muted treatment instead of removing them.
-  // The reference signal stays on the fretboard while the focus is on the
-  // role(s) the user actually wants to study.
+  // Demote unselected roles to plain scale tones instead of removing them —
+  // the chord shape stays recognizable while the focus is on the role(s) the
+  // user actually wants to study. Matches the Note Map / Scale Positions
+  // behavior in chordTones.ts so dimmed chord tones look identical to the
+  // surrounding non-highlighted scale notes.
   const visibleMarkers = useMemo(
     () =>
       markers.map((m) =>
         enabledHighlights.has(m.role as HighlightableRole)
           ? m
-          : { ...m, role: "muted" as const },
+          : { ...m, role: "scale" as const },
       ),
     [markers, enabledHighlights],
   );

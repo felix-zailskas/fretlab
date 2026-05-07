@@ -16,9 +16,8 @@ type ModeSelectorProps = {
   disabled?: boolean;
 };
 
-// Mirrors KeySelector's button-pill pattern. When the selected mode is
-// non-Ionian, the active button uses an emphasized treatment so a glance at
-// the header tells the user they're in a modal frame.
+// Mirrors KeySelector's button-pill pattern. Every mode (including Ionian)
+// uses the same selected treatment — Ionian gets no visual differentiation.
 export function ModeSelector({ mode, onModeChange, disabled }: ModeSelectorProps) {
   return (
     <div
@@ -40,9 +39,7 @@ export function ModeSelector({ mode, onModeChange, disabled }: ModeSelectorProps
           disabled={disabled}
           className={`min-w-[6.5rem] px-3 py-2.5 pointer-coarse:py-3 rounded text-sm font-semibold transition-colors cursor-pointer ${
             mode === m
-              ? mode === "ionian"
-                ? "bg-surface-active text-fg-emphasis"
-                : "bg-mode text-surface"
+              ? "bg-mode text-surface"
               : "bg-surface-raised text-fg-secondary hover:bg-surface-active"
           }`}
         >
