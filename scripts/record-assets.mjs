@@ -118,7 +118,6 @@ const inGroup = (page, label) =>
   );
 
 const chordRowMode = (page) => inGroup(page, "Chord row mode");
-const shapeLanguage = (page) => inGroup(page, "Chord-shape language");
 const voicingSystem = (page) => inGroup(page, "Voicing system");
 const stringGroups = (page) => inGroup(page, "String groups");
 const inversions = (page) => inGroup(page, "Inversions");
@@ -260,20 +259,22 @@ async function recordScalePositions(browser) {
 
 async function recordChordShapes(browser) {
   const start = Date.now();
-  // Chord Shapes view is taller than the others (~1026px content) — bump the
-  // recording viewport so the Legend at the bottom isn't clipped.
-  const context = await newDarkContext(browser, true, { width: 1440, height: 1080 });
+  // The view's controls now live below the fretboard, so the standard
+  // 1440x900 viewport fits everything without clipping.
+  const context = await newDarkContext(browser, true);
   const page = await context.newPage();
   await loadApp(page);
 
-  // Switch to Chord Shapes tab. Default state: Triad shapes mode, 1-2-3
-  // string-set, all 3 triad inversions selected → shapes render immediately.
+  // Switch to Chord Shapes tab. Default state: Triads mode, 1-2-3 string-set,
+  // all 3 triad inversions selected → shapes render immediately.
   await page.getByRole("tab", { name: "Chord Shapes" }).click();
   await page.waitForTimeout(HOLD);
 
-  // Switch to 7th chord shapes mode. Defaults carry over: low position
-  // (3-4-5-6 in close voicing) and Root inversion — board stays populated.
-  await shapeLanguage(page).getByRole("radio", { name: "7th chord shapes" }).click();
+  // Switch to 7ths mode via the chord-row toggle (drives the Chord Shapes
+  // view's mode now that ShapeHeader is gone). Defaults carry over: low
+  // position (3-4-5-6 in close voicing) and Root inversion — board stays
+  // populated.
+  await chordRowMode(page).getByRole("radio", { name: "Sevenths" }).click();
   await page.waitForTimeout(HOLD);
 
   // Cycle voicing systems with Root inversion + low position kept ON the whole
@@ -296,17 +297,17 @@ async function recordChordShapes(browser) {
   await stringGroups(page).getByRole("button", { name: "2-3-4-5" }).click();
   await page.waitForTimeout(HOLD);
 
-  // Switch back to Triad shapes — voicing selector hides, string-sets become
-  // 1-2-3 / 2-3-4 / 3-4-5 / 4-5-6, and the triad-side state (1-2-3 + all 3
-  // inversions) takes over so shapes are still on screen.
-  await shapeLanguage(page).getByRole("radio", { name: "Triad shapes" }).click();
+  // Switch back to Triads via the chord-row toggle — voicing selector hides,
+  // string-sets become 1-2-3 / 2-3-4 / 3-4-5 / 4-5-6, and the triad-side
+  // state (1-2-3 + all 3 inversions) takes over so shapes are still on screen.
+  await chordRowMode(page).getByRole("radio", { name: "Triads" }).click();
   await page.waitForTimeout(HOLD);
 
   // Add a 2nd triad string-set so shapes ascend the neck.
   await stringGroups(page).getByRole("button", { name: "2-3-4" }).click();
   await page.waitForTimeout(HOLD);
 
-  // Toggle 3rd off in Legend — markers DIM (don't disappear).
+  // Toggle 3rd off in Legend — markers demote to plain scale tones.
   await page.getByRole("button", { name: "3rd", exact: true }).click();
   await page.waitForTimeout(HOLD);
 

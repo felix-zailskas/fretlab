@@ -184,11 +184,11 @@ function App() {
               />
             </div>
           </div>
-          <div className="flex flex-wrap items-center justify-between gap-x-8 gap-y-3">
-            <ViewSelector
-              selectedView={selectedView}
-              onViewChange={setSelectedView}
-            />
+          {/* min-h reserves the ScaleDisplay's natural height so the fretboard
+              doesn't shift up when "All" is selected and only the short hint
+              renders on the right. */}
+          <div className="flex flex-wrap items-center justify-between gap-x-8 gap-y-3 min-h-[50px]">
+            <ViewSelector selectedView={selectedView} onViewChange={setSelectedView} />
             {isAllNotesKey ? (
               <p className="text-fg-muted text-sm">
                 Pick a key above to see scales and chords.
