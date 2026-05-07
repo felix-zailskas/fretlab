@@ -9,7 +9,7 @@ export function ThemeToggle({ mode, onCycle }: ThemeToggleProps) {
     <button
       type="button"
       onClick={onCycle}
-      className="px-3 py-3 rounded text-sm font-semibold bg-surface-raised text-fg-secondary hover:bg-surface-active cursor-pointer"
+      className="px-3 py-2.5 pointer-coarse:py-3 rounded text-sm font-semibold bg-surface-raised text-fg-secondary hover:bg-surface-active cursor-pointer"
     >
       {label}
     </button>

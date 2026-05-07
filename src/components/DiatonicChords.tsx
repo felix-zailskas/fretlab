@@ -58,7 +58,7 @@ export function DiatonicChords({
   return (
     <section className="mt-8">
       <div className="flex items-center justify-between mb-3 gap-4">
-        <h2 className="text-sm text-fg-secondary uppercase tracking-wider font-semibold">
+        <h2 className="text-sm text-fg-secondary tracking-wide font-medium">
           Diatonic chords
         </h2>
         <div
@@ -73,7 +73,7 @@ export function DiatonicChords({
               role="radio"
               aria-checked={mode === opt.value}
               onClick={() => onModeChange(opt.value)}
-              className={`px-3 py-3 text-sm font-semibold transition-colors cursor-pointer ${
+              className={`px-3 py-2.5 pointer-coarse:py-3 text-sm font-semibold transition-colors cursor-pointer ${
                 mode === opt.value
                   ? "bg-surface-active text-fg-emphasis"
                   : "bg-surface text-fg-muted hover:bg-surface-raised"

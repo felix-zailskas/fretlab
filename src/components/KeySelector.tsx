@@ -56,7 +56,7 @@ export function KeySelector({
         <button
           key={key}
           onClick={() => onKeyChange(key)}
-          className={`px-3 py-3 rounded text-sm font-semibold transition-colors cursor-pointer ${
+          className={`px-3 py-2.5 pointer-coarse:py-3 rounded text-sm font-semibold transition-colors cursor-pointer ${
             selectedKey === key
               ? "bg-root text-fg-emphasis"
               : "bg-surface-raised text-fg-secondary hover:bg-surface-active"
