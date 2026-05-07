@@ -1,4 +1,9 @@
-import { CHROMATIC_SCALE, getNoteIndex } from "./notes";
+import {
+  CHROMATIC_SCALE,
+  getDisplayName,
+  getNoteIndex,
+  type AccidentalStyle,
+} from "./notes";
 import type { ScaleStep } from "./scales";
 
 export type Mode =
@@ -82,7 +87,15 @@ export const PARENT_MAJOR_OFFSET: Record<Mode, number> = {
   locrian: -11,
 };
 
-// Imports CHROMATIC_SCALE / getNoteIndex are placeholders for the helpers
-// added in subsequent tasks; keep them here so each helper's diff is local.
-void CHROMATIC_SCALE;
-void getNoteIndex;
+export function getModalScaleNotes(
+  key: string,
+  mode: Mode,
+  accidentalStyle?: AccidentalStyle,
+): string[] {
+  const rootIndex = getNoteIndex(key);
+  return MODE_INTERVALS[mode].map((interval) => {
+    const noteIndex = (rootIndex + interval) % 12;
+    const sharpName = CHROMATIC_SCALE[noteIndex];
+    return getDisplayName(sharpName, key, accidentalStyle);
+  });
+}
