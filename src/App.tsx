@@ -143,8 +143,28 @@ function App() {
 
   const isAllNotesKey = selectedKey === ALL_NOTES_KEY;
 
+  // Hidden announcement for screen readers — narrates the active tonal
+  // context whenever key, mode, or chord-degree changes.
+  const announcement = useMemo(() => {
+    if (selectedKey === ALL_NOTES_KEY) return "Showing all notes";
+    const modeName =
+      mode === "ionian" ? "major" : mode.charAt(0).toUpperCase() + mode.slice(1);
+    const chordPart =
+      selectedChordDegree !== null ? `, chord degree ${selectedChordDegree}` : "";
+    return `${selectedKey} ${modeName}${chordPart}`;
+  }, [selectedKey, mode, selectedChordDegree]);
+
   return (
     <div className="min-h-screen bg-surface text-fg-primary">
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:px-4 focus:py-2 focus:bg-surface-raised focus:text-fg-primary focus:rounded focus:shadow-lg"
+      >
+        Skip to fretboard
+      </a>
+      <div role="status" aria-live="polite" aria-atomic="true" className="sr-only">
+        {announcement}
+      </div>
       <header className="max-w-[90rem] mx-auto">
         {/* Top bar: title + global preferences (sharp/flat, fret range) */}
         <div className="flex items-center justify-between gap-4 px-4 py-3 border-b border-line">
@@ -197,7 +217,11 @@ function App() {
         </div>
       </header>
 
-      <main className="max-w-[90rem] mx-auto px-4 pb-4">
+      <main
+        id="main-content"
+        tabIndex={-1}
+        className="max-w-[90rem] mx-auto px-4 pb-4 focus:outline-none"
+      >
         {selectedView === "note-map" && (
           <>
             <NoteMapView
