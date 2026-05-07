@@ -15,6 +15,7 @@ import {
 } from "../theory/positions";
 import type { AccidentalStyle } from "../theory/notes";
 import type { DiatonicChord, DiatonicTriad } from "../theory/scales";
+import { parentMajorOf, type Mode } from "../theory/modes";
 import { type ScalePositionsControls } from "./useScalePositionsState";
 
 type ScalePositionsViewProps = {
@@ -25,10 +26,11 @@ type ScalePositionsViewProps = {
   startFret: number;
   endFret: number;
   controls: ScalePositionsControls;
+  // Optional — defaults to 'ionian', preserving today's behavior. Phase D's
+  // App.tsx wiring passes this explicitly from global state.
+  mode?: Mode;
 };
 
-// Wider, neutral phrasing — the view serves both pure scale-position study
-// and chord-tone targeting.
 const EMPTY_KEY_MESSAGE = "Select a key to view scale positions.";
 
 export function ScalePositionsView({
@@ -39,8 +41,18 @@ export function ScalePositionsView({
   startFret,
   endFret,
   controls,
+  mode = "ionian",
 }: ScalePositionsViewProps) {
   const { selectedPositions, togglePosition, showContext, setShowContext } = controls;
+
+  // CAGED windows are anchored to the parent major scale: when mode is
+  // non-Ionian, position math runs on parentKey rather than selectedKey, so
+  // the boxes frame fret regions where the modal scale actually lays.
+  const parentKey = useMemo(
+    () =>
+      selectedKey === ALL_NOTES_KEY ? selectedKey : parentMajorOf(selectedKey, mode),
+    [selectedKey, mode],
+  );
 
   const positionsArray = useMemo(
     () =>
@@ -53,21 +65,24 @@ export function ScalePositionsView({
   const positionWindows = useMemo<PositionWindow[]>(() => {
     if (selectedKey === ALL_NOTES_KEY) return [];
     return CAGED_POSITIONS.filter((p) => selectedPositions.has(p.id)).flatMap((p) =>
-      getPositionWindows(selectedKey, p.id, startFret, endFret).map(
+      getPositionWindows(parentKey, p.id, startFret, endFret).map(
         ([low, high], octaveIndex) => ({
           id: `${p.id}-${octaveIndex}`,
           low,
           high,
-          label: `${p.id} — ${p.shape}`,
+          // Drop the C/A/G/E/D shape suffix in non-Ionian modes — the shape
+          // names refer to major-scale fingering patterns and are misleading
+          // in modal context. Just the position number remains useful.
+          label: mode === "ionian" ? `${p.id} — ${p.shape}` : `${p.id}`,
         }),
       ),
     );
-  }, [selectedKey, selectedPositions, startFret, endFret]);
+  }, [selectedKey, parentKey, selectedPositions, startFret, endFret, mode]);
 
   const overlapZones = useMemo<OverlapZone[]>(() => {
     if (selectedKey === ALL_NOTES_KEY) return [];
-    return computeOverlapZones(selectedKey, positionsArray, startFret, endFret);
-  }, [selectedKey, positionsArray, startFret, endFret]);
+    return computeOverlapZones(parentKey, positionsArray, startFret, endFret);
+  }, [selectedKey, parentKey, positionsArray, startFret, endFret]);
 
   const markers = useMemo(
     () =>
@@ -80,6 +95,7 @@ export function ScalePositionsView({
         enabledHighlights,
         startFret,
         endFret,
+        mode,
       }),
     [
       selectedKey,
@@ -90,6 +106,7 @@ export function ScalePositionsView({
       enabledHighlights,
       startFret,
       endFret,
+      mode,
     ],
   );
 
