@@ -16,6 +16,7 @@ import {
 } from "../theory/chordShapes";
 import type { AccidentalStyle } from "../theory/notes";
 import type { DiatonicTriad, DiatonicChord } from "../theory/scales";
+import { type Mode } from "../theory/modes";
 import {
   type ChordShapesControls,
   type SeventhStringPosition,
@@ -31,6 +32,7 @@ type ChordShapesViewProps = {
   onChordRowModeChange: (mode: ChordRowMode) => void;
   enabledHighlights: Set<HighlightableRole>;
   controls: ChordShapesControls;
+  modalMode: Mode;
 };
 
 const STRING_SET_OPTIONS: ReadonlyArray<{ id: StringSet; label: string }> = [
@@ -88,6 +90,7 @@ export function ChordShapesView({
   onChordRowModeChange,
   enabledHighlights,
   controls,
+  modalMode,
 }: ChordShapesViewProps) {
   const {
     selectedStringSets,
@@ -128,6 +131,7 @@ export function ChordShapesView({
     if (mode === "triads") {
       return buildChordShapeMarkers({
         mode: "triads",
+        modalMode,
         chord: selectedChord as DiatonicTriad,
         key: selectedKey,
         accidentalStyle,
@@ -139,6 +143,7 @@ export function ChordShapesView({
     }
     return buildChordShapeMarkers({
       mode: "sevenths",
+      modalMode,
       voicingSystem: selectedVoicingSystem,
       chord: selectedChord as DiatonicChord,
       key: selectedKey,
@@ -150,6 +155,7 @@ export function ChordShapesView({
     });
   }, [
     mode,
+    modalMode,
     selectedChord,
     selectedKey,
     accidentalStyle,
