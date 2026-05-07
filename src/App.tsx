@@ -51,12 +51,19 @@ function tonalReducer(state: TonalState, action: TonalAction): TonalState {
   switch (action.type) {
     case "set-key": {
       // Auto-set accidental to the parent major's natural preference.
-      // Neutral parent (C major) preserves the current style.
+      // Neutral parent (C major) preserves the current style. When the natural
+      // style differs from current, also swap the key to its enharmonic so
+      // the active key remains visible in the KeySelector list (which is
+      // filtered by accidentalStyle). Mirrors the swap logic in set-mode.
       const natural = naturalAccidentalForKeyMode(action.key, state.mode);
+      if (natural !== null && natural !== state.accidentalStyle) {
+        const swapped = ENHARMONIC_KEY_SWAP[action.key] ?? action.key;
+        return { key: swapped, mode: state.mode, accidentalStyle: natural };
+      }
       return {
         key: action.key,
         mode: state.mode,
-        accidentalStyle: natural ?? state.accidentalStyle,
+        accidentalStyle: state.accidentalStyle,
       };
     }
     case "set-mode": {
