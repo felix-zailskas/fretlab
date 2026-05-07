@@ -25,7 +25,7 @@ export function StringSetToggles<Id extends string>({
             key={opt.id}
             type="button"
             onClick={() => onToggle(opt.id)}
-            className={`px-2 py-1 rounded transition-opacity cursor-pointer hover:bg-surface-raised ${
+            className={`px-2 py-2 rounded transition-opacity duration-150 ease-out cursor-pointer hover:bg-surface-raised ${
               isOn ? "opacity-100" : "opacity-40"
             }`}
             aria-pressed={isOn}

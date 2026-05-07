@@ -1,6 +1,10 @@
 import { CAGED_POSITIONS, type PositionId } from "../theory/positions";
 
-const TOGGLES = CAGED_POSITIONS.map((p) => ({ id: p.id, shape: p.shape }));
+const TOGGLES = CAGED_POSITIONS.map((p) => ({
+  id: p.id,
+  shape: p.shape,
+  title: `${p.id}-shape position — derived from the open ${p.shape} chord shape`,
+}));
 
 type PositionTogglesProps = {
   selected: ReadonlySet<PositionId>;
@@ -17,7 +21,8 @@ export function PositionToggles({ selected, onToggle }: PositionTogglesProps) {
             key={opt.id}
             type="button"
             onClick={() => onToggle(opt.id)}
-            className={`flex items-baseline gap-1.5 px-2 py-1 rounded transition-opacity cursor-pointer hover:bg-surface-raised ${
+            title={opt.title}
+            className={`flex items-baseline gap-1.5 px-2 py-2 rounded transition-opacity duration-150 ease-out cursor-pointer hover:bg-surface-raised ${
               isOn ? "opacity-100" : "opacity-40"
             }`}
             aria-pressed={isOn}
