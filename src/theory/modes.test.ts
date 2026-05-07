@@ -9,8 +9,6 @@ import {
   getModalDiatonicChords,
   naturalAccidentalForKeyMode,
 } from "./modes";
-import { getIntervalRole, getDiatonicTriads, getDiatonicChords } from "./scales";
-
 describe("getModalScaleNotes", () => {
   it("returns C Ionian (= C major)", () => {
     expect(getModalScaleNotes("C", "ionian")).toEqual([
@@ -119,13 +117,6 @@ describe("getModalScaleNotes", () => {
       "E",
     ]);
   });
-
-  it("Ionian output equals getMajorScaleNotes for representative keys", async () => {
-    const { getMajorScaleNotes } = await import("./scales");
-    for (const key of ["C", "G", "D", "F", "Bb", "Eb"]) {
-      expect(getModalScaleNotes(key, "ionian")).toEqual(getMajorScaleNotes(key));
-    }
-  });
 });
 
 describe("parentMajorOf", () => {
@@ -190,14 +181,6 @@ describe("getModalIntervalRole", () => {
     // C Phrygian has Db not D
     expect(getModalIntervalRole("C", "phrygian", "D")).toBeNull();
   });
-
-  it("Ionian behaves identically to getIntervalRole", () => {
-    for (const note of ["C", "D", "E", "F", "G", "A", "B", "C#", "F#"]) {
-      expect(getModalIntervalRole("C", "ionian", note)).toBe(
-        getIntervalRole("C", note),
-      );
-    }
-  });
 });
 
 describe("getCharacteristicNotes", () => {
@@ -252,10 +235,6 @@ describe("getCharacteristicNoteIndexSet", () => {
 });
 
 describe("getModalDiatonicTriads", () => {
-  it("Ionian output matches getDiatonicTriads", () => {
-    expect(getModalDiatonicTriads("C", "ionian")).toEqual(getDiatonicTriads("C"));
-  });
-
   it("C Dorian triads (i, ii, ♭III, IV, v, vi°, ♭VII)", () => {
     const triads = getModalDiatonicTriads("C", "dorian", "flat");
     expect(triads.map((t) => t.symbol)).toEqual([
@@ -355,10 +334,6 @@ describe("getModalDiatonicTriads", () => {
 });
 
 describe("getModalDiatonicChords", () => {
-  it("Ionian output matches getDiatonicChords", () => {
-    expect(getModalDiatonicChords("C", "ionian")).toEqual(getDiatonicChords("C"));
-  });
-
   it("C Dorian sevenths (i7, ii7, ♭IIImaj7, IV7, v7, viø7, ♭VIImaj7)", () => {
     const chords = getModalDiatonicChords("C", "dorian", "flat");
     expect(chords.map((c) => c.symbol)).toEqual([

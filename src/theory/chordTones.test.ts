@@ -1,7 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { roleFromChordTone, HIGHLIGHTABLE, buildChordToneMarkers } from "./chordTones";
 import { DEFAULT_END_FRET } from "./constants";
-import { getDiatonicChords, getDiatonicTriads } from "./scales";
 import { getModalDiatonicChords, getModalDiatonicTriads } from "./modes";
 import type { HighlightableRole } from "../components/Legend";
 import { ALL_NOTES_KEY } from "../components/KeySelector";
@@ -18,7 +17,7 @@ describe("roleFromChordTone", () => {
 
   it("maps to chord-relative roles when a chord is given (G major, ii = Am7)", () => {
     // ii in G major is Am7: A C E G — A=root, C=third, E=fifth, G=seventh.
-    const chords = getDiatonicChords("G");
+    const chords = getModalDiatonicChords("G", "ionian");
     const am7 = chords[1]; // ii
     expect(am7.symbol.toLowerCase()).toContain("a");
 
@@ -30,14 +29,14 @@ describe("roleFromChordTone", () => {
 
   it('returns "scale" for in-key notes that are not chord tones', () => {
     // In G major over Am7, D is in the G major scale but not in Am7.
-    const am7 = getDiatonicChords("G")[1];
+    const am7 = getModalDiatonicChords("G", "ionian")[1];
     expect(roleFromChordTone("D", am7)).toBe("scale");
   });
 
   it("handles enharmonic equivalence (sharp vs flat input)", () => {
     // V7 in F major is C7 = C E G Bb. Bb and A# are enharmonic — both should
     // resolve as the chord's seventh.
-    const c7 = getDiatonicChords("F")[4];
+    const c7 = getModalDiatonicChords("F", "ionian")[4];
     expect(roleFromChordTone("Bb", c7)).toBe("seventh");
     expect(roleFromChordTone("A#", c7)).toBe("seventh");
   });
@@ -56,7 +55,7 @@ describe("HIGHLIGHTABLE", () => {
 
 describe("buildChordToneMarkers", () => {
   // Reusable inputs: C major, ii (Dm7), default Legend (all four roles on).
-  const cMajor_ii = () => getDiatonicChords("C")[1];
+  const cMajor_ii = () => getModalDiatonicChords("C", "ionian")[1];
   const allRoles: Set<HighlightableRole> = new Set([
     "root",
     "third",
@@ -257,7 +256,7 @@ describe("buildChordToneMarkers", () => {
 
 describe("roleFromChordTone with triads", () => {
   it("resolves root/third/fifth correctly for a triad input (C major, ii = Dm)", () => {
-    const triad = getDiatonicTriads("C")[1]; // ii = Dm — notes [D, F, A]
+    const triad = getModalDiatonicTriads("C", "ionian")[1]; // ii = Dm — notes [D, F, A]
     expect(roleFromChordTone("D", triad)).toBe("root");
     expect(roleFromChordTone("F", triad)).toBe("third");
     expect(roleFromChordTone("A", triad)).toBe("fifth");
@@ -266,12 +265,12 @@ describe("roleFromChordTone with triads", () => {
   it('never returns "seventh" for a triad input', () => {
     // C is the seventh of Dm7 in sevenths mode, but is not a chord tone of
     // the Dm triad. Should fall back to 'scale'.
-    const triad = getDiatonicTriads("C")[1];
+    const triad = getModalDiatonicTriads("C", "ionian")[1];
     expect(roleFromChordTone("C", triad)).toBe("scale");
   });
 
   it('returns "scale" for in-key non-chord-tone notes (E in Dm triad, C major)', () => {
-    const triad = getDiatonicTriads("C")[1];
+    const triad = getModalDiatonicTriads("C", "ionian")[1];
     expect(roleFromChordTone("E", triad)).toBe("scale");
   });
 
@@ -279,14 +278,14 @@ describe("roleFromChordTone with triads", () => {
     // vii° in G is F#° = F# A C. F# and Gb are enharmonic — Gb input should
     // resolve as the chord's root, mirroring the existing flat/sharp handling
     // for sevenths.
-    const triad = getDiatonicTriads("G")[6];
+    const triad = getModalDiatonicTriads("G", "ionian")[6];
     expect(roleFromChordTone("F#", triad)).toBe("root");
     expect(roleFromChordTone("Gb", triad)).toBe("root");
   });
 });
 
 describe("buildChordToneMarkers with triads", () => {
-  const cMajor_ii_triad = () => getDiatonicTriads("C")[1]; // Dm — notes [D, F, A]
+  const cMajor_ii_triad = () => getModalDiatonicTriads("C", "ionian")[1]; // Dm — notes [D, F, A]
   const allRoles: Set<HighlightableRole> = new Set([
     "root",
     "third",
@@ -396,7 +395,7 @@ describe("buildChordToneMarkers — modal", () => {
   it("mode='ionian' is regression-equivalent to omitting mode", () => {
     const baseInput = {
       key: "C",
-      chord: getDiatonicChords("C")[0],
+      chord: getModalDiatonicChords("C", "ionian")[0],
       accidentalStyle: "flat" as const,
       positions: ["P1" as const],
       showContext: false,
