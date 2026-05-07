@@ -315,6 +315,7 @@ describe("SEVENTH_SHAPES — structure", () => {
 
 import { buildChordShapeMarkers } from "./chordShapes";
 import { getDiatonicTriads, getDiatonicChords } from "./scales";
+import { getModalDiatonicChords } from "./modes";
 import { ALL_NOTES_KEY } from "../components/KeySelector";
 import { DEFAULT_END_FRET } from "./constants";
 
@@ -628,5 +629,68 @@ describe("buildChordShapeMarkers — chord-centric", () => {
     );
     expect(rootMarker).toBeDefined();
     expect(rootMarker!.note).toBe("Gb");
+  });
+});
+
+describe("buildChordShapeMarkers — modal", () => {
+  it("flags A as characteristic in C Dorian's IV7 (F7) voicings", () => {
+    const cDorianIV = getModalDiatonicChords("C", "dorian", "flat")[3]; // F7
+    const markers = buildChordShapeMarkers({
+      mode: "sevenths",
+      modalMode: "dorian",
+      voicingSystem: "drop2",
+      chord: cDorianIV,
+      key: "C",
+      accidentalStyle: "flat",
+      stringSets: ["3-4-5-6"],
+      inversions: ["root"],
+      startFret: 0,
+      endFret: 15,
+    });
+    // F7 = F-A-C-Eb. The 'A' is C Dorian's characteristic note (♮6).
+    const aMarkers = markers.filter((m) => m.note === "A");
+    expect(aMarkers.length).toBeGreaterThan(0);
+    for (const m of aMarkers) {
+      expect(m.isCharacteristic).toBe(true);
+    }
+    const fMarkers = markers.filter((m) => m.note === "F");
+    for (const m of fMarkers) {
+      expect(m.isCharacteristic).toBeFalsy();
+    }
+  });
+
+  it("modalMode='ionian' (default) sets no characteristic flags", () => {
+    const cMajorIV = getDiatonicChords("C")[3]; // Fmaj7
+    const markers = buildChordShapeMarkers({
+      mode: "sevenths",
+      voicingSystem: "drop2",
+      chord: cMajorIV,
+      key: "C",
+      accidentalStyle: "flat",
+      stringSets: ["3-4-5-6"],
+      inversions: ["root"],
+      startFret: 0,
+      endFret: 15,
+    });
+    expect(markers.every((m) => !m.isCharacteristic)).toBe(true);
+  });
+
+  it("Cm7 in C Dorian has no characteristic chord tones (Cm7 doesn't contain A)", () => {
+    const cDorianI = getModalDiatonicChords("C", "dorian", "flat")[0]; // Cm7
+    const markers = buildChordShapeMarkers({
+      mode: "sevenths",
+      modalMode: "dorian",
+      voicingSystem: "drop2",
+      chord: cDorianI,
+      key: "C",
+      accidentalStyle: "flat",
+      stringSets: ["3-4-5-6"],
+      inversions: ["root", "first", "second", "third"],
+      startFret: 0,
+      endFret: 15,
+    });
+    // Cm7 = C-Eb-G-Bb. Dorian's characteristic note is A (♮6) — not in Cm7.
+    expect(markers.length).toBeGreaterThan(0); // sanity: voicings exist
+    expect(markers.every((m) => !m.isCharacteristic)).toBe(true);
   });
 });

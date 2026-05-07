@@ -12,6 +12,7 @@ import type {
   DiatonicTriad,
   DiatonicChord,
 } from "./scales";
+import { getCharacteristicNotes, type Mode as ModalMode } from "./modes";
 import type { NoteMarker } from "./types";
 
 // String numbering follows standard guitar nomenclature: string 1 = high E,
@@ -607,6 +608,7 @@ export const SEVENTH_SHAPES: Record<
 export type BuildChordShapeMarkersInput =
   | {
       mode: "triads";
+      modalMode?: ModalMode;
       chord: DiatonicTriad;
       key: string;
       accidentalStyle: AccidentalStyle;
@@ -617,6 +619,7 @@ export type BuildChordShapeMarkersInput =
     }
   | {
       mode: "sevenths";
+      modalMode?: ModalMode;
       voicingSystem: VoicingSystem;
       chord: DiatonicChord;
       key: string;
@@ -659,6 +662,7 @@ function placeChordOnCombo(
   accidentalStyle: AccidentalStyle,
   startFret: number,
   endFret: number,
+  characteristicSet: ReadonlySet<number>,
 ): NoteMarker[] {
   const anchorMarkerString = shapeStringToMarkerString(shape.rootString);
   const openAnchorNote = STANDARD_TUNING[anchorMarkerString];
@@ -676,11 +680,14 @@ function placeChordOnCombo(
       const absFret = candidate + p.fretOffset;
       const markerString = shapeStringToMarkerString(p.string);
       const openNote = STANDARD_TUNING[markerString];
+      const noteSharp = getNoteAtFret(openNote, absFret);
+      const isCharacteristic = characteristicSet.has(getNoteIndex(noteSharp));
       result.push({
         string: markerString,
         fret: absFret,
-        note: getDisplayName(getNoteAtFret(openNote, absFret), key, accidentalStyle),
+        note: getDisplayName(noteSharp, key, accidentalStyle),
         role: p.role,
+        ...(isCharacteristic ? { isCharacteristic: true } : {}),
       });
     }
   }
@@ -700,6 +707,14 @@ export function buildChordShapeMarkers(
 ): NoteMarker[] {
   if (input.key === ALL_NOTES_KEY) return [];
 
+  const modalMode = input.modalMode ?? "ionian";
+  const characteristicNotes = getCharacteristicNotes(
+    input.key,
+    modalMode,
+    input.accidentalStyle,
+  );
+  const characteristicSet = new Set(characteristicNotes.map((n) => getNoteIndex(n)));
+
   if (input.mode === "triads") {
     if (input.stringSets.length === 0 || input.inversions.length === 0) return [];
     const result: NoteMarker[] = [];
@@ -718,6 +733,7 @@ export function buildChordShapeMarkers(
             input.accidentalStyle,
             input.startFret,
             input.endFret,
+            characteristicSet,
           ),
         );
       }
@@ -746,6 +762,7 @@ export function buildChordShapeMarkers(
           input.accidentalStyle,
           input.startFret,
           input.endFret,
+          characteristicSet,
         ),
       );
     }
