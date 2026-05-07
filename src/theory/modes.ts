@@ -99,3 +99,18 @@ export function getModalScaleNotes(
     return getDisplayName(sharpName, key, accidentalStyle);
   });
 }
+
+// Returns the tonic of the parent major scale for (modal-tonic, mode).
+//
+// Ionian short-circuits to the input — Ionian's parent IS its tonic, so we
+// preserve the caller's spelling (e.g. "Bb" stays "Bb" rather than becoming
+// "A#"). For non-Ionian modes the function returns the sharp-form note from
+// CHROMATIC_SCALE; callers that need flat spelling should pipe through
+// getDisplayName themselves. Internal users (Scale Positions' window math)
+// only need note-index-equivalent input, so sharp-form is fine for them.
+export function parentMajorOf(tonic: string, mode: Mode): string {
+  if (mode === "ionian") return tonic;
+  const tonicIdx = getNoteIndex(tonic);
+  const parentIdx = (tonicIdx + PARENT_MAJOR_OFFSET[mode] + 12) % 12;
+  return CHROMATIC_SCALE[parentIdx];
+}

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { getModalScaleNotes } from "./modes";
+import { getModalScaleNotes, parentMajorOf } from "./modes";
 
 describe("getModalScaleNotes", () => {
   it("returns C Ionian (= C major)", () => {
@@ -115,5 +115,43 @@ describe("getModalScaleNotes", () => {
     for (const key of ["C", "G", "D", "F", "Bb", "Eb"]) {
       expect(getModalScaleNotes(key, "ionian")).toEqual(getMajorScaleNotes(key));
     }
+  });
+});
+
+describe("parentMajorOf", () => {
+  it("Ionian is identity for every tonic", () => {
+    for (const key of ["C", "D", "F#", "Bb", "Eb"]) {
+      expect(parentMajorOf(key, "ionian")).toBe(key);
+    }
+  });
+
+  it("D Dorian's parent is C major", () => {
+    expect(parentMajorOf("D", "dorian")).toBe("C");
+  });
+
+  it("E Phrygian's parent is C major", () => {
+    expect(parentMajorOf("E", "phrygian")).toBe("C");
+  });
+
+  it("F Lydian's parent is C major", () => {
+    expect(parentMajorOf("F", "lydian")).toBe("C");
+  });
+
+  it("G Mixolydian's parent is C major", () => {
+    expect(parentMajorOf("G", "mixolydian")).toBe("C");
+  });
+
+  it("A Aeolian's parent is C major", () => {
+    expect(parentMajorOf("A", "aeolian")).toBe("C");
+  });
+
+  it("B Locrian's parent is C major", () => {
+    expect(parentMajorOf("B", "locrian")).toBe("C");
+  });
+
+  it("C Dorian's parent is Bb major (returns sharp-form A#)", () => {
+    // parentMajorOf returns CHROMATIC_SCALE entries (sharp-form). Callers
+    // that need flat spelling apply getDisplayName separately.
+    expect(parentMajorOf("C", "dorian")).toBe("A#");
   });
 });
