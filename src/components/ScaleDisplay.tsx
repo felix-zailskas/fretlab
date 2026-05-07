@@ -91,7 +91,7 @@ export function ScaleDisplay({
         {steps.map((step, i) => (
           <span
             key={`step-${i}`}
-            className="text-[10px] leading-none text-fg-faint text-center select-none"
+            className="text-xs leading-none text-fg-muted text-center select-none px-1.5 py-0.5 rounded bg-surface-raised mx-auto"
             style={{ gridRow: 2, gridColumn: `${i + 2} / span 2` }}
             title={step === "half" ? "Half step" : "Whole step"}
           >
