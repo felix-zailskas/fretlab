@@ -12,7 +12,7 @@ import {
 } from "../theory/notes";
 import { type DiatonicChord, type DiatonicTriad } from "../theory/scales";
 import {
-  getCharacteristicNotes,
+  getCharacteristicNoteIndexSet,
   getModalIntervalRole,
   type Mode,
 } from "../theory/modes";
@@ -44,12 +44,8 @@ export function NoteMapView({
     const showAll = selectedKey === ALL_NOTES_KEY;
 
     const characteristicSet = showAll
-      ? new Set<number>()
-      : new Set(
-          getCharacteristicNotes(selectedKey, mode, accidentalStyle).map((n) =>
-            getNoteIndex(n),
-          ),
-        );
+      ? (new Set<number>() as ReadonlySet<number>)
+      : getCharacteristicNoteIndexSet(selectedKey, mode, accidentalStyle);
 
     for (let stringIndex = 0; stringIndex < STANDARD_TUNING.length; stringIndex++) {
       const openString = STANDARD_TUNING[stringIndex];

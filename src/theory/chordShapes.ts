@@ -12,7 +12,7 @@ import type {
   DiatonicTriad,
   DiatonicChord,
 } from "./scales";
-import { getCharacteristicNotes, type Mode as ModalMode } from "./modes";
+import { getCharacteristicNoteIndexSet, type Mode as ModalMode } from "./modes";
 import type { NoteMarker } from "./types";
 
 // String numbering follows standard guitar nomenclature: string 1 = high E,
@@ -708,12 +708,11 @@ export function buildChordShapeMarkers(
   if (input.key === ALL_NOTES_KEY) return [];
 
   const modalMode = input.modalMode ?? "ionian";
-  const characteristicNotes = getCharacteristicNotes(
+  const characteristicSet = getCharacteristicNoteIndexSet(
     input.key,
     modalMode,
     input.accidentalStyle,
   );
-  const characteristicSet = new Set(characteristicNotes.map((n) => getNoteIndex(n)));
 
   if (input.mode === "triads") {
     if (input.stringSets.length === 0 || input.inversions.length === 0) return [];

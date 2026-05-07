@@ -4,6 +4,7 @@ import {
   parentMajorOf,
   getModalIntervalRole,
   getCharacteristicNotes,
+  getCharacteristicNoteIndexSet,
   getModalDiatonicTriads,
   getModalDiatonicChords,
 } from "./modes";
@@ -225,6 +226,27 @@ describe("getCharacteristicNotes", () => {
 
   it("returns the ♭5 for Locrian (Gb with flat spelling for C tonic)", () => {
     expect(getCharacteristicNotes("C", "locrian", "flat")).toEqual(["Gb"]);
+  });
+});
+
+describe("getCharacteristicNoteIndexSet", () => {
+  it("returns an empty set for Ionian", () => {
+    expect(getCharacteristicNoteIndexSet("C", "ionian").size).toBe(0);
+  });
+
+  it("returns the natural-6 chromatic index for C Dorian", () => {
+    // C Dorian's ♮6 is A; getNoteIndex('A') === 9
+    const set = getCharacteristicNoteIndexSet("C", "dorian");
+    expect(set.has(9)).toBe(true);
+    expect(set.size).toBe(1);
+  });
+
+  it("returns the ♭2 index for C Phrygian regardless of spelling", () => {
+    // Db = C# = chromatic index 1
+    const flat = getCharacteristicNoteIndexSet("C", "phrygian", "flat");
+    const sharp = getCharacteristicNoteIndexSet("C", "phrygian", "sharp");
+    expect(flat.has(1)).toBe(true);
+    expect(sharp.has(1)).toBe(true);
   });
 });
 

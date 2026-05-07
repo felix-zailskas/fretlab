@@ -153,6 +153,19 @@ export function getCharacteristicNotes(
   return CHARACTERISTIC_DEGREES[mode].map((degreeIdx) => scale[degreeIdx]);
 }
 
+// Returns a Set of chromatic note-indices (0-11) for the (key, mode)'s
+// characteristic notes — convenient for marker pipelines that test "is
+// this note characteristic?" once per fret.
+export function getCharacteristicNoteIndexSet(
+  key: string,
+  mode: Mode,
+  accidentalStyle?: AccidentalStyle,
+): ReadonlySet<number> {
+  return new Set(
+    getCharacteristicNotes(key, mode, accidentalStyle).map((n) => getNoteIndex(n)),
+  );
+}
+
 // Modal degree-prefix derived from the same-root major scale's degree label.
 // Ionian: '1','2',… → '', Dorian: '1','2','♭3','4',… → '','','♭','',…
 function modalDegreePrefix(mode: Mode, position: number): string {

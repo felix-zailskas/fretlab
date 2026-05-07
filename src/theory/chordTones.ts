@@ -8,9 +8,9 @@ import {
   type AccidentalStyle,
 } from "./notes";
 import { isInPositionWindow, type PositionId } from "./positions";
-import { getIntervalRole, type DiatonicChord, type DiatonicTriad } from "./scales";
+import { type DiatonicChord, type DiatonicTriad } from "./scales";
 import {
-  getCharacteristicNotes,
+  getCharacteristicNoteIndexSet,
   getModalIntervalRole,
   parentMajorOf,
   type Mode,
@@ -94,8 +94,7 @@ export function buildChordToneMarkers({
   if (positions.length === 0) return [];
 
   const parentKey = parentMajorOf(key, mode);
-  const characteristicNotes = getCharacteristicNotes(key, mode, accidentalStyle);
-  const characteristicSet = new Set(characteristicNotes.map((n) => getNoteIndex(n)));
+  const characteristicSet = getCharacteristicNoteIndexSet(key, mode, accidentalStyle);
 
   const result: NoteMarker[] = [];
 
@@ -103,14 +102,7 @@ export function buildChordToneMarkers({
     const openString = STANDARD_TUNING[stringIndex];
     for (let fret = startFret; fret <= endFret; fret++) {
       const note = getNoteAtFret(openString, fret);
-      // Ionian keeps the pre-modal getIntervalRole call path (byte-identical
-      // to getModalIntervalRole(key, 'ionian', note) per Task 4's parity
-      // test, but using the existing helper avoids regression risk for the
-      // major-scale code path).
-      const interval =
-        mode === "ionian"
-          ? getIntervalRole(key, note)
-          : getModalIntervalRole(key, mode, note);
+      const interval = getModalIntervalRole(key, mode, note);
       if (interval === null) continue; // out of key/mode — drop entirely
 
       const inWindow = positions.some((p) =>
