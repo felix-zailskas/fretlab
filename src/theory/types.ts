@@ -39,4 +39,8 @@ export type NoteMarker = {
   fret: number; // 0 = open, up to 15
   note: string; // Display name (e.g., "C", "F#", "Bb")
   role: NoteDisplayRole;
+  // When true, the renderer draws an additional outer ring in the
+  // characteristic-tone color. Set by marker pipelines for notes flagged
+  // characteristic by getCharacteristicNotes(key, mode).
+  isCharacteristic?: boolean;
 };
