@@ -1,5 +1,6 @@
-import { useCallback, useMemo, useReducer, useState } from "react";
+import { useCallback, useEffect, useMemo, useReducer, useState } from "react";
 import { AccidentalToggle } from "./components/AccidentalToggle";
+import { ThemeToggle } from "./components/ThemeToggle";
 import { FretRangeControl } from "./components/FretRangeControl";
 import { KeySelector, ALL_NOTES_KEY } from "./components/KeySelector";
 import { ModeSelector } from "./components/ModeSelector";
@@ -104,11 +105,26 @@ function App() {
   const [chordRowMode, setChordRowMode] = useState<ChordRowMode>("triads");
   const [startFret, setStartFret] = useState(0);
   const [endFret, setEndFret] = useState(DEFAULT_END_FRET);
+  const [themeMode, setThemeMode] = useState<"auto" | "light" | "dark">("auto");
 
   // Per-view selector state, lifted here so it survives tab switches. Each
   // view's hook bundles its own useState calls + handlers.
   const chordShapesControls = useChordShapesState();
   const scalePositionsControls = useScalePositionsState();
+
+  useEffect(() => {
+    if (themeMode === "auto") {
+      delete document.documentElement.dataset.theme;
+    } else {
+      document.documentElement.dataset.theme = themeMode;
+    }
+  }, [themeMode]);
+
+  const cycleTheme = useCallback(() => {
+    setThemeMode((prev) =>
+      prev === "auto" ? "light" : prev === "light" ? "dark" : "auto",
+    );
+  }, []);
 
   const handleFretRangeChange = useCallback((start: number, end: number) => {
     setStartFret(start);
@@ -154,6 +170,7 @@ function App() {
               accidentalStyle={accidentalStyle}
               onChange={(style) => dispatchTonal({ type: "set-accidental", style })}
             />
+            <ThemeToggle mode={themeMode} onCycle={cycleTheme} />
             <FretRangeControl
               startFret={startFret}
               endFret={endFret}
