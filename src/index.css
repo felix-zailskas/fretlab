@@ -127,6 +127,24 @@
   }
 }
 
+/* Theme crossfade — only color-related properties so layout stays instant.
+   Excludes buttons (handled by their own faster transition above) and SVG
+   (handled separately below). */
+body,
+body :not(button):not(svg *) {
+  transition:
+    background-color 200ms ease-out,
+    color 200ms ease-out,
+    border-color 200ms ease-out;
+}
+
+svg,
+svg * {
+  transition:
+    fill 200ms ease-out,
+    stroke 200ms ease-out;
+}
+
 /* Respect users who request reduced motion — collapses every transition
    and animation to near-zero without removing the visual end-state. */
 @media (prefers-reduced-motion: reduce) {
