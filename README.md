@@ -4,6 +4,8 @@
 [![Deploy to GitHub Pages](https://github.com/felix-zailskas/fretlab/actions/workflows/deploy.yml/badge.svg)](https://github.com/felix-zailskas/fretlab/actions/workflows/deploy.yml)
 [![License: MIT](https://img.shields.io/github/license/felix-zailskas/fretlab?cacheSeconds=0)](LICENSE)
 
+**[Try it live →](https://felix-zailskas.github.io/fretlab/)**
+
 A key-aware fretboard reference for guitarists. Sits next to you during practice —
 laptop or iPad on a music stand — and answers questions like _"which notes do I target
 soloing over ii in G in position 3?"_ fast enough not to interrupt your flow.
