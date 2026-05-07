@@ -72,7 +72,8 @@ export function FretRangeControl({
         <div
           role="dialog"
           aria-label="Fret range"
-          className="absolute right-0 top-full mt-2 z-10 w-56 p-4 rounded-lg border border-line bg-surface-raised shadow-lg space-y-3"
+          data-popover
+          className="absolute right-0 top-full mt-2 z-10 w-56 p-4 rounded-lg border border-line bg-surface-raised shadow-lg space-y-3 origin-top-right"
         >
           <label className="flex items-center justify-between gap-2 text-sm text-fg-secondary">
             <span>Start fret</span>

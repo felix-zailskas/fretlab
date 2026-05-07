@@ -37,3 +37,20 @@
   --color-string: #9ca3af;
   --color-fret: #6b7280;
 }
+
+/* Popover entry animation — scales in from its trigger anchor.
+   Components opt in via data-popover; transform-origin should match the
+   popover's positioning (e.g. top-right when anchored to a top-right
+   trigger). Exit is instant since we unmount on close. */
+[data-popover] {
+  opacity: 1;
+  transform: scale(1);
+  transition:
+    opacity 180ms ease-out,
+    transform 180ms ease-out;
+
+  @starting-style {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+}
