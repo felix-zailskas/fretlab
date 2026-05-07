@@ -91,3 +91,29 @@
   --color-fg-faint: #6b7280;
   --color-fg-emphasis: #ffffff;
 }
+
+/* Theme crossfade — only color-related properties so layout stays instant.
+   Keep narrow: too broad a transition rule causes paint churn on hover. */
+body,
+body :not(button):not(svg *) {
+  transition:
+    background-color 200ms ease-out,
+    color 200ms ease-out,
+    border-color 200ms ease-out;
+}
+
+svg,
+svg * {
+  transition:
+    fill 200ms ease-out,
+    stroke 200ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body,
+  body :not(button):not(svg *),
+  svg,
+  svg * {
+    transition: none;
+  }
+}
