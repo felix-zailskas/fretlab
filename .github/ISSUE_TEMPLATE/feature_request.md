@@ -1,9 +1,9 @@
 ---
 name: Feature request
 about: Suggest a new view, control, or practice flow
-title: ''
+title: ""
 labels: enhancement
-assignees: ''
+assignees: ""
 ---
 
 ## The practice problem

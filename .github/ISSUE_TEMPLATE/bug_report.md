@@ -1,9 +1,9 @@
 ---
 name: Bug report
 about: Something in Fretlab doesn't work the way it should
-title: ''
+title: ""
 labels: bug
-assignees: ''
+assignees: ""
 ---
 
 ## What happened
