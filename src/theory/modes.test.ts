@@ -5,8 +5,9 @@ import {
   getModalIntervalRole,
   getCharacteristicNotes,
   getModalDiatonicTriads,
+  getModalDiatonicChords,
 } from "./modes";
-import { getIntervalRole, getDiatonicTriads } from "./scales";
+import { getIntervalRole, getDiatonicTriads, getDiatonicChords } from "./scales";
 
 describe("getModalScaleNotes", () => {
   it("returns C Ionian (= C major)", () => {
@@ -326,6 +327,109 @@ describe("getModalDiatonicTriads", () => {
       "♭V",
       "♭VI",
       "♭vii",
+    ]);
+  });
+});
+
+describe("getModalDiatonicChords", () => {
+  it("Ionian output matches getDiatonicChords", () => {
+    expect(getModalDiatonicChords("C", "ionian")).toEqual(getDiatonicChords("C"));
+  });
+
+  it("C Dorian sevenths (i7, ii7, ♭IIImaj7, IV7, v7, viø7, ♭VIImaj7)", () => {
+    const chords = getModalDiatonicChords("C", "dorian", "flat");
+    expect(chords.map((c) => c.symbol)).toEqual([
+      "Cm7",
+      "Dm7",
+      "Ebmaj7",
+      "F7",
+      "Gm7",
+      "Am7b5",
+      "Bbmaj7",
+    ]);
+    expect(chords.map((c) => c.romanNumeral)).toEqual([
+      "i7",
+      "ii7",
+      "♭IIImaj7",
+      "IV7",
+      "v7",
+      "viø7",
+      "♭VIImaj7",
+    ]);
+    expect(chords.map((c) => c.quality)).toEqual([
+      "m7",
+      "m7",
+      "maj7",
+      "7",
+      "m7",
+      "m7b5",
+      "maj7",
+    ]);
+  });
+
+  it("C Lydian sevenths qualities (maj7, 7, m7, m7b5, maj7, m7, m7)", () => {
+    const chords = getModalDiatonicChords("C", "lydian", "sharp");
+    expect(chords.map((c) => c.quality)).toEqual([
+      "maj7",
+      "7",
+      "m7",
+      "m7b5",
+      "maj7",
+      "m7",
+      "m7",
+    ]);
+    expect(chords.map((c) => c.romanNumeral)).toEqual([
+      "Imaj7",
+      "II7",
+      "iii7",
+      "♯ivø7",
+      "Vmaj7",
+      "vi7",
+      "vii7",
+    ]);
+  });
+
+  it("C Mixolydian sevenths (I7, ii7, iiiø7, IVmaj7, v7, vi7, ♭VIImaj7)", () => {
+    const chords = getModalDiatonicChords("C", "mixolydian", "flat");
+    expect(chords.map((c) => c.romanNumeral)).toEqual([
+      "I7",
+      "ii7",
+      "iiiø7",
+      "IVmaj7",
+      "v7",
+      "vi7",
+      "♭VIImaj7",
+    ]);
+    expect(chords.map((c) => c.quality)).toEqual([
+      "7",
+      "m7",
+      "m7b5",
+      "maj7",
+      "m7",
+      "m7",
+      "maj7",
+    ]);
+  });
+
+  it("C Locrian sevenths (iø7, ♭IImaj7, ♭iii7, iv7, ♭Vmaj7, ♭VI7, ♭vii7)", () => {
+    const chords = getModalDiatonicChords("C", "locrian", "flat");
+    expect(chords.map((c) => c.romanNumeral)).toEqual([
+      "iø7",
+      "♭IImaj7",
+      "♭iii7",
+      "iv7",
+      "♭Vmaj7",
+      "♭VI7",
+      "♭vii7",
+    ]);
+    expect(chords.map((c) => c.quality)).toEqual([
+      "m7b5",
+      "maj7",
+      "m7",
+      "m7",
+      "maj7",
+      "7",
+      "m7",
     ]);
   });
 });

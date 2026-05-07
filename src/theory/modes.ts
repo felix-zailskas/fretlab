@@ -4,7 +4,13 @@ import {
   getNoteIndex,
   type AccidentalStyle,
 } from "./notes";
-import type { DiatonicTriad, ScaleStep, TriadQuality } from "./scales";
+import type {
+  ChordQuality,
+  DiatonicChord,
+  DiatonicTriad,
+  ScaleStep,
+  TriadQuality,
+} from "./scales";
 import type { IntervalRole } from "./types";
 
 const INTERVAL_NAMES: IntervalRole[] = [
@@ -216,6 +222,96 @@ export function getModalDiatonicTriads(
       quality,
       symbol: root + TRIAD_QUALITY_SUFFIX[quality],
       notes: [root, scale[(i + 2) % 7], scale[(i + 4) % 7]],
+    };
+  });
+}
+
+const QUALITY_SUFFIX: Record<ChordQuality, string> = {
+  maj7: "maj7",
+  m7: "m7",
+  "7": "7",
+  m7b5: "m7b5",
+};
+
+function seventhQualityFromIntervals(
+  thirdSemitones: number,
+  fifthSemitones: number,
+  seventhSemitones: number,
+): ChordQuality {
+  // Compare to canonical chord-stack semitone signatures:
+  //   maj7 = (4, 7, 11), m7 = (3, 7, 10), 7 = (4, 7, 10), m7b5 = (3, 6, 10).
+  if (thirdSemitones === 4 && fifthSemitones === 7 && seventhSemitones === 11)
+    return "maj7";
+  if (thirdSemitones === 3 && fifthSemitones === 7 && seventhSemitones === 10)
+    return "m7";
+  if (thirdSemitones === 4 && fifthSemitones === 7 && seventhSemitones === 10)
+    return "7";
+  if (thirdSemitones === 3 && fifthSemitones === 6 && seventhSemitones === 10)
+    return "m7b5";
+  // Mirrors triadQualityFromIntervals's defensive throw — surfaces unsupported
+  // patterns loudly when future modes (harmonic/melodic minor parents) land.
+  throw new Error(
+    `seventhQualityFromIntervals: unsupported pattern third=${thirdSemitones}, fifth=${fifthSemitones}, seventh=${seventhSemitones}`,
+  );
+}
+
+const QUALITY_TO_TRIAD: Record<ChordQuality, TriadQuality> = {
+  maj7: "maj",
+  m7: "min",
+  "7": "maj",
+  m7b5: "dim",
+};
+
+function buildSeventhRomanNumeral(
+  mode: Mode,
+  position: number,
+  quality: ChordQuality,
+): string {
+  const prefix = modalDegreePrefix(mode, position);
+  const base = TRIAD_BASE_NUMERALS[position];
+  // Case follows the *triad* quality of the stack — half-diminished is still
+  // a minor-quality triad with a flat 5, so it stays lowercase.
+  const triadQuality = QUALITY_TO_TRIAD[quality];
+  const numeral = triadQuality === "maj" ? base : base.toLowerCase();
+  // Suffix encoding:
+  //   maj7  → "maj7"
+  //   m7    → "7"        (the minor-case numeral already implies m)
+  //   7     → "7"
+  //   m7b5  → "ø7"       (the half-dim glyph; lowercase numeral implies minor)
+  let suffix: string;
+  switch (quality) {
+    case "maj7":
+      suffix = "maj7";
+      break;
+    case "m7b5":
+      suffix = "ø7";
+      break;
+    case "m7":
+    case "7":
+      suffix = "7";
+      break;
+  }
+  return `${prefix}${numeral}${suffix}`;
+}
+
+export function getModalDiatonicChords(
+  key: string,
+  mode: Mode,
+  accidentalStyle?: AccidentalStyle,
+): DiatonicChord[] {
+  const scale = getModalScaleNotes(key, mode, accidentalStyle);
+  const intervals = MODE_INTERVALS[mode];
+  return scale.map((root, i) => {
+    const third = (((intervals[(i + 2) % 7] - intervals[i]) % 12) + 12) % 12;
+    const fifth = (((intervals[(i + 4) % 7] - intervals[i]) % 12) + 12) % 12;
+    const seventh = (((intervals[(i + 6) % 7] - intervals[i]) % 12) + 12) % 12;
+    const quality = seventhQualityFromIntervals(third, fifth, seventh);
+    return {
+      degree: i + 1,
+      romanNumeral: buildSeventhRomanNumeral(mode, i, quality),
+      quality,
+      symbol: root + QUALITY_SUFFIX[quality],
+      notes: [root, scale[(i + 2) % 7], scale[(i + 4) % 7], scale[(i + 6) % 7]],
     };
   });
 }
