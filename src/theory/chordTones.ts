@@ -9,6 +9,12 @@ import {
 } from "./notes";
 import { isInPositionWindow, type PositionId } from "./positions";
 import { getIntervalRole, type DiatonicChord, type DiatonicTriad } from "./scales";
+import {
+  getCharacteristicNotes,
+  getModalIntervalRole,
+  parentMajorOf,
+  type Mode,
+} from "./modes";
 import type { NoteDisplayRole, NoteMarker } from "./types";
 
 // Roles the Legend can toggle off (demoted to 'scale' when their toggle is
@@ -51,6 +57,10 @@ export type BuildChordToneMarkersInput = {
   enabledHighlights: Set<HighlightableRole>;
   startFret: number;
   endFret: number;
+  // Optional — defaults to 'ionian', preserving existing behavior. When
+  // 'ionian', the in-mode check, parent-major anchoring, and characteristic
+  // overlay all degrade to identical output of the pre-modal pipeline.
+  mode?: Mode;
 };
 
 // Pure function: given the Chord-Tones view's full input, returns the
@@ -64,6 +74,11 @@ export type BuildChordToneMarkersInput = {
 // A fret is "in window" if it falls in ANY of the selected positions. When
 // showContext=true, in-key notes outside the union of windows render with
 // role 'muted' (faint context); when false, they're dropped entirely.
+//
+// In modal mode (mode !== 'ionian'), in-mode membership is decided via
+// getModalIntervalRole, position windows are anchored on the parent major's
+// tonic (parentMajorOf), and notes flagged by getCharacteristicNotes are
+// stamped with isCharacteristic=true.
 export function buildChordToneMarkers({
   key,
   chord,
@@ -73,9 +88,14 @@ export function buildChordToneMarkers({
   enabledHighlights,
   startFret,
   endFret,
+  mode = "ionian",
 }: BuildChordToneMarkersInput): NoteMarker[] {
   if (key === ALL_NOTES_KEY) return [];
   if (positions.length === 0) return [];
+
+  const parentKey = parentMajorOf(key, mode);
+  const characteristicNotes = getCharacteristicNotes(key, mode, accidentalStyle);
+  const characteristicSet = new Set(characteristicNotes.map((n) => getNoteIndex(n)));
 
   const result: NoteMarker[] = [];
 
@@ -83,11 +103,18 @@ export function buildChordToneMarkers({
     const openString = STANDARD_TUNING[stringIndex];
     for (let fret = startFret; fret <= endFret; fret++) {
       const note = getNoteAtFret(openString, fret);
-      const interval = getIntervalRole(key, note);
-      if (interval === null) continue; // out of key — drop entirely
+      // Ionian keeps the pre-modal getIntervalRole call path (byte-identical
+      // to getModalIntervalRole(key, 'ionian', note) per Task 4's parity
+      // test, but using the existing helper avoids regression risk for the
+      // major-scale code path).
+      const interval =
+        mode === "ionian"
+          ? getIntervalRole(key, note)
+          : getModalIntervalRole(key, mode, note);
+      if (interval === null) continue; // out of key/mode — drop entirely
 
       const inWindow = positions.some((p) =>
-        isInPositionWindow(key, p, fret, startFret, endFret),
+        isInPositionWindow(parentKey, p, fret, startFret, endFret),
       );
       if (!inWindow && !showContext) continue; // hide outside-position notes
 
@@ -102,11 +129,14 @@ export function buildChordToneMarkers({
         role = "muted"; // outside-window context override
       }
 
+      const isCharacteristic = characteristicSet.has(getNoteIndex(note));
+
       result.push({
         string: stringIndex,
         fret,
         note: getDisplayName(note, key, accidentalStyle),
         role,
+        ...(isCharacteristic ? { isCharacteristic: true } : {}),
       });
     }
   }

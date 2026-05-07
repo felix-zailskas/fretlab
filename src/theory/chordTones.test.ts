@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import { roleFromChordTone, HIGHLIGHTABLE, buildChordToneMarkers } from "./chordTones";
 import { DEFAULT_END_FRET } from "./constants";
 import { getDiatonicChords, getDiatonicTriads } from "./scales";
+import { getModalDiatonicChords, getModalDiatonicTriads } from "./modes";
 import type { HighlightableRole } from "../components/Legend";
 import { ALL_NOTES_KEY } from "../components/KeySelector";
 
@@ -387,6 +388,89 @@ describe("buildChordToneMarkers — narrowed range", () => {
     for (const m of markers) {
       expect(m.fret).toBeGreaterThanOrEqual(4);
       expect(m.fret).toBeLessThanOrEqual(8);
+    }
+  });
+});
+
+describe("buildChordToneMarkers — modal", () => {
+  it("mode='ionian' is regression-equivalent to omitting mode", () => {
+    const baseInput = {
+      key: "C",
+      chord: getDiatonicChords("C")[0],
+      accidentalStyle: "flat" as const,
+      positions: ["P1" as const],
+      showContext: false,
+      enabledHighlights: new Set(["root", "third", "fifth", "seventh"] as const),
+      startFret: 0,
+      endFret: 12,
+    };
+    const without = buildChordToneMarkers(baseInput);
+    const withIonian = buildChordToneMarkers({ ...baseInput, mode: "ionian" });
+    expect(withIonian).toEqual(without);
+  });
+
+  it("D Dorian + Dm7 + P1 emits markers in frets 0-3 (parent C major's P1)", () => {
+    const dDorianI = getModalDiatonicChords("D", "dorian")[0]; // Dm7
+    const markers = buildChordToneMarkers({
+      key: "D",
+      mode: "dorian",
+      chord: dDorianI,
+      accidentalStyle: "flat",
+      positions: ["P1"],
+      showContext: false,
+      enabledHighlights: new Set(["root", "third", "fifth", "seventh"]),
+      startFret: 0,
+      endFret: 12,
+    });
+    // Every marker should fall inside the parent C-major P1 window (0-3),
+    // not D-Ionian's P1 (2-5).
+    expect(markers.length).toBeGreaterThan(0);
+    for (const m of markers) {
+      expect(m.fret).toBeGreaterThanOrEqual(0);
+      expect(m.fret).toBeLessThanOrEqual(3);
+    }
+  });
+
+  it("drops out-of-mode notes (C Lydian filters out F)", () => {
+    const cLydianI = getModalDiatonicChords("C", "lydian", "sharp")[0]; // Cmaj7
+    const markers = buildChordToneMarkers({
+      key: "C",
+      mode: "lydian",
+      chord: cLydianI,
+      accidentalStyle: "sharp",
+      positions: ["P1"],
+      showContext: true, // include context so we'd see F if it weren't filtered
+      enabledHighlights: new Set(["root", "third", "fifth", "seventh"]),
+      startFret: 0,
+      endFret: 12,
+    });
+    // C Lydian has F#, not F. No marker should display "F" (without sharp).
+    for (const m of markers) {
+      expect(m.note).not.toBe("F");
+    }
+  });
+
+  it("flags characteristic notes in Dorian (♮6 = A in C Dorian)", () => {
+    const cDorianI = getModalDiatonicTriads("C", "dorian", "flat")[0]; // Cm
+    const markers = buildChordToneMarkers({
+      key: "C",
+      mode: "dorian",
+      chord: cDorianI,
+      accidentalStyle: "flat",
+      positions: ["P1", "P2", "P3", "P4", "P5"],
+      showContext: false,
+      enabledHighlights: new Set(["root", "third", "fifth", "seventh"]),
+      startFret: 0,
+      endFret: 12,
+    });
+    const aMarkers = markers.filter((m) => m.note === "A");
+    expect(aMarkers.length).toBeGreaterThan(0);
+    for (const m of aMarkers) {
+      expect(m.isCharacteristic).toBe(true);
+    }
+    const cMarkers = markers.filter((m) => m.note === "C");
+    for (const m of cMarkers) {
+      expect(m.isCharacteristic).toBeFalsy();
     }
   });
 });
