@@ -39,7 +39,7 @@ export function ModeSelector({ mode, onModeChange, disabled }: ModeSelectorProps
             mode === m
               ? mode === "ionian"
                 ? "bg-surface-active text-fg-emphasis"
-                : "bg-root text-fg-emphasis"
+                : "bg-mode text-surface"
               : "bg-surface-raised text-fg-secondary hover:bg-surface-active"
           }`}
         >

@@ -31,6 +31,7 @@
   --color-scale: #6b7280;
   --color-muted: #374151;
   --color-characteristic: #f5d76e; /* warm gold — distinct from R/3/5/7 palette */
+  --color-mode: #f59e0b; /* amber — modal-active accent, distinct from root blue */
 
   /* Fretboard render */
   --color-fretboard: #292524;
