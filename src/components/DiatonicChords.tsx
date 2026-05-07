@@ -1,10 +1,10 @@
 import type { AccidentalStyle } from "../theory/notes";
+import { type ChordQuality, type TriadQuality } from "../theory/scales";
 import {
-  getDiatonicChords,
-  getDiatonicTriads,
-  type ChordQuality,
-  type TriadQuality,
-} from "../theory/scales";
+  getModalDiatonicChords,
+  getModalDiatonicTriads,
+  type Mode,
+} from "../theory/modes";
 import { ALL_NOTES_KEY } from "./KeySelector";
 
 export type ChordRowMode = "triads" | "sevenths";
@@ -16,6 +16,9 @@ type DiatonicChordsProps = {
   onSelectDegree: (degree: number) => void;
   mode: ChordRowMode;
   onModeChange: (mode: ChordRowMode) => void;
+  // Optional — defaults to 'ionian', preserving today's behavior. Phase D
+  // wires App.tsx to pass this explicitly from global state.
+  modalMode?: Mode;
 };
 
 const QUALITY_ACCENT: Record<ChordQuality | TriadQuality, string> = {
@@ -43,13 +46,14 @@ export function DiatonicChords({
   onSelectDegree,
   mode,
   onModeChange,
+  modalMode = "ionian",
 }: DiatonicChordsProps) {
   if (selectedKey === ALL_NOTES_KEY) return null;
 
   const chords =
     mode === "sevenths"
-      ? getDiatonicChords(selectedKey, accidentalStyle)
-      : getDiatonicTriads(selectedKey, accidentalStyle);
+      ? getModalDiatonicChords(selectedKey, modalMode, accidentalStyle)
+      : getModalDiatonicTriads(selectedKey, modalMode, accidentalStyle);
 
   return (
     <section className="mt-8">
