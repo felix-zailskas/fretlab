@@ -121,17 +121,18 @@ export function Fretboard({
   }
 
   return (
-    <div className="relative">
+    <div className="relative shadow-lg rounded">
       <svg
         viewBox={`0 0 ${totalWidth} ${totalHeight}`}
         className="w-full"
         preserveAspectRatio="xMidYMid meet"
       >
-        {/* Fretboard background */}
+        {/* Fretboard background — extends to x=0 so open-note markers
+          (rendered at nutX-20) sit on the dark board in all color modes. */}
         <rect
-          x={nutX}
+          x={0}
           y={boardTop - 10}
-          width={boardWidth}
+          width={nutX + boardWidth}
           height={boardBottom - boardTop + 20}
           rx={4}
           fill="var(--color-fretboard)"
