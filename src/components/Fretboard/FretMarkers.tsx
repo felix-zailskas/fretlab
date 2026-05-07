@@ -22,35 +22,24 @@ export function FretMarkers({
   const visibleSingles = SINGLE_DOT_FRETS.filter((f) => f >= startFret && f <= endFret);
   const visibleDoubles = DOUBLE_DOT_FRETS.filter((f) => f >= startFret && f <= endFret);
 
+  // Each marker is rendered as two circles — a slightly larger dark outer
+  // ring + the colored inner dot — to mimic the inset-shadow look of a real
+  // inlay rather than a flat printed dot.
+  function marker(key: string, cx: number, cy: number) {
+    return (
+      <g key={key}>
+        <circle cx={cx} cy={cy} r={5.5} fill="rgba(0, 0, 0, 0.2)" />
+        <circle cx={cx} cy={cy} r={5} fill="var(--color-fret)" opacity={0.4} />
+      </g>
+    );
+  }
+
   return (
     <g>
-      {visibleSingles.map((fret) => (
-        <circle
-          key={fret}
-          cx={fretX(fret)}
-          cy={midY}
-          r={5}
-          fill="var(--color-fret)"
-          opacity={0.4}
-        />
-      ))}
+      {visibleSingles.map((fret) => marker(`${fret}`, fretX(fret), midY))}
       {visibleDoubles.flatMap((fret) => [
-        <circle
-          key={`${fret}-top`}
-          cx={fretX(fret)}
-          cy={midY - dotOffset}
-          r={5}
-          fill="var(--color-fret)"
-          opacity={0.4}
-        />,
-        <circle
-          key={`${fret}-bottom`}
-          cx={fretX(fret)}
-          cy={midY + dotOffset}
-          r={5}
-          fill="var(--color-fret)"
-          opacity={0.4}
-        />,
+        marker(`${fret}-top`, fretX(fret), midY - dotOffset),
+        marker(`${fret}-bottom`, fretX(fret), midY + dotOffset),
       ])}
     </g>
   );
