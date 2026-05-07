@@ -41,9 +41,9 @@
 
 @media (prefers-color-scheme: light) {
   :root {
-    --color-surface: #fdf5e4;
-    --color-surface-raised: #f2e6ce;
-    --color-surface-active: #e5d5b5;
+    --color-surface: #f0e2bf;
+    --color-surface-raised: #e5d3a4;
+    --color-surface-active: #d4be88;
     --color-line: #e6ddd1;
     --color-line-emphasis: #d0c7bb;
     --color-line-hover: #a89e94;
