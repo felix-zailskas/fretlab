@@ -121,7 +121,10 @@ export function Fretboard({
   }
 
   return (
-    <div className="relative shadow-lg rounded">
+    <div
+      className="relative rounded"
+      style={{ boxShadow: "0 8px 32px -4px rgb(60 32 16 / 0.25)" }}
+    >
       <svg
         viewBox={`0 0 ${totalWidth} ${totalHeight}`}
         className="w-full"
@@ -285,7 +288,7 @@ export function Fretboard({
               x={centerX}
               y={22}
               textAnchor="middle"
-              fontSize={12}
+              fontSize={13}
               fontWeight={500}
               fontFamily="system-ui, sans-serif"
               fill="var(--color-fg-primary)"
@@ -297,8 +300,10 @@ export function Fretboard({
         })}
       </svg>
       {emptyMessage && (
-        <div className="absolute inset-0 flex items-center justify-center text-white pointer-events-none">
-          {emptyMessage}
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <div className="px-4 py-2 rounded bg-surface-raised text-fg-primary shadow">
+            {emptyMessage}
+          </div>
         </div>
       )}
     </div>

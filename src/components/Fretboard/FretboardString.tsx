@@ -15,13 +15,25 @@ export function FretboardString({
   const strokeWidth = 2.5 - stringIndex * 0.3;
 
   return (
-    <line
-      x1={xStart}
-      y1={y}
-      x2={xEnd}
-      y2={y}
-      stroke="var(--color-string)"
-      strokeWidth={strokeWidth}
-    />
+    <g>
+      {/* Subtle highlight line above the string — gives a hint of depth so
+        strings read as physical, not flat printed lines. */}
+      <line
+        x1={xStart}
+        y1={y - 0.5}
+        x2={xEnd}
+        y2={y - 0.5}
+        stroke="rgba(255, 255, 255, 0.15)"
+        strokeWidth={strokeWidth * 0.6}
+      />
+      <line
+        x1={xStart}
+        y1={y}
+        x2={xEnd}
+        y2={y}
+        stroke="var(--color-string)"
+        strokeWidth={strokeWidth}
+      />
+    </g>
   );
 }

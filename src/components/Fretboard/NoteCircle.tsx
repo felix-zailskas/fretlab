@@ -20,7 +20,7 @@ type NoteCircleProps = {
 export function NoteCircle({ cx, cy, note, role, isCharacteristic }: NoteCircleProps) {
   const color = ROLE_COLORS[role];
   const isMuted = role === "muted";
-  const radius = isMuted ? 10 : 13;
+  const radius = isMuted ? 10 : role === "root" ? 14 : 13;
   const fontSize = isMuted ? 9 : 11;
   // Ring radius sits 3px outside the fill circle; 2px stroke keeps it
   // readable but visually subordinate to the role color.
