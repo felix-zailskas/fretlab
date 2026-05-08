@@ -5,6 +5,8 @@ import { getModalDiatonicChords, getModalDiatonicTriads } from "./modes";
 import type { HighlightableRole } from "../components/Legend";
 import { ALL_NOTES_KEY } from "../components/KeySelector";
 import { TUNINGS } from "./tuning";
+import type { Tuning } from "./tuning";
+import { CHROMATIC_SCALE, getNoteAtFret, getNoteIndex } from "./notes";
 
 describe("roleFromChordTone", () => {
   it('returns "scale" for any in-key note when no chord is given', () => {
@@ -490,6 +492,56 @@ describe("buildChordToneMarkers — modal", () => {
     const cMarkers = markers.filter((m) => m.note === "C");
     for (const m of cMarkers) {
       expect(m.isCharacteristic).toBeFalsy();
+    }
+  });
+});
+
+describe("buildChordToneMarkers — tuning-agnostic invariant", () => {
+  // Seeded LCG so failures are reproducible.
+  function makeRandom(seed: number) {
+    let s = seed >>> 0;
+    return () => {
+      s = (s * 1664525 + 1013904223) >>> 0;
+      return s / 0x100000000;
+    };
+  }
+
+  function randomTuning(rand: () => number): Tuning {
+    const pick = () =>
+      CHROMATIC_SCALE[Math.floor(rand() * CHROMATIC_SCALE.length)];
+    return {
+      id: "standard", // any TuningId; the predicate doesn't read this field
+      name: "Random",
+      strings: [pick(), pick(), pick(), pick(), pick(), pick()],
+    };
+  }
+
+  it("every emitted marker maps back to its open-string note via getNoteAtFret", () => {
+    // Universal property: regardless of tuning, the (string, fret) returned by
+    // buildChordToneMarkers must encode a note consistent with the tuning's
+    // open string at that index. Catches any silent regression to a hardcoded
+    // tuning.
+    const rand = makeRandom(0xc001cafe);
+    for (let iter = 0; iter < 20; iter++) {
+      const tuning = randomTuning(rand);
+      const markers = buildChordToneMarkers({
+        tuning,
+        key: "C",
+        chord: null,
+        accidentalStyle: "sharp",
+        positions: ["P1", "P2", "P3", "P4", "P5"],
+        showContext: true,
+        enabledHighlights: new Set(["root", "third", "fifth", "seventh"]),
+        startFret: 0,
+        endFret: 12,
+      });
+      for (const m of markers) {
+        const openString = tuning.strings[m.string];
+        const expectedAtFret = getNoteAtFret(openString, m.fret);
+        // m.note may be re-spelled (sharp/flat) for display; compare via
+        // chromatic index for enharmonic equivalence.
+        expect(getNoteIndex(m.note)).toBe(getNoteIndex(expectedAtFret));
+      }
     }
   });
 });
