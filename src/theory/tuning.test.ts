@@ -1,10 +1,5 @@
 import { describe, it, expect } from "vitest";
-import {
-  TUNINGS,
-  VIEWS_BY_TUNING,
-  tuningSupportsView,
-  type TuningId,
-} from "./tuning";
+import { TUNINGS, VIEWS_BY_TUNING, tuningSupportsView, type TuningId } from "./tuning";
 import type { ViewId } from "../views/types";
 
 const ALL_TUNING_IDS: TuningId[] = ["standard", "open-g"];

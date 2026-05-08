@@ -1,16 +1,26 @@
 # Open Tunings Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use
+> superpowers:subagent-driven-development (recommended) or superpowers:executing-plans
+> to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Add Open G tuning support to NoteMap, with a tuning-aware data model that scales to future preset and custom tunings without further refactoring.
+**Goal:** Add Open G tuning support to NoteMap, with a tuning-aware data model that
+scales to future preset and custom tunings without further refactoring.
 
-**Architecture:** A new `Tuning` data model (`src/theory/tuning.ts`) is the single source of truth for tuning identity, presets, and per-tuning view support. NoteMap is parameterized by `Tuning`; ScalePositions and ChordShapes are gated to standard tuning at the App level via disabled tabs. Adding a future preset or custom tuning is a one-row change to `TUNINGS` and `VIEWS_BY_TUNING`.
+**Architecture:** A new `Tuning` data model (`src/theory/tuning.ts`) is the single
+source of truth for tuning identity, presets, and per-tuning view support. NoteMap is
+parameterized by `Tuning`; ScalePositions and ChordShapes are gated to standard tuning
+at the App level via disabled tabs. Adding a future preset or custom tuning is a one-row
+change to `TUNINGS` and `VIEWS_BY_TUNING`.
 
 **Tech Stack:** React 19, TypeScript, Vitest, Tailwind v4, Vite.
 
-**Spec:** [`docs/superpowers/specs/2026-05-09-open-tunings-design.md`](../specs/2026-05-09-open-tunings-design.md)
+**Spec:**
+[`docs/superpowers/specs/2026-05-09-open-tunings-design.md`](../specs/2026-05-09-open-tunings-design.md)
 
-**Naming note:** the spec section "Threading" refers to a function `getChordTonePositions`. The actual function in `src/theory/chordTones.ts` is named `buildChordToneMarkers`. This plan uses the correct name. Behavior intent is unchanged.
+**Naming note:** the spec section "Threading" refers to a function
+`getChordTonePositions`. The actual function in `src/theory/chordTones.ts` is named
+`buildChordToneMarkers`. This plan uses the correct name. Behavior intent is unchanged.
 
 ---
 
@@ -18,32 +28,48 @@
 
 **New files:**
 
-- `src/views/types.ts` — `ViewId` type. One responsibility: name the set of top-level views.
-- `src/theory/tuning.ts` — `Tuning`, `TuningId`, `TUNINGS`, `VIEWS_BY_TUNING`, `tuningSupportsView`. One responsibility: tuning identity + view-support lookup.
+- `src/views/types.ts` — `ViewId` type. One responsibility: name the set of top-level
+  views.
+- `src/theory/tuning.ts` — `Tuning`, `TuningId`, `TUNINGS`, `VIEWS_BY_TUNING`,
+  `tuningSupportsView`. One responsibility: tuning identity + view-support lookup.
 - `src/theory/tuning.test.ts` — tests for the tuning module.
-- `src/components/TuningSelector.tsx` — the dropdown UI. One responsibility: present preset tunings to the user and emit `TuningId` selections.
+- `src/components/TuningSelector.tsx` — the dropdown UI. One responsibility: present
+  preset tunings to the user and emit `TuningId` selections.
 
 **Modified files:**
 
-- `src/theory/notes.ts` — add `ChromaticNote` type export; tighten `getNoteAtFret` return type; **delete** `STANDARD_TUNING`.
-- `src/theory/notes.test.ts` — migrate `STANDARD_TUNING` import; add random-tuning property test.
-- `src/theory/chordTones.ts` — add `tuning: Tuning` to `BuildChordToneMarkersInput`; replace `STANDARD_TUNING` loop with `tuning.strings`.
-- `src/theory/chordTones.test.ts` — pass `TUNINGS.standard` in existing tests; add random-tuning property test.
-- `src/theory/chordShapes.ts` — replace `STANDARD_TUNING` import with `TUNINGS.standard.strings` (this module is standard-only by design, but the global constant goes away).
+- `src/theory/notes.ts` — add `ChromaticNote` type export; tighten `getNoteAtFret`
+  return type; **delete** `STANDARD_TUNING`.
+- `src/theory/notes.test.ts` — migrate `STANDARD_TUNING` import; add random-tuning
+  property test.
+- `src/theory/chordTones.ts` — add `tuning: Tuning` to `BuildChordToneMarkersInput`;
+  replace `STANDARD_TUNING` loop with `tuning.strings`.
+- `src/theory/chordTones.test.ts` — pass `TUNINGS.standard` in existing tests; add
+  random-tuning property test.
+- `src/theory/chordShapes.ts` — replace `STANDARD_TUNING` import with
+  `TUNINGS.standard.strings` (this module is standard-only by design, but the global
+  constant goes away).
 - `src/views/NoteMapView.tsx` — accept `tuning: Tuning` prop; loop `tuning.strings`.
-- `src/views/ScalePositionsView.tsx` — pass `tuning: TUNINGS.standard` into `buildChordToneMarkers`.
-- `src/components/ViewSelector.tsx` — accept `disabledViews: ReadonlySet<ViewId>` prop; tighten types to `ViewId`; render disabled tabs with reduced opacity, `disabled`, `aria-disabled`, and `title`.
-- `src/App.tsx` — `selectedView` becomes `useState<ViewId>`; add `tuningId` state with auto-fallback setter; render `TuningSelector` in top bar; convert view-rendering branch to an exhaustive switch.
+- `src/views/ScalePositionsView.tsx` — pass `tuning: TUNINGS.standard` into
+  `buildChordToneMarkers`.
+- `src/components/ViewSelector.tsx` — accept `disabledViews: ReadonlySet<ViewId>` prop;
+  tighten types to `ViewId`; render disabled tabs with reduced opacity, `disabled`,
+  `aria-disabled`, and `title`.
+- `src/App.tsx` — `selectedView` becomes `useState<ViewId>`; add `tuningId` state with
+  auto-fallback setter; render `TuningSelector` in top bar; convert view-rendering
+  branch to an exhaustive switch.
 
 ---
 
 ## Phase 1: Tighten `ViewId` and `ChromaticNote` types
 
-Pure type tightening with no behavior change. Establishes types that later phases depend on.
+Pure type tightening with no behavior change. Establishes types that later phases depend
+on.
 
 ### Task 1: Add `ViewId` type
 
 **Files:**
+
 - Create: `src/views/types.ts`
 
 - [ ] **Step 1: Create the file**
@@ -56,8 +82,7 @@ export type ViewId = "note-map" | "scale-positions" | "chord-shapes";
 
 - [ ] **Step 2: Verify typecheck**
 
-Run: `npm run build`
-Expected: no errors.
+Run: `npm run build` Expected: no errors.
 
 - [ ] **Step 3: Commit**
 
@@ -69,6 +94,7 @@ git commit -m "feat(views): add ViewId type"
 ### Task 2: Tighten `ViewSelector` to `ViewId`
 
 **Files:**
+
 - Modify: `src/components/ViewSelector.tsx`
 
 - [ ] **Step 1: Update `ViewSelector.tsx`**
@@ -127,12 +153,13 @@ export function ViewSelector({ selectedView, onViewChange }: ViewSelectorProps) 
 
 - [ ] **Step 2: Verify typecheck**
 
-Run: `npm run build`
-Expected: error in `App.tsx` because `useState("note-map")` is `useState<string>`, not `useState<ViewId>`. This is fixed in the next task.
+Run: `npm run build` Expected: error in `App.tsx` because `useState("note-map")` is
+`useState<string>`, not `useState<ViewId>`. This is fixed in the next task.
 
 ### Task 3: Tighten `App.tsx` `selectedView` to `ViewId` + exhaustive switch
 
 **Files:**
+
 - Modify: `src/App.tsx`
 
 - [ ] **Step 1: Update the import block in `App.tsx`**
@@ -159,7 +186,8 @@ const [selectedView, setSelectedView] = useState<ViewId>("note-map");
 
 - [ ] **Step 3: Convert view-rendering branches to an exhaustive switch**
 
-Replace the four `{selectedView === "..." && (...)}` blocks (lines 214-290) and the trailing fallback with a single function call. Above the `return`, add:
+Replace the four `{selectedView === "..." && (...)}` blocks (lines 214-290) and the
+trailing fallback with a single function call. Above the `return`, add:
 
 ```tsx
 function renderView(): React.ReactNode {
@@ -261,23 +289,32 @@ Then replace the body of the `<main>` element with:
 </main>
 ```
 
-Add `import React from "react";` if needed (or use `import { type ReactNode } from "react"` and change return type to `ReactNode`). Note: existing `App.tsx` already imports React hooks but not the React namespace. Use the named-import style:
+Add `import React from "react";` if needed (or use
+`import { type ReactNode } from "react"` and change return type to `ReactNode`). Note:
+existing `App.tsx` already imports React hooks but not the React namespace. Use the
+named-import style:
 
 ```tsx
-import { useCallback, useEffect, useMemo, useReducer, useState, type ReactNode } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useReducer,
+  useState,
+  type ReactNode,
+} from "react";
 ```
 
 and change `renderView(): React.ReactNode` to `renderView(): ReactNode`.
 
 - [ ] **Step 4: Run lint, typecheck, tests**
 
-Run: `npm run lint && npm run build && npm test`
-Expected: all pass.
+Run: `npm run lint && npm run build && npm test` Expected: all pass.
 
 - [ ] **Step 5: Manual smoke check**
 
-Run: `npm run dev`
-Open http://localhost:5173 (or attach to user's running instance). Click each of the three view tabs; verify each renders correctly. Stop dev server.
+Run: `npm run dev` Open http://localhost:5173 (or attach to user's running instance).
+Click each of the three view tabs; verify each renders correctly. Stop dev server.
 
 - [ ] **Step 6: Commit**
 
@@ -289,6 +326,7 @@ git commit -m "refactor: tighten selectedView to ViewId and use exhaustive switc
 ### Task 4: Export `ChromaticNote`; tighten `getNoteAtFret` return type
 
 **Files:**
+
 - Modify: `src/theory/notes.ts`
 
 - [ ] **Step 1: Add the type export and tighten the return type**
@@ -313,17 +351,17 @@ to:
 export function getNoteAtFret(openString: string, fret: number): ChromaticNote {
 ```
 
-The body already returns `CHROMATIC_SCALE[noteIndex]`, which TypeScript will now narrow correctly.
+The body already returns `CHROMATIC_SCALE[noteIndex]`, which TypeScript will now narrow
+correctly.
 
 - [ ] **Step 2: Run typecheck**
 
-Run: `npm run build`
-Expected: pass. (The return type is a strict subtype of `string`; existing callers continue to typecheck.)
+Run: `npm run build` Expected: pass. (The return type is a strict subtype of `string`;
+existing callers continue to typecheck.)
 
 - [ ] **Step 3: Run tests**
 
-Run: `npm test`
-Expected: all pass.
+Run: `npm test` Expected: all pass.
 
 - [ ] **Step 4: Commit**
 
@@ -341,6 +379,7 @@ Pure addition. Nothing imports it yet.
 ### Task 5: Write `tuning.ts` with TDD
 
 **Files:**
+
 - Create: `src/theory/tuning.ts`
 - Create: `src/theory/tuning.test.ts`
 
@@ -348,12 +387,7 @@ Pure addition. Nothing imports it yet.
 
 ```ts
 import { describe, it, expect } from "vitest";
-import {
-  TUNINGS,
-  VIEWS_BY_TUNING,
-  tuningSupportsView,
-  type TuningId,
-} from "./tuning";
+import { TUNINGS, VIEWS_BY_TUNING, tuningSupportsView, type TuningId } from "./tuning";
 import type { ViewId } from "../views/types";
 
 const ALL_TUNING_IDS: TuningId[] = ["standard", "open-g"];
@@ -407,8 +441,8 @@ describe("VIEWS_BY_TUNING", () => {
 
 - [ ] **Step 2: Run tests and verify they fail**
 
-Run: `npx vitest run src/theory/tuning.test.ts`
-Expected: FAIL — `Cannot find module './tuning'`.
+Run: `npx vitest run src/theory/tuning.test.ts` Expected: FAIL —
+`Cannot find module './tuning'`.
 
 - [ ] **Step 3: Implement `tuning.ts`**
 
@@ -464,13 +498,11 @@ export function tuningSupportsView(tuningId: TuningId, view: ViewId): boolean {
 
 - [ ] **Step 4: Run tests and verify they pass**
 
-Run: `npx vitest run src/theory/tuning.test.ts`
-Expected: all pass.
+Run: `npx vitest run src/theory/tuning.test.ts` Expected: all pass.
 
 - [ ] **Step 5: Run lint, typecheck, full tests**
 
-Run: `npm run lint && npm run build && npm test`
-Expected: all pass.
+Run: `npm run lint && npm run build && npm test` Expected: all pass.
 
 - [ ] **Step 6: Commit**
 
@@ -483,11 +515,14 @@ git commit -m "feat(theory): add tuning module with Open G preset"
 
 ## Phase 3: Generalize the theory layer; delete `STANDARD_TUNING`
 
-Parameterize `buildChordToneMarkers`. Migrate NoteMapView, ScalePositionsView, chordShapes.ts, and tests to the new model. Delete `STANDARD_TUNING`. Add random-tuning property tests.
+Parameterize `buildChordToneMarkers`. Migrate NoteMapView, ScalePositionsView,
+chordShapes.ts, and tests to the new model. Delete `STANDARD_TUNING`. Add random-tuning
+property tests.
 
 ### Task 6: Add `tuning` parameter to `buildChordToneMarkers`
 
 **Files:**
+
 - Modify: `src/theory/chordTones.ts`
 - Modify: `src/theory/chordTones.test.ts`
 - Modify: `src/views/ScalePositionsView.tsx`
@@ -500,7 +535,8 @@ In `src/theory/chordTones.test.ts`, add to the imports at the top:
 import { TUNINGS } from "./tuning";
 ```
 
-Then in every `buildChordToneMarkers({ ... })` call (12 occurrences in the file), add a `tuning: TUNINGS.standard,` line. Example, the first occurrence:
+Then in every `buildChordToneMarkers({ ... })` call (12 occurrences in the file), add a
+`tuning: TUNINGS.standard,` line. Example, the first occurrence:
 
 ```ts
 const markers = buildChordToneMarkers({
@@ -510,12 +546,14 @@ const markers = buildChordToneMarkers({
 });
 ```
 
-Use a single search/replace mental model: every input object literal passed to `buildChordToneMarkers` gets `tuning: TUNINGS.standard,` added. Apply consistently to all 12 occurrences.
+Use a single search/replace mental model: every input object literal passed to
+`buildChordToneMarkers` gets `tuning: TUNINGS.standard,` added. Apply consistently to
+all 12 occurrences.
 
 - [ ] **Step 2: Run tests; verify they fail**
 
-Run: `npx vitest run src/theory/chordTones.test.ts`
-Expected: FAIL — TypeScript error or runtime error because `tuning` isn't on the input type yet.
+Run: `npx vitest run src/theory/chordTones.test.ts` Expected: FAIL — TypeScript error or
+runtime error because `tuning` isn't on the input type yet.
 
 - [ ] **Step 3: Update `chordTones.ts`**
 
@@ -582,19 +620,21 @@ for (let stringIndex = 0; stringIndex < tuning.strings.length; stringIndex++) {
 
 - [ ] **Step 4: Update `ScalePositionsView.tsx`**
 
-In `src/views/ScalePositionsView.tsx`, find the import for `buildChordToneMarkers` and add `TUNINGS`:
+In `src/views/ScalePositionsView.tsx`, find the import for `buildChordToneMarkers` and
+add `TUNINGS`:
 
 ```ts
 import { buildChordToneMarkers } from "../theory/chordTones";
 import { TUNINGS } from "../theory/tuning";
 ```
 
-Then in the `buildChordToneMarkers({ ... })` call at line 93, add `tuning: TUNINGS.standard,` as the first field.
+Then in the `buildChordToneMarkers({ ... })` call at line 93, add
+`tuning: TUNINGS.standard,` as the first field.
 
 - [ ] **Step 5: Run tests; verify they pass**
 
-Run: `npm test`
-Expected: all pass (including all `buildChordToneMarkers` tests now passing `tuning: TUNINGS.standard`).
+Run: `npm test` Expected: all pass (including all `buildChordToneMarkers` tests now
+passing `tuning: TUNINGS.standard`).
 
 - [ ] **Step 6: Commit**
 
@@ -606,6 +646,7 @@ git commit -m "refactor(chordTones): parameterize buildChordToneMarkers by tunin
 ### Task 7: Migrate `NoteMapView` to take `tuning` prop
 
 **Files:**
+
 - Modify: `src/views/NoteMapView.tsx`
 - Modify: `src/App.tsx`
 
@@ -694,12 +735,13 @@ In `src/App.tsx`, add to imports:
 import { TUNINGS } from "./theory/tuning";
 ```
 
-In the `case "note-map":` of `renderView()`, add `tuning={TUNINGS.standard}` as the first prop on `<NoteMapView ... />`. (The actual `tuningId` state is added in Phase 4; for this task we hardcode `TUNINGS.standard` to keep behavior identical.)
+In the `case "note-map":` of `renderView()`, add `tuning={TUNINGS.standard}` as the
+first prop on `<NoteMapView ... />`. (The actual `tuningId` state is added in Phase 4;
+for this task we hardcode `TUNINGS.standard` to keep behavior identical.)
 
 - [ ] **Step 3: Run lint, typecheck, tests**
 
-Run: `npm run lint && npm run build && npm test`
-Expected: all pass.
+Run: `npm run lint && npm run build && npm test` Expected: all pass.
 
 - [ ] **Step 4: Commit**
 
@@ -711,6 +753,7 @@ git commit -m "refactor(note-map): accept tuning as a prop"
 ### Task 8: Migrate `chordShapes.ts` off the global `STANDARD_TUNING`
 
 **Files:**
+
 - Modify: `src/theory/chordShapes.ts`
 
 - [ ] **Step 1: Replace the import**
@@ -768,8 +811,8 @@ becomes:
 
 - [ ] **Step 2: Run tests**
 
-Run: `npm test -- chordShapes`
-Expected: all pass (chord-shape behavior unchanged; same data, different access path).
+Run: `npm test -- chordShapes` Expected: all pass (chord-shape behavior unchanged; same
+data, different access path).
 
 - [ ] **Step 3: Commit**
 
@@ -781,6 +824,7 @@ git commit -m "refactor(chordShapes): use TUNINGS.standard.strings instead of gl
 ### Task 9: Migrate `notes.test.ts` off `STANDARD_TUNING` and add random-tuning test
 
 **Files:**
+
 - Modify: `src/theory/notes.test.ts`
 
 - [ ] **Step 1: Update the import**
@@ -863,8 +907,7 @@ it("wraps around correctly at fret 12 for randomized tunings", () => {
 
 - [ ] **Step 3: Run the test file**
 
-Run: `npx vitest run src/theory/notes.test.ts`
-Expected: all pass.
+Run: `npx vitest run src/theory/notes.test.ts` Expected: all pass.
 
 - [ ] **Step 4: Commit**
 
@@ -876,11 +919,14 @@ git commit -m "test(notes): replace STANDARD_TUNING import; add random-tuning pr
 ### Task 10: Add random-tuning property test to `chordTones.test.ts`
 
 **Files:**
+
 - Modify: `src/theory/chordTones.test.ts`
 
 - [ ] **Step 1: Add the property test**
 
-In `src/theory/chordTones.test.ts`, first ensure these imports exist at the top of the file (add any that are missing — `getNoteIndex` is likely already imported indirectly via the existing tests, but make it explicit here):
+In `src/theory/chordTones.test.ts`, first ensure these imports exist at the top of the
+file (add any that are missing — `getNoteIndex` is likely already imported indirectly
+via the existing tests, but make it explicit here):
 
 ```ts
 import { CHROMATIC_SCALE, getNoteAtFret, getNoteIndex } from "./notes";
@@ -901,8 +947,7 @@ describe("buildChordToneMarkers — tuning-agnostic invariant", () => {
   }
 
   function randomTuning(rand: () => number): Tuning {
-    const pick = () =>
-      CHROMATIC_SCALE[Math.floor(rand() * CHROMATIC_SCALE.length)];
+    const pick = () => CHROMATIC_SCALE[Math.floor(rand() * CHROMATIC_SCALE.length)];
     return {
       id: "standard", // any TuningId; the predicate doesn't read this field
       name: "Random",
@@ -943,8 +988,7 @@ describe("buildChordToneMarkers — tuning-agnostic invariant", () => {
 
 - [ ] **Step 2: Run the test file**
 
-Run: `npx vitest run src/theory/chordTones.test.ts`
-Expected: all pass.
+Run: `npx vitest run src/theory/chordTones.test.ts` Expected: all pass.
 
 - [ ] **Step 3: Commit**
 
@@ -956,14 +1000,16 @@ git commit -m "test(chordTones): add random-tuning property test"
 ### Task 11: Delete the global `STANDARD_TUNING` constant
 
 **Files:**
+
 - Modify: `src/theory/notes.ts`
 
 - [ ] **Step 1: Confirm no remaining references**
 
-Run: `grep -rn "STANDARD_TUNING" src/`
-Expected: only the definition line in `src/theory/notes.ts`.
+Run: `grep -rn "STANDARD_TUNING" src/` Expected: only the definition line in
+`src/theory/notes.ts`.
 
-If any other references exist, fix them first by switching to `TUNINGS.standard.strings`.
+If any other references exist, fix them first by switching to
+`TUNINGS.standard.strings`.
 
 - [ ] **Step 2: Delete the constant**
 
@@ -975,8 +1021,7 @@ export const STANDARD_TUNING = ["E", "A", "D", "G", "B", "E"] as const;
 
 - [ ] **Step 3: Run lint, typecheck, full tests**
 
-Run: `npm run lint && npm run build && npm test`
-Expected: all pass.
+Run: `npm run lint && npm run build && npm test` Expected: all pass.
 
 - [ ] **Step 4: Commit**
 
@@ -989,11 +1034,13 @@ git commit -m "refactor(notes): remove STANDARD_TUNING; use TUNINGS.standard"
 
 ## Phase 4: App-level tuning state with auto-fallback
 
-State plumbing only; no UI yet. Default stays `"standard"`. Verify by temporarily flipping the default.
+State plumbing only; no UI yet. Default stays `"standard"`. Verify by temporarily
+flipping the default.
 
 ### Task 12: Add `tuningId` state and `setTuningId` with auto-fallback
 
 **Files:**
+
 - Modify: `src/App.tsx`
 
 - [ ] **Step 1: Add imports**
@@ -1060,14 +1107,18 @@ to:
 
 - [ ] **Step 4: Run lint, typecheck, tests**
 
-Run: `npm run lint && npm run build && npm test`
-Expected: all pass.
+Run: `npm run lint && npm run build && npm test` Expected: all pass.
 
 - [ ] **Step 5: Manual verification**
 
-Temporarily change the default state from `useState<TuningId>("standard")` to `useState<TuningId>("open-g")`. Run `npm run dev`. Verify:
-- NoteMap fretboard now reflects D-G-D-G-B-D when key=G major: open strings 6, 4, 1 should show G's chord-tone scale role highlighting consistent with the new tuning.
-- Click ScalePositions or ChordShapes tabs: they should still render (gating UI comes in Phase 5; no fallback wired through `setTuningId` because we haven't called it from anywhere yet — the initial state goes straight in).
+Temporarily change the default state from `useState<TuningId>("standard")` to
+`useState<TuningId>("open-g")`. Run `npm run dev`. Verify:
+
+- NoteMap fretboard now reflects D-G-D-G-B-D when key=G major: open strings 6, 4, 1
+  should show G's chord-tone scale role highlighting consistent with the new tuning.
+- Click ScalePositions or ChordShapes tabs: they should still render (gating UI comes in
+  Phase 5; no fallback wired through `setTuningId` because we haven't called it from
+  anywhere yet — the initial state goes straight in).
 
 Switch the default back to `"standard"`. Stop dev server.
 
@@ -1085,6 +1136,7 @@ git commit -m "feat(app): add tuningId state with auto-fallback view setter"
 ### Task 13: Add `disabledViews` to `ViewSelector`
 
 **Files:**
+
 - Modify: `src/components/ViewSelector.tsx`
 
 - [ ] **Step 1: Update `ViewSelector.tsx`**
@@ -1190,8 +1242,7 @@ const disabledViewsForCurrentTuning = useMemo<ReadonlySet<ViewId>>(() => {
 
 - [ ] **Step 3: Run lint, typecheck, tests**
 
-Run: `npm run lint && npm run build && npm test`
-Expected: all pass.
+Run: `npm run lint && npm run build && npm test` Expected: all pass.
 
 - [ ] **Step 4: Commit**
 
@@ -1203,6 +1254,7 @@ git commit -m "feat(view-selector): support disabled tabs with tooltip"
 ### Task 14: Add `TuningSelector` component
 
 **Files:**
+
 - Create: `src/components/TuningSelector.tsx`
 - Modify: `src/App.tsx`
 
@@ -1249,7 +1301,9 @@ Add the import:
 import { TuningSelector } from "./components/TuningSelector";
 ```
 
-In the top-bar preferences group (the inner `<div className="flex items-center gap-4">` around line 149), insert the `TuningSelector` between `ThemeToggle` and `FretRangeControl`:
+In the top-bar preferences group (the inner `<div className="flex items-center gap-4">`
+around line 149), insert the `TuningSelector` between `ThemeToggle` and
+`FretRangeControl`:
 
 ```tsx
 <AccidentalToggle
@@ -1267,8 +1321,7 @@ In the top-bar preferences group (the inner `<div className="flex items-center g
 
 - [ ] **Step 3: Run lint, typecheck, tests**
 
-Run: `npm run lint && npm run build && npm test`
-Expected: all pass.
+Run: `npm run lint && npm run build && npm test` Expected: all pass.
 
 - [ ] **Step 4: Commit**
 
@@ -1291,17 +1344,27 @@ Run: `npm run dev` (or attach to user's running localhost:5173 — see CLAUDE.md
 
 In the browser:
 
-1. **Default behavior unchanged.** Page loads on Note Map with Standard tuning. All three tabs are enabled. Fretboard shows E-A-D-G-B-E.
-2. **Switch tuning while on Note Map.** Open the Tuning selector → choose Open G. Fretboard re-renders. With key=G major: open strings 6, 4, 1 (D's) and string 5 (G) and string 2 (B) all sit on chord-tone roles consistent with G major.
-3. **Tabs gate correctly.** With Open G active: Scale Positions and Chord Shapes tabs are visibly dimmed, unclickable, hovering shows the tooltip ("Available in standard tuning only…"). Note Map remains clickable and active.
-4. **Auto-fallback works.** Switch tuning back to Standard. Click Chord Shapes. Now switch tuning to Open G: view auto-falls back to Note Map. (If the user was on Scale Positions, same behavior.)
-5. **Switching back re-enables tabs.** With Open G + Note Map: switch tuning to Standard. All three tabs re-enable. Click Scale Positions: it renders normally, in standard tuning.
-6. **Accessibility check.** Hover Scale Positions while in Open G: tooltip surfaces. Inspect: `aria-disabled="true"` on the disabled buttons.
+1. **Default behavior unchanged.** Page loads on Note Map with Standard tuning. All
+   three tabs are enabled. Fretboard shows E-A-D-G-B-E.
+2. **Switch tuning while on Note Map.** Open the Tuning selector → choose Open G.
+   Fretboard re-renders. With key=G major: open strings 6, 4, 1 (D's) and string 5 (G)
+   and string 2 (B) all sit on chord-tone roles consistent with G major.
+3. **Tabs gate correctly.** With Open G active: Scale Positions and Chord Shapes tabs
+   are visibly dimmed, unclickable, hovering shows the tooltip ("Available in standard
+   tuning only…"). Note Map remains clickable and active.
+4. **Auto-fallback works.** Switch tuning back to Standard. Click Chord Shapes. Now
+   switch tuning to Open G: view auto-falls back to Note Map. (If the user was on Scale
+   Positions, same behavior.)
+5. **Switching back re-enables tabs.** With Open G + Note Map: switch tuning to
+   Standard. All three tabs re-enable. Click Scale Positions: it renders normally, in
+   standard tuning.
+6. **Accessibility check.** Hover Scale Positions while in Open G: tooltip surfaces.
+   Inspect: `aria-disabled="true"` on the disabled buttons.
 
 - [ ] **Step 3: Run the full pre-commit gauntlet**
 
-Run: `npm run lint && npx prettier --write . && npm test`
-Expected: lint passes; prettier may reformat (commit any changes); tests pass.
+Run: `npm run lint && npx prettier --write . && npm test` Expected: lint passes;
+prettier may reformat (commit any changes); tests pass.
 
 - [ ] **Step 4: If prettier reformatted anything, commit**
 
@@ -1314,8 +1377,8 @@ git commit -m "style: prettier"
 
 - [ ] **Step 5: Final summary check**
 
-Run: `git log --oneline main..HEAD`
-Expected: a clean linear history of one commit per task. No commits with "WIP", "fix", or amended messages.
+Run: `git log --oneline main..HEAD` Expected: a clean linear history of one commit per
+task. No commits with "WIP", "fix", or amended messages.
 
 ---
 
@@ -1338,4 +1401,7 @@ Spec coverage:
 - ✅ `ViewSelector` disabled-tab behavior with tooltip — Task 13.
 - ✅ Manual verification — Task 15.
 
-No placeholders. Type names consistent across tasks (`Tuning`, `TuningId`, `ChromaticNote`, `ViewId`, `tuningSupportsView`, `TUNINGS`, `VIEWS_BY_TUNING`, `setTuningId`, `setTuningIdRaw`, `disabledViewsForCurrentTuning` all match across files).
+No placeholders. Type names consistent across tasks (`Tuning`, `TuningId`,
+`ChromaticNote`, `ViewId`, `tuningSupportsView`, `TUNINGS`, `VIEWS_BY_TUNING`,
+`setTuningId`, `setTuningIdRaw`, `disabledViewsForCurrentTuning` all match across
+files).

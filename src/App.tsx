@@ -1,4 +1,11 @@
-import { useCallback, useEffect, useMemo, useReducer, useState, type ReactNode } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useReducer,
+  useState,
+  type ReactNode,
+} from "react";
 import { AccidentalToggle } from "./components/AccidentalToggle";
 import { ThemeToggle } from "./components/ThemeToggle";
 import { FretRangeControl } from "./components/FretRangeControl";

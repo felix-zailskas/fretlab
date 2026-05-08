@@ -507,8 +507,7 @@ describe("buildChordToneMarkers — tuning-agnostic invariant", () => {
   }
 
   function randomTuning(rand: () => number): Tuning {
-    const pick = () =>
-      CHROMATIC_SCALE[Math.floor(rand() * CHROMATIC_SCALE.length)];
+    const pick = () => CHROMATIC_SCALE[Math.floor(rand() * CHROMATIC_SCALE.length)];
     return {
       id: "standard", // any TuningId; the predicate doesn't read this field
       name: "Random",
