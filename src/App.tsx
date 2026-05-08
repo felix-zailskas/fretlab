@@ -15,7 +15,7 @@ import { useChordShapesState } from "./views/useChordShapesState";
 import { useScalePositionsState } from "./views/useScalePositionsState";
 import type { ViewId } from "./views/types";
 import { DEFAULT_END_FRET } from "./theory/constants";
-import { TUNINGS } from "./theory/tuning";
+import { TUNINGS, tuningSupportsView, type TuningId } from "./theory/tuning";
 import { getModalDiatonicChords, getModalDiatonicTriads } from "./theory/modes";
 import { tonalReducer } from "./tonalReducer";
 
@@ -29,6 +29,25 @@ function App() {
   });
   const { key: selectedKey, mode, accidentalStyle } = tonal;
   const [selectedView, setSelectedView] = useState<ViewId>("note-map");
+  const [tuningId, setTuningIdRaw] = useState<TuningId>("standard");
+
+  // When switching to a tuning that doesn't support the active view, fall
+  // back to note-map. Co-located with the setter (not in a useEffect) so
+  // behavior is local to the user's action and there's no transient frame
+  // where a disabled tab is selected.
+  const setTuningId = useCallback(
+    (nextId: TuningId) => {
+      setTuningIdRaw(nextId);
+      if (!tuningSupportsView(nextId, selectedView)) {
+        setSelectedView("note-map");
+      }
+    },
+    [selectedView],
+  );
+  // setTuningId is wired to the TuningSelector in Task 13; reference here to
+  // keep TypeScript and ESLint satisfied in the interim.
+  void setTuningId;
+
   const [enabledHighlights, setEnabledHighlights] = useState<Set<HighlightableRole>>(
     () => new Set(DEFAULT_HIGHLIGHTS),
   );
@@ -128,7 +147,7 @@ function App() {
         return (
           <>
             <NoteMapView
-              tuning={TUNINGS.standard}
+              tuning={TUNINGS[tuningId]}
               selectedKey={selectedKey}
               accidentalStyle={accidentalStyle}
               enabledHighlights={enabledHighlights}
