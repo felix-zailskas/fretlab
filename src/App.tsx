@@ -228,6 +228,11 @@ function App() {
 
   // Hidden announcement for screen readers — narrates the active tonal
   // context whenever key, mode, or chord-degree changes.
+  const disabledViewsForCurrentTuning = useMemo<ReadonlySet<ViewId>>(() => {
+    const all: ViewId[] = ["note-map", "scale-positions", "chord-shapes"];
+    return new Set(all.filter((v) => !tuningSupportsView(tuningId, v)));
+  }, [tuningId]);
+
   const announcement = useMemo(() => {
     if (selectedKey === ALL_NOTES_KEY) return "Showing all notes";
     const modeName =
@@ -294,7 +299,11 @@ function App() {
               doesn't shift up when "All" is selected and only the short hint
               renders on the right. */}
           <div className="flex flex-wrap items-center justify-between gap-x-8 gap-y-3 min-h-[50px]">
-            <ViewSelector selectedView={selectedView} onViewChange={setSelectedView} />
+            <ViewSelector
+              selectedView={selectedView}
+              onViewChange={setSelectedView}
+              disabledViews={disabledViewsForCurrentTuning}
+            />
             {isAllNotesKey ? (
               <p className="text-fg-muted text-sm">
                 Pick a key above to see scales and chords.
