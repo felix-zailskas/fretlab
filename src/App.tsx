@@ -5,6 +5,7 @@ import { FretRangeControl } from "./components/FretRangeControl";
 import { KeySelector, ALL_NOTES_KEY } from "./components/KeySelector";
 import { ModeSelector } from "./components/ModeSelector";
 import { ViewSelector } from "./components/ViewSelector";
+import { TuningSelector } from "./components/TuningSelector";
 import { type HighlightableRole } from "./components/Legend";
 import { ScaleDisplay } from "./components/ScaleDisplay";
 import { DiatonicChords, type ChordRowMode } from "./components/DiatonicChords";
@@ -44,10 +45,6 @@ function App() {
     },
     [selectedView],
   );
-  // setTuningId is wired to the TuningSelector in Task 13; reference here to
-  // keep TypeScript and ESLint satisfied in the interim.
-  void setTuningId;
-
   const [enabledHighlights, setEnabledHighlights] = useState<Set<HighlightableRole>>(
     () => new Set(DEFAULT_HIGHLIGHTS),
   );
@@ -263,6 +260,7 @@ function App() {
               onChange={(style) => dispatchTonal({ type: "set-accidental", style })}
             />
             <ThemeToggle mode={themeMode} onCycle={cycleTheme} />
+            <TuningSelector tuningId={tuningId} onTuningChange={setTuningId} />
             <FretRangeControl
               startFret={startFret}
               endFret={endFret}
