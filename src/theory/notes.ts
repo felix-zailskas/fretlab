@@ -17,8 +17,6 @@ export const CHROMATIC_SCALE = [
 // the union stays in sync with the array.
 export type ChromaticNote = (typeof CHROMATIC_SCALE)[number];
 
-export const STANDARD_TUNING = ["E", "A", "D", "G", "B", "E"] as const;
-
 export const FLAT_KEYS = ["F", "Bb", "Eb", "Ab", "Db", "Gb"] as const;
 
 const SHARP_TO_FLAT: Record<string, string> = {
