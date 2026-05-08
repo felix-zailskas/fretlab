@@ -1,11 +1,12 @@
 import { describe, it, expect } from "vitest";
 import {
+  CHROMATIC_SCALE,
   getNoteIndex,
   getNoteAtFret,
   getDisplayName,
   naturalAccidentalForKey,
-  STANDARD_TUNING,
 } from "./notes";
+import { TUNINGS } from "./tuning";
 
 describe("getNoteIndex", () => {
   it("returns correct index for natural notes", () => {
@@ -64,10 +65,35 @@ describe("getNoteAtFret", () => {
     expect(getNoteAtFret("B", 5)).toBe("E");
   });
 
-  it("wraps around correctly at fret 12", () => {
-    // Fret 12 = same note as open string
-    for (const openString of STANDARD_TUNING) {
+  it("wraps around correctly at fret 12 for standard tuning", () => {
+    for (const openString of TUNINGS.standard.strings) {
       expect(getNoteAtFret(openString, 12)).toBe(openString);
+    }
+  });
+
+  it("wraps around correctly at fret 12 for any open-string note", () => {
+    // Property: getNoteAtFret(s, 12) === s for every chromatic note s.
+    // If a function regresses to assuming a fixed tuning, this fails.
+    for (const openString of CHROMATIC_SCALE) {
+      expect(getNoteAtFret(openString, 12)).toBe(openString);
+    }
+  });
+
+  it("wraps around correctly at fret 12 for randomized tunings", () => {
+    // Seeded LCG so failures are reproducible.
+    let seed = 0x517cc1b7;
+    const rand = () => {
+      seed = (seed * 1664525 + 1013904223) >>> 0;
+      return seed / 0x100000000;
+    };
+    for (let iter = 0; iter < 20; iter++) {
+      const tuning = Array.from(
+        { length: 6 },
+        () => CHROMATIC_SCALE[Math.floor(rand() * CHROMATIC_SCALE.length)],
+      );
+      for (const openString of tuning) {
+        expect(getNoteAtFret(openString, 12)).toBe(openString);
+      }
     }
   });
 });
