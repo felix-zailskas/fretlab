@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useReducer, useState } from "react";
+import { useCallback, useEffect, useMemo, useReducer, useState, type ReactNode } from "react";
 import { AccidentalToggle } from "./components/AccidentalToggle";
 import { ThemeToggle } from "./components/ThemeToggle";
 import { FretRangeControl } from "./components/FretRangeControl";
@@ -13,6 +13,7 @@ import { NoteMapView } from "./views/NoteMapView";
 import { ScalePositionsView } from "./views/ScalePositionsView";
 import { useChordShapesState } from "./views/useChordShapesState";
 import { useScalePositionsState } from "./views/useScalePositionsState";
+import type { ViewId } from "./views/types";
 import { DEFAULT_END_FRET } from "./theory/constants";
 import { getModalDiatonicChords, getModalDiatonicTriads } from "./theory/modes";
 import { tonalReducer } from "./tonalReducer";
@@ -26,7 +27,7 @@ function App() {
     accidentalStyle: "sharp",
   });
   const { key: selectedKey, mode, accidentalStyle } = tonal;
-  const [selectedView, setSelectedView] = useState("note-map");
+  const [selectedView, setSelectedView] = useState<ViewId>("note-map");
   const [enabledHighlights, setEnabledHighlights] = useState<Set<HighlightableRole>>(
     () => new Set(DEFAULT_HIGHLIGHTS),
   );
@@ -120,6 +121,90 @@ function App() {
 
   const isAllNotesKey = selectedKey === ALL_NOTES_KEY;
 
+  function renderView(): ReactNode {
+    switch (selectedView) {
+      case "note-map":
+        return (
+          <>
+            <NoteMapView
+              selectedKey={selectedKey}
+              accidentalStyle={accidentalStyle}
+              enabledHighlights={enabledHighlights}
+              onToggleRole={toggleHighlight}
+              selectedChord={selectedChord}
+              startFret={startFret}
+              endFret={endFret}
+              mode={mode}
+            />
+            <DiatonicChords
+              selectedKey={selectedKey}
+              accidentalStyle={accidentalStyle}
+              selectedDegree={selectedChordDegree}
+              onSelectDegree={handleChordSelect}
+              mode={chordRowMode}
+              onModeChange={setChordRowMode}
+              modalMode={mode}
+            />
+          </>
+        );
+      case "scale-positions":
+        return (
+          <>
+            <ScalePositionsView
+              selectedKey={selectedKey}
+              accidentalStyle={accidentalStyle}
+              enabledHighlights={enabledHighlights}
+              onToggleRole={toggleHighlight}
+              selectedChord={selectedChord}
+              startFret={startFret}
+              endFret={endFret}
+              controls={scalePositionsControls}
+              mode={mode}
+            />
+            <DiatonicChords
+              selectedKey={selectedKey}
+              accidentalStyle={accidentalStyle}
+              selectedDegree={selectedChordDegree}
+              onSelectDegree={handleChordSelect}
+              mode={chordRowMode}
+              onModeChange={setChordRowMode}
+              modalMode={mode}
+            />
+          </>
+        );
+      case "chord-shapes":
+        return (
+          <>
+            <ChordShapesView
+              selectedKey={selectedKey}
+              accidentalStyle={accidentalStyle}
+              startFret={startFret}
+              endFret={endFret}
+              selectedChord={selectedChord}
+              chordRowMode={chordRowMode}
+              enabledHighlights={enabledHighlights}
+              onToggleRole={toggleHighlight}
+              controls={chordShapesControls}
+              modalMode={mode}
+            />
+            <DiatonicChords
+              selectedKey={selectedKey}
+              accidentalStyle={accidentalStyle}
+              selectedDegree={selectedChordDegree}
+              onSelectDegree={handleChordSelect}
+              mode={chordRowMode}
+              onModeChange={setChordRowMode}
+              modalMode={mode}
+            />
+          </>
+        );
+      default: {
+        const _exhaustive: never = selectedView;
+        return _exhaustive;
+      }
+    }
+  }
+
   // Hidden announcement for screen readers — narrates the active tonal
   // context whenever key, mode, or chord-degree changes.
   const announcement = useMemo(() => {
@@ -211,83 +296,7 @@ function App() {
         tabIndex={-1}
         className="max-w-[90rem] mx-auto px-4 pb-4 focus:outline-none"
       >
-        {selectedView === "note-map" && (
-          <>
-            <NoteMapView
-              selectedKey={selectedKey}
-              accidentalStyle={accidentalStyle}
-              enabledHighlights={enabledHighlights}
-              onToggleRole={toggleHighlight}
-              selectedChord={selectedChord}
-              startFret={startFret}
-              endFret={endFret}
-              mode={mode}
-            />
-            <DiatonicChords
-              selectedKey={selectedKey}
-              accidentalStyle={accidentalStyle}
-              selectedDegree={selectedChordDegree}
-              onSelectDegree={handleChordSelect}
-              mode={chordRowMode}
-              onModeChange={setChordRowMode}
-              modalMode={mode}
-            />
-          </>
-        )}
-        {selectedView === "scale-positions" && (
-          <>
-            <ScalePositionsView
-              selectedKey={selectedKey}
-              accidentalStyle={accidentalStyle}
-              enabledHighlights={enabledHighlights}
-              onToggleRole={toggleHighlight}
-              selectedChord={selectedChord}
-              startFret={startFret}
-              endFret={endFret}
-              controls={scalePositionsControls}
-              mode={mode}
-            />
-            <DiatonicChords
-              selectedKey={selectedKey}
-              accidentalStyle={accidentalStyle}
-              selectedDegree={selectedChordDegree}
-              onSelectDegree={handleChordSelect}
-              mode={chordRowMode}
-              onModeChange={setChordRowMode}
-              modalMode={mode}
-            />
-          </>
-        )}
-        {selectedView === "chord-shapes" && (
-          <>
-            <ChordShapesView
-              selectedKey={selectedKey}
-              accidentalStyle={accidentalStyle}
-              startFret={startFret}
-              endFret={endFret}
-              selectedChord={selectedChord}
-              chordRowMode={chordRowMode}
-              enabledHighlights={enabledHighlights}
-              onToggleRole={toggleHighlight}
-              controls={chordShapesControls}
-              modalMode={mode}
-            />
-            <DiatonicChords
-              selectedKey={selectedKey}
-              accidentalStyle={accidentalStyle}
-              selectedDegree={selectedChordDegree}
-              onSelectDegree={handleChordSelect}
-              mode={chordRowMode}
-              onModeChange={setChordRowMode}
-              modalMode={mode}
-            />
-          </>
-        )}
-        {selectedView !== "note-map" &&
-          selectedView !== "scale-positions" &&
-          selectedView !== "chord-shapes" && (
-            <div className="text-fg-faint text-center py-20">Coming soon</div>
-          )}
+        {renderView()}
       </main>
     </div>
   );
