@@ -15,6 +15,7 @@ import { useChordShapesState } from "./views/useChordShapesState";
 import { useScalePositionsState } from "./views/useScalePositionsState";
 import type { ViewId } from "./views/types";
 import { DEFAULT_END_FRET } from "./theory/constants";
+import { TUNINGS } from "./theory/tuning";
 import { getModalDiatonicChords, getModalDiatonicTriads } from "./theory/modes";
 import { tonalReducer } from "./tonalReducer";
 
@@ -127,6 +128,7 @@ function App() {
         return (
           <>
             <NoteMapView
+              tuning={TUNINGS.standard}
               selectedKey={selectedKey}
               accidentalStyle={accidentalStyle}
               enabledHighlights={enabledHighlights}

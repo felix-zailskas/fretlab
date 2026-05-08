@@ -4,12 +4,12 @@ import { ALL_NOTES_KEY } from "../components/KeySelector";
 import { Legend, type HighlightableRole } from "../components/Legend";
 import { roleFromChordTone, HIGHLIGHTABLE } from "../theory/chordTones";
 import {
-  STANDARD_TUNING,
   getNoteAtFret,
   getNoteIndex,
   getDisplayName,
   type AccidentalStyle,
 } from "../theory/notes";
+import type { Tuning } from "../theory/tuning";
 import { type DiatonicChord, type DiatonicTriad } from "../theory/scales";
 import {
   getCharacteristicNoteIndexSet,
@@ -19,6 +19,7 @@ import {
 import type { NoteMarker, NoteDisplayRole } from "../theory/types";
 
 type NoteMapViewProps = {
+  tuning: Tuning;
   selectedKey: string;
   accidentalStyle: AccidentalStyle;
   enabledHighlights: Set<HighlightableRole>;
@@ -32,6 +33,7 @@ type NoteMapViewProps = {
 };
 
 export function NoteMapView({
+  tuning,
   selectedKey,
   accidentalStyle,
   enabledHighlights,
@@ -49,8 +51,8 @@ export function NoteMapView({
       ? (new Set<number>() as ReadonlySet<number>)
       : getCharacteristicNoteIndexSet(selectedKey, mode, accidentalStyle);
 
-    for (let stringIndex = 0; stringIndex < STANDARD_TUNING.length; stringIndex++) {
-      const openString = STANDARD_TUNING[stringIndex];
+    for (let stringIndex = 0; stringIndex < tuning.strings.length; stringIndex++) {
+      const openString = tuning.strings[stringIndex];
       for (let fret = startFret; fret <= endFret; fret++) {
         const note = getNoteAtFret(openString, fret);
 
@@ -82,6 +84,7 @@ export function NoteMapView({
 
     return result;
   }, [
+    tuning,
     selectedKey,
     accidentalStyle,
     enabledHighlights,
