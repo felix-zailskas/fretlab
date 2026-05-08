@@ -13,6 +13,10 @@ export const CHROMATIC_SCALE = [
   "B",
 ] as const;
 
+// 12-tone chromatic note (sharp spelling). Derived from CHROMATIC_SCALE so
+// the union stays in sync with the array.
+export type ChromaticNote = (typeof CHROMATIC_SCALE)[number];
+
 export const STANDARD_TUNING = ["E", "A", "D", "G", "B", "E"] as const;
 
 export const FLAT_KEYS = ["F", "Bb", "Eb", "Ab", "Db", "Gb"] as const;
@@ -39,7 +43,7 @@ export function getNoteIndex(note: string): number {
   return index;
 }
 
-export function getNoteAtFret(openString: string, fret: number): string {
+export function getNoteAtFret(openString: string, fret: number): ChromaticNote {
   const openIndex = getNoteIndex(openString);
   const noteIndex = (openIndex + fret) % 12;
   return CHROMATIC_SCALE[noteIndex];
