@@ -1,11 +1,11 @@
 import { ALL_NOTES_KEY } from "../components/KeySelector";
 import {
-  STANDARD_TUNING,
   getDisplayName,
   getNoteAtFret,
   getNoteIndex,
   type AccidentalStyle,
 } from "./notes";
+import { TUNINGS } from "./tuning";
 import type {
   TriadQuality,
   ChordQuality,
@@ -632,7 +632,7 @@ export type BuildChordShapeMarkersInput =
 
 // Convert a 1..6 (high-E-first) shape-string index to the codebase's 0..5
 // (low-E-first) marker-string index used by the Fretboard renderer and
-// STANDARD_TUNING.
+// TUNINGS.standard.strings.
 function shapeStringToMarkerString(shapeString: number): number {
   return 6 - shapeString;
 }
@@ -665,7 +665,7 @@ function placeChordOnCombo(
   characteristicSet: ReadonlySet<number>,
 ): NoteMarker[] {
   const anchorMarkerString = shapeStringToMarkerString(shape.rootString);
-  const openAnchorNote = STANDARD_TUNING[anchorMarkerString];
+  const openAnchorNote = TUNINGS.standard.strings[anchorMarkerString];
   const candidates = getRootFrets(chord.notes[0], openAnchorNote, startFret, endFret);
   const result: NoteMarker[] = [];
 
@@ -679,7 +679,7 @@ function placeChordOnCombo(
     for (const p of shape.positions) {
       const absFret = candidate + p.fretOffset;
       const markerString = shapeStringToMarkerString(p.string);
-      const openNote = STANDARD_TUNING[markerString];
+      const openNote = TUNINGS.standard.strings[markerString];
       const noteSharp = getNoteAtFret(openNote, absFret);
       const isCharacteristic = characteristicSet.has(getNoteIndex(noteSharp));
       result.push({
