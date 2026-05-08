@@ -4,6 +4,7 @@ import { DEFAULT_END_FRET } from "./constants";
 import { getModalDiatonicChords, getModalDiatonicTriads } from "./modes";
 import type { HighlightableRole } from "../components/Legend";
 import { ALL_NOTES_KEY } from "../components/KeySelector";
+import { TUNINGS } from "./tuning";
 
 describe("roleFromChordTone", () => {
   it('returns "scale" for any in-key note when no chord is given', () => {
@@ -65,6 +66,7 @@ describe("buildChordToneMarkers", () => {
 
   it("returns an empty list when key is ALL_NOTES_KEY", () => {
     const markers = buildChordToneMarkers({
+      tuning: TUNINGS.standard,
       key: ALL_NOTES_KEY,
       chord: null,
       accidentalStyle: "sharp",
@@ -79,6 +81,7 @@ describe("buildChordToneMarkers", () => {
 
   it("returns an empty list when positions is empty", () => {
     const markers = buildChordToneMarkers({
+      tuning: TUNINGS.standard,
       key: "C",
       chord: cMajor_ii(),
       accidentalStyle: "sharp",
@@ -95,6 +98,7 @@ describe("buildChordToneMarkers", () => {
     // C major P1 fits twice within [0, DEFAULT_END_FRET=15]: [0, 3] and
     // [12, 15]. Every marker must land in one of those octave windows.
     const markers = buildChordToneMarkers({
+      tuning: TUNINGS.standard,
       key: "C",
       chord: cMajor_ii(),
       accidentalStyle: "sharp",
@@ -114,6 +118,7 @@ describe("buildChordToneMarkers", () => {
 
   it("with positions=[P1] and chord=Dm7 in C, marks D=root, F=third, A=fifth, C=seventh", () => {
     const markers = buildChordToneMarkers({
+      tuning: TUNINGS.standard,
       key: "C",
       chord: cMajor_ii(),
       accidentalStyle: "sharp",
@@ -140,6 +145,7 @@ describe("buildChordToneMarkers", () => {
 
   it('non-chord scale tones in the position are role "scale"', () => {
     const markers = buildChordToneMarkers({
+      tuning: TUNINGS.standard,
       key: "C",
       chord: cMajor_ii(),
       accidentalStyle: "sharp",
@@ -160,6 +166,7 @@ describe("buildChordToneMarkers", () => {
     // region (where context-only muted markers should render) is the gap
     // [4, 11] between those octave windows.
     const markers = buildChordToneMarkers({
+      tuning: TUNINGS.standard,
       key: "C",
       chord: cMajor_ii(),
       accidentalStyle: "sharp",
@@ -179,6 +186,7 @@ describe("buildChordToneMarkers", () => {
   it('demotes a chord-tone role to "scale" when the Legend toggles it off', () => {
     const without5: Set<HighlightableRole> = new Set(["root", "third", "seventh"]);
     const markers = buildChordToneMarkers({
+      tuning: TUNINGS.standard,
       key: "C",
       chord: cMajor_ii(),
       accidentalStyle: "sharp",
@@ -200,6 +208,7 @@ describe("buildChordToneMarkers", () => {
     // octave windows = [0, 5] ∪ [12, 15]. Should see markers at fret 4
     // (in P2 only) and fret 1 (in P1 only).
     const markers = buildChordToneMarkers({
+      tuning: TUNINGS.standard,
       key: "C",
       chord: cMajor_ii(),
       accidentalStyle: "sharp",
@@ -223,6 +232,7 @@ describe("buildChordToneMarkers", () => {
     // "clear highlights, just show me the box" — so no R/3/5/7 lights up,
     // even on the major scale's 1/3/5/7 frets.
     const markers = buildChordToneMarkers({
+      tuning: TUNINGS.standard,
       key: "C",
       chord: null,
       accidentalStyle: "sharp",
@@ -240,6 +250,7 @@ describe("buildChordToneMarkers", () => {
 
   it("with all 5 positions selected, renders markers spanning the full neck", () => {
     const markers = buildChordToneMarkers({
+      tuning: TUNINGS.standard,
       key: "C",
       chord: cMajor_ii(),
       accidentalStyle: "sharp",
@@ -295,6 +306,7 @@ describe("buildChordToneMarkers with triads", () => {
 
   it('produces no markers with role "seventh" when the chord is a triad', () => {
     const markers = buildChordToneMarkers({
+      tuning: TUNINGS.standard,
       key: "C",
       chord: cMajor_ii_triad(),
       accidentalStyle: "sharp",
@@ -312,6 +324,7 @@ describe("buildChordToneMarkers with triads", () => {
 
   it("marks the triad notes correctly (D=root, F=third, A=fifth in C major P1)", () => {
     const markers = buildChordToneMarkers({
+      tuning: TUNINGS.standard,
       key: "C",
       chord: cMajor_ii_triad(),
       accidentalStyle: "sharp",
@@ -331,6 +344,7 @@ describe("buildChordToneMarkers with triads", () => {
 
   it("treats C (the would-be seventh) as scale tone in triad mode", () => {
     const markers = buildChordToneMarkers({
+      tuning: TUNINGS.standard,
       key: "C",
       chord: cMajor_ii_triad(),
       accidentalStyle: "sharp",
@@ -359,6 +373,7 @@ describe("buildChordToneMarkers — narrowed range", () => {
     // P1 = C-shape window [0, 3] in C major. With startFret=5, that
     // window is outside the visible range, so no markers.
     const markers = buildChordToneMarkers({
+      tuning: TUNINGS.standard,
       key: "C",
       chord: null,
       accidentalStyle: "sharp",
@@ -374,6 +389,7 @@ describe("buildChordToneMarkers — narrowed range", () => {
   it("only emits markers within [startFret, endFret] when at least one fits", () => {
     // P3 = G-shape window [4, 8] in C major fits inside [4, 8] exactly.
     const markers = buildChordToneMarkers({
+      tuning: TUNINGS.standard,
       key: "C",
       chord: null,
       accidentalStyle: "sharp",
@@ -394,6 +410,7 @@ describe("buildChordToneMarkers — narrowed range", () => {
 describe("buildChordToneMarkers — modal", () => {
   it("mode='ionian' is regression-equivalent to omitting mode", () => {
     const baseInput = {
+      tuning: TUNINGS.standard,
       key: "C",
       chord: getModalDiatonicChords("C", "ionian")[0],
       accidentalStyle: "flat" as const,
@@ -411,6 +428,7 @@ describe("buildChordToneMarkers — modal", () => {
   it("D Dorian + Dm7 + P1 emits markers in frets 0-3 (parent C major's P1)", () => {
     const dDorianI = getModalDiatonicChords("D", "dorian")[0]; // Dm7
     const markers = buildChordToneMarkers({
+      tuning: TUNINGS.standard,
       key: "D",
       mode: "dorian",
       chord: dDorianI,
@@ -433,6 +451,7 @@ describe("buildChordToneMarkers — modal", () => {
   it("drops out-of-mode notes (C Lydian filters out F)", () => {
     const cLydianI = getModalDiatonicChords("C", "lydian", "sharp")[0]; // Cmaj7
     const markers = buildChordToneMarkers({
+      tuning: TUNINGS.standard,
       key: "C",
       mode: "lydian",
       chord: cLydianI,
@@ -452,6 +471,7 @@ describe("buildChordToneMarkers — modal", () => {
   it("flags characteristic notes in Dorian (♮6 = A in C Dorian)", () => {
     const cDorianI = getModalDiatonicTriads("C", "dorian", "flat")[0]; // Cm
     const markers = buildChordToneMarkers({
+      tuning: TUNINGS.standard,
       key: "C",
       mode: "dorian",
       chord: cDorianI,

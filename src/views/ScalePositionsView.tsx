@@ -8,6 +8,7 @@ import { PositionToggles } from "../components/PositionToggles";
 import { ALL_NOTES_KEY } from "../components/KeySelector";
 import { Legend, type HighlightableRole } from "../components/Legend";
 import { buildChordToneMarkers } from "../theory/chordTones";
+import { TUNINGS } from "../theory/tuning";
 import {
   CAGED_POSITIONS,
   computeOverlapZones,
@@ -91,6 +92,7 @@ export function ScalePositionsView({
   const markers = useMemo(
     () =>
       buildChordToneMarkers({
+        tuning: TUNINGS.standard,
         key: selectedKey,
         chord: selectedChord,
         accidentalStyle,

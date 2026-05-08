@@ -1,12 +1,12 @@
 import { ALL_NOTES_KEY } from "../components/KeySelector";
 import type { HighlightableRole } from "../components/Legend";
 import {
-  STANDARD_TUNING,
   getDisplayName,
   getNoteAtFret,
   getNoteIndex,
   type AccidentalStyle,
 } from "./notes";
+import type { Tuning } from "./tuning";
 import { isInPositionWindow, type PositionId } from "./positions";
 import { type DiatonicChord, type DiatonicTriad } from "./scales";
 import {
@@ -49,6 +49,7 @@ export function roleFromChordTone(
 }
 
 export type BuildChordToneMarkersInput = {
+  tuning: Tuning;
   key: string;
   chord: DiatonicChord | DiatonicTriad | null;
   accidentalStyle: AccidentalStyle;
@@ -80,6 +81,7 @@ export type BuildChordToneMarkersInput = {
 // tonic (parentMajorOf), and notes flagged by getCharacteristicNotes are
 // stamped with isCharacteristic=true.
 export function buildChordToneMarkers({
+  tuning,
   key,
   chord,
   accidentalStyle,
@@ -98,8 +100,8 @@ export function buildChordToneMarkers({
 
   const result: NoteMarker[] = [];
 
-  for (let stringIndex = 0; stringIndex < STANDARD_TUNING.length; stringIndex++) {
-    const openString = STANDARD_TUNING[stringIndex];
+  for (let stringIndex = 0; stringIndex < tuning.strings.length; stringIndex++) {
+    const openString = tuning.strings[stringIndex];
     for (let fret = startFret; fret <= endFret; fret++) {
       const note = getNoteAtFret(openString, fret);
       const interval = getModalIntervalRole(key, mode, note);
