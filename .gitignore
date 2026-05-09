@@ -38,3 +38,8 @@ coverage/
 
 # Asset-recording temp dir (Playwright WebM + ffmpeg palettes)
 scripts/.recording-tmp/
+
+# Playwright E2E
+test-results/
+playwright-report/
+playwright/.cache/

@@ -15,9 +15,21 @@ type NoteCircleProps = {
   note: string;
   role: NoteDisplayRole;
   isCharacteristic?: boolean;
+  // String/fret coordinates exposed as data-* attributes for E2E tests; not
+  // used for rendering. Optional so existing callers don't have to pass them.
+  string?: number;
+  fret?: number;
 };
 
-export function NoteCircle({ cx, cy, note, role, isCharacteristic }: NoteCircleProps) {
+export function NoteCircle({
+  cx,
+  cy,
+  note,
+  role,
+  isCharacteristic,
+  string,
+  fret,
+}: NoteCircleProps) {
   const color = ROLE_COLORS[role];
   const isMuted = role === "muted";
   const radius = isMuted ? 10 : role === "root" ? 14 : 13;
@@ -27,7 +39,14 @@ export function NoteCircle({ cx, cy, note, role, isCharacteristic }: NoteCircleP
   const ringRadius = radius + 3;
 
   return (
-    <g opacity={isMuted ? 0.4 : 1}>
+    <g
+      opacity={isMuted ? 0.4 : 1}
+      data-testid="note-marker"
+      data-string={string}
+      data-fret={fret}
+      data-note={note}
+      data-role={role}
+    >
       {isCharacteristic && (
         <circle
           cx={cx}

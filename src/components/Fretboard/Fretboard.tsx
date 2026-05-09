@@ -254,6 +254,11 @@ export function Fretboard({
           return (
             <path
               key={`brackets-${win.id}`}
+              data-testid="position-window"
+              data-window-id={win.id}
+              data-low={win.low}
+              data-high={win.high}
+              data-label={win.label}
               d={bracketPath(leftX, T, rightX, B)}
               fill="none"
               stroke={POSITION_BRACKET_STROKE}
@@ -273,6 +278,8 @@ export function Fretboard({
             note={marker.note}
             role={marker.role}
             isCharacteristic={marker.isCharacteristic}
+            string={marker.string}
+            fret={marker.fret}
           />
         ))}
 
