@@ -172,6 +172,7 @@ function App() {
         return (
           <>
             <ScalePositionsView
+              tuning={TUNINGS[tuningId]}
               selectedKey={selectedKey}
               accidentalStyle={accidentalStyle}
               enabledHighlights={enabledHighlights}
@@ -197,6 +198,7 @@ function App() {
         return (
           <>
             <ChordShapesView
+              tuning={TUNINGS[tuningId]}
               selectedKey={selectedKey}
               accidentalStyle={accidentalStyle}
               startFret={startFret}

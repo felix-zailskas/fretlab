@@ -108,7 +108,7 @@ export function buildChordToneMarkers({
       if (interval === null) continue; // out of key/mode — drop entirely
 
       const inWindow = positions.some((p) =>
-        isInPositionWindow(parentKey, p, fret, startFret, endFret),
+        isInPositionWindow(parentKey, p, fret, startFret, endFret, tuning),
       );
       if (!inWindow && !showContext) continue; // hide outside-position notes
 

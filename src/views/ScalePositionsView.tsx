@@ -8,7 +8,7 @@ import { PositionToggles } from "../components/PositionToggles";
 import { ALL_NOTES_KEY } from "../components/KeySelector";
 import { Legend, type HighlightableRole } from "../components/Legend";
 import { buildChordToneMarkers } from "../theory/chordTones";
-import { TUNINGS } from "../theory/tuning";
+import type { Tuning } from "../theory/tuning";
 import {
   CAGED_POSITIONS,
   computeOverlapZones,
@@ -20,6 +20,7 @@ import { parentMajorOf, type Mode } from "../theory/modes";
 import { type ScalePositionsControls } from "./useScalePositionsState";
 
 type ScalePositionsViewProps = {
+  tuning: Tuning;
   selectedKey: string;
   accidentalStyle: AccidentalStyle;
   enabledHighlights: Set<HighlightableRole>;
@@ -38,6 +39,7 @@ type ScalePositionsViewProps = {
 const EMPTY_KEY_MESSAGE = "Select a key to view scale positions.";
 
 export function ScalePositionsView({
+  tuning,
   selectedKey,
   accidentalStyle,
   enabledHighlights,
@@ -70,7 +72,7 @@ export function ScalePositionsView({
   const positionWindows = useMemo<PositionWindow[]>(() => {
     if (selectedKey === ALL_NOTES_KEY) return [];
     return CAGED_POSITIONS.filter((p) => selectedPositions.has(p.id)).flatMap((p) =>
-      getPositionWindows(parentKey, p.id, startFret, endFret).map(
+      getPositionWindows(parentKey, p.id, startFret, endFret, tuning).map(
         ([low, high], octaveIndex) => ({
           id: `${p.id}-${octaveIndex}`,
           low,
@@ -82,17 +84,17 @@ export function ScalePositionsView({
         }),
       ),
     );
-  }, [selectedKey, parentKey, selectedPositions, startFret, endFret, mode]);
+  }, [tuning, selectedKey, parentKey, selectedPositions, startFret, endFret, mode]);
 
   const overlapZones = useMemo<OverlapZone[]>(() => {
     if (selectedKey === ALL_NOTES_KEY) return [];
-    return computeOverlapZones(parentKey, positionsArray, startFret, endFret);
-  }, [selectedKey, parentKey, positionsArray, startFret, endFret]);
+    return computeOverlapZones(parentKey, positionsArray, startFret, endFret, tuning);
+  }, [tuning, selectedKey, parentKey, positionsArray, startFret, endFret]);
 
   const markers = useMemo(
     () =>
       buildChordToneMarkers({
-        tuning: TUNINGS.standard,
+        tuning,
         key: selectedKey,
         chord: selectedChord,
         accidentalStyle,
@@ -104,6 +106,7 @@ export function ScalePositionsView({
         mode,
       }),
     [
+      tuning,
       selectedKey,
       selectedChord,
       accidentalStyle,

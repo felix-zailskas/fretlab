@@ -5,7 +5,7 @@ import {
   getNoteIndex,
   type AccidentalStyle,
 } from "./notes";
-import { TUNINGS } from "./tuning";
+import type { Tuning } from "./tuning";
 import type {
   TriadQuality,
   ChordQuality,
@@ -608,6 +608,7 @@ export const SEVENTH_SHAPES: Record<
 export type BuildChordShapeMarkersInput =
   | {
       mode: "triads";
+      tuning: Tuning;
       modalMode?: ModalMode;
       chord: DiatonicTriad;
       key: string;
@@ -619,6 +620,7 @@ export type BuildChordShapeMarkersInput =
     }
   | {
       mode: "sevenths";
+      tuning: Tuning;
       modalMode?: ModalMode;
       voicingSystem: VoicingSystem;
       chord: DiatonicChord;
@@ -632,7 +634,7 @@ export type BuildChordShapeMarkersInput =
 
 // Convert a 1..6 (high-E-first) shape-string index to the codebase's 0..5
 // (low-E-first) marker-string index used by the Fretboard renderer and
-// TUNINGS.standard.strings.
+// Tuning.strings.
 function shapeStringToMarkerString(shapeString: number): number {
   return 6 - shapeString;
 }
@@ -655,9 +657,22 @@ function getRootFrets(
 
 // Places all fitting occurrences of a single chord's shape on one combo.
 // Returns clusters in ascending root-fret order; no coupling between combos.
+//
+// `tuning` determines both:
+// 1. Where the shape anchors (root fret on the anchor string depends on that
+//    string's open note).
+// 2. The note label at every marker (read off the tuning's open string at
+//    that string index).
+//
+// In CAGED-compatible tunings (those preserving standard's [5,5,5,4,5]
+// interval pattern), the *shape geometry* — the relative fret offsets within
+// the shape — is unchanged. Only the absolute anchor fret shifts. Calling
+// this with a non-CAGED tuning is undefined behavior; the view layer must
+// gate on tuningSupportsView.
 function placeChordOnCombo(
   chord: { quality: string; notes: readonly string[] },
   shape: TriadShape | SeventhShape,
+  tuning: Tuning,
   key: string,
   accidentalStyle: AccidentalStyle,
   startFret: number,
@@ -665,7 +680,7 @@ function placeChordOnCombo(
   characteristicSet: ReadonlySet<number>,
 ): NoteMarker[] {
   const anchorMarkerString = shapeStringToMarkerString(shape.rootString);
-  const openAnchorNote = TUNINGS.standard.strings[anchorMarkerString];
+  const openAnchorNote = tuning.strings[anchorMarkerString];
   const candidates = getRootFrets(chord.notes[0], openAnchorNote, startFret, endFret);
   const result: NoteMarker[] = [];
 
@@ -679,7 +694,7 @@ function placeChordOnCombo(
     for (const p of shape.positions) {
       const absFret = candidate + p.fretOffset;
       const markerString = shapeStringToMarkerString(p.string);
-      const openNote = TUNINGS.standard.strings[markerString];
+      const openNote = tuning.strings[markerString];
       const noteSharp = getNoteAtFret(openNote, absFret);
       const isCharacteristic = characteristicSet.has(getNoteIndex(noteSharp));
       result.push({
@@ -728,6 +743,7 @@ export function buildChordShapeMarkers(
           ...placeChordOnCombo(
             input.chord,
             shape,
+            input.tuning,
             input.key,
             input.accidentalStyle,
             input.startFret,
@@ -757,6 +773,7 @@ export function buildChordShapeMarkers(
         ...placeChordOnCombo(
           input.chord,
           shape,
+          input.tuning,
           input.key,
           input.accidentalStyle,
           input.startFret,
