@@ -11,14 +11,15 @@ export default defineConfig({
   retries: process.env.CI ? 1 : 0,
   reporter: process.env.CI ? "github" : "list",
   use: {
-    // Vite's `base: "/fretlab/"` means the app lives at this path.
-    baseURL: "http://localhost:5173/fretlab/",
+    // App is served at the root of the dev server (no /fretlab/ prefix
+    // since the production site moved to fretlab.studio).
+    baseURL: "http://localhost:5173/",
     trace: "on-first-retry",
   },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
   webServer: {
     command: "npm run dev",
-    url: "http://localhost:5173/fretlab/",
+    url: "http://localhost:5173/",
     reuseExistingServer: !process.env.CI,
     stdout: "pipe",
     stderr: "pipe",

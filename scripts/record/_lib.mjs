@@ -15,9 +15,9 @@ export const outDir = join(repoRoot, "docs", "images");
 export const tmpDir = join(repoRoot, "scripts", ".recording-tmp");
 
 export const VIEWPORT = { width: 1440, height: 900 };
-// vite.config.ts sets `base: '/fretlab/'`, so dev + Pages URLs both serve
-// the app under that subpath. Override via FRETLAB_URL if pointing elsewhere.
-export const URL_BASE = process.env.FRETLAB_URL ?? "http://localhost:5173/fretlab/";
+// Dev server serves the app at the root path. Override via FRETLAB_URL when
+// recording against a different deployment (e.g. https://fretlab.studio/).
+export const URL_BASE = process.env.FRETLAB_URL ?? "http://localhost:5173/";
 export const GIF_FPS = 10;
 export const GIF_WIDTH = 960;
 export const TRIM_HEAD = 0.4; // seconds — drop initial paint flash
