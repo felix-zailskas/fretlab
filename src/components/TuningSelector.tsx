@@ -1,12 +1,10 @@
-import { useEffect, useRef, useState } from "react";
-import { TUNINGS, type TuningId } from "../theory/tuning";
+import { Fragment, useEffect, useRef, useState } from "react";
+import { TUNINGS, TUNING_GROUPS, type TuningId } from "../theory/tuning";
 
 type TuningSelectorProps = {
   tuningId: TuningId;
   onTuningChange: (id: TuningId) => void;
 };
-
-const TUNING_IDS: TuningId[] = ["standard", "open-g"];
 
 export function TuningSelector({ tuningId, onTuningChange }: TuningSelectorProps) {
   const [open, setOpen] = useState(false);
@@ -55,27 +53,43 @@ export function TuningSelector({ tuningId, onTuningChange }: TuningSelectorProps
           role="listbox"
           aria-label="Tuning"
           data-popover
-          className="absolute right-0 top-full mt-2 z-10 w-44 p-1 rounded-lg border border-line bg-surface-raised shadow-lg origin-top-right"
+          className="absolute right-0 top-full mt-2 z-10 w-80 p-1 rounded-lg border border-line bg-surface-raised shadow-lg origin-top-right max-h-[70vh] overflow-y-auto"
         >
-          {TUNING_IDS.map((id) => {
-            const isActive = id === tuningId;
-            return (
-              <button
-                key={id}
-                type="button"
-                role="option"
-                aria-selected={isActive}
-                onClick={() => handleSelect(id)}
-                className={`w-full text-left px-3 py-2 rounded text-sm cursor-pointer ${
-                  isActive
-                    ? "bg-surface-active text-fg-emphasis font-semibold"
-                    : "text-fg-secondary hover:bg-surface-active"
+          {TUNING_GROUPS.map((group, groupIdx) => (
+            <Fragment key={group.category}>
+              <div
+                className={`px-3 pb-1 text-xs uppercase tracking-wide text-fg-muted font-semibold ${
+                  groupIdx === 0 ? "pt-2" : "pt-3"
                 }`}
+                role="presentation"
               >
-                {TUNINGS[id].name}
-              </button>
-            );
-          })}
+                {group.label}
+              </div>
+              {group.ids.map((id) => {
+                const isActive = id === tuningId;
+                const tuning = TUNINGS[id];
+                return (
+                  <button
+                    key={id}
+                    type="button"
+                    role="option"
+                    aria-selected={isActive}
+                    onClick={() => handleSelect(id)}
+                    className={`w-full flex items-center justify-between gap-3 px-3 py-2 rounded text-sm cursor-pointer ${
+                      isActive
+                        ? "bg-surface-active text-fg-emphasis font-semibold"
+                        : "text-fg-secondary hover:bg-surface-active"
+                    }`}
+                  >
+                    <span>{tuning.name}</span>
+                    <span className="font-mono text-xs text-fg-faint tabular-nums">
+                      {tuning.strings.join(" ")}
+                    </span>
+                  </button>
+                );
+              })}
+            </Fragment>
+          ))}
         </div>
       )}
     </div>
