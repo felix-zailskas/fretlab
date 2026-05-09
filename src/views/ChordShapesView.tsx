@@ -33,6 +33,7 @@ type ChordShapesViewProps = {
   chordRowMode: ChordRowMode;
   enabledHighlights: Set<HighlightableRole>;
   onToggleRole: (role: HighlightableRole) => void;
+  disabledRoles?: Set<HighlightableRole>;
   controls: ChordShapesControls;
   modalMode: Mode;
 };
@@ -92,6 +93,7 @@ export function ChordShapesView({
   chordRowMode,
   enabledHighlights,
   onToggleRole,
+  disabledRoles,
   controls,
   modalMode,
 }: ChordShapesViewProps) {
@@ -216,7 +218,11 @@ export function ChordShapesView({
         emptyMessage={fretboardMessage}
       />
       <div className="flex flex-wrap items-center gap-x-6 gap-y-3 min-h-9 max-[1319px]:min-h-20">
-        <Legend enabledRoles={enabledHighlights} onToggleRole={onToggleRole} />
+        <Legend
+          enabledRoles={enabledHighlights}
+          onToggleRole={onToggleRole}
+          disabledRoles={disabledRoles}
+        />
         <span aria-hidden="true" className="w-px h-6 bg-line self-center" />
         {mode === "sevenths" ? (
           <VoicingSystemSelector

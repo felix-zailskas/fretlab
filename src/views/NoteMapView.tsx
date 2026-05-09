@@ -24,6 +24,7 @@ type NoteMapViewProps = {
   accidentalStyle: AccidentalStyle;
   enabledHighlights: Set<HighlightableRole>;
   onToggleRole: (role: HighlightableRole) => void;
+  disabledRoles?: Set<HighlightableRole>;
   selectedChord: DiatonicChord | DiatonicTriad | null;
   startFret: number;
   endFret: number;
@@ -38,6 +39,7 @@ export function NoteMapView({
   accidentalStyle,
   enabledHighlights,
   onToggleRole,
+  disabledRoles,
   selectedChord,
   startFret,
   endFret,
@@ -102,7 +104,11 @@ export function NoteMapView({
           everything fits on one row (~36px); below that, Chord Shapes Sevenths
           wraps to two rows (~80px) and the other views match it. */}
       <div className="flex flex-wrap items-center gap-x-6 gap-y-3 min-h-9 max-[1319px]:min-h-20">
-        <Legend enabledRoles={enabledHighlights} onToggleRole={onToggleRole} />
+        <Legend
+          enabledRoles={enabledHighlights}
+          onToggleRole={onToggleRole}
+          disabledRoles={disabledRoles}
+        />
       </div>
     </div>
   );
