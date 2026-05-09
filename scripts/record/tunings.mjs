@@ -25,8 +25,9 @@ export async function record(browser) {
 
   // Pick D Standard (CAGED-compatible). Note labels on Note Map shift down
   // by 2 semitones on every string — same in-key notes, new fretboard
-  // anchors.
-  await page.getByRole("option", { name: /D Standard/ }).click();
+  // anchors. Anchor the regex with ^ so it doesn't match "C# Standard" or
+  // "Eb Standard" via partial overlap.
+  await page.getByRole("option", { name: /^D Standard/ }).click();
   await page.waitForTimeout(HOLD);
 
   // Switch to Scale Positions to show the box-window shift. P1 was at
@@ -36,10 +37,14 @@ export async function record(browser) {
 
   // Now switch to Open G — a non-CAGED tuning. The same view should
   // surface the empty state with the explanation and the
-  // "Switch to Standard tuning" button.
+  // "Switch to Standard tuning" button. /Open G/ alone matches "Open Gm"
+  // too — use first() (Open G appears before Open Gm in the popover).
   await tuningTrigger.click();
   await page.waitForTimeout(STEP);
-  await page.getByRole("option", { name: /Open G/ }).click();
+  await page
+    .getByRole("option", { name: /Open G/ })
+    .first()
+    .click();
   await page.waitForTimeout(HOLD);
 
   // Click the empty-state's recovery button — view re-renders normally
