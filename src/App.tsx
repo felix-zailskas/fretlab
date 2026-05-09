@@ -13,6 +13,7 @@ import { KeySelector, ALL_NOTES_KEY } from "./components/KeySelector";
 import { ModeSelector } from "./components/ModeSelector";
 import { ViewSelector } from "./components/ViewSelector";
 import { TuningSelector } from "./components/TuningSelector";
+import { UnavailableInTuning } from "./components/UnavailableInTuning";
 import { type HighlightableRole } from "./components/Legend";
 import { ScaleDisplay } from "./components/ScaleDisplay";
 import { DiatonicChords, type ChordRowMode } from "./components/DiatonicChords";
@@ -37,21 +38,7 @@ function App() {
   });
   const { key: selectedKey, mode, accidentalStyle } = tonal;
   const [selectedView, setSelectedView] = useState<ViewId>("note-map");
-  const [tuningId, setTuningIdRaw] = useState<TuningId>("standard");
-
-  // When switching to a tuning that doesn't support the active view, fall
-  // back to note-map. Co-located with the setter (not in a useEffect) so
-  // behavior is local to the user's action and there's no transient frame
-  // where a disabled tab is selected.
-  const setTuningId = useCallback(
-    (nextId: TuningId) => {
-      setTuningIdRaw(nextId);
-      if (!tuningSupportsView(nextId, selectedView)) {
-        setSelectedView("note-map");
-      }
-    },
-    [selectedView],
-  );
+  const [tuningId, setTuningId] = useState<TuningId>("standard");
   const [enabledHighlights, setEnabledHighlights] = useState<Set<HighlightableRole>>(
     () => new Set(DEFAULT_HIGHLIGHTS),
   );
@@ -146,6 +133,15 @@ function App() {
   const isAllNotesKey = selectedKey === ALL_NOTES_KEY;
 
   function renderView(): ReactNode {
+    if (!tuningSupportsView(tuningId, selectedView)) {
+      return (
+        <UnavailableInTuning
+          viewId={selectedView}
+          tuningId={tuningId}
+          onSwitchToStandard={() => setTuningId("standard")}
+        />
+      );
+    }
     switch (selectedView) {
       case "note-map":
         return (
@@ -232,11 +228,6 @@ function App() {
 
   // Hidden announcement for screen readers — narrates the active tonal
   // context whenever key, mode, or chord-degree changes.
-  const disabledViewsForCurrentTuning = useMemo<ReadonlySet<ViewId>>(() => {
-    const all: ViewId[] = ["note-map", "scale-positions", "chord-shapes"];
-    return new Set(all.filter((v) => !tuningSupportsView(tuningId, v)));
-  }, [tuningId]);
-
   const announcement = useMemo(() => {
     if (selectedKey === ALL_NOTES_KEY) return "Showing all notes";
     const modeName =
@@ -304,11 +295,7 @@ function App() {
               doesn't shift up when "All" is selected and only the short hint
               renders on the right. */}
           <div className="flex flex-wrap items-center justify-between gap-x-8 gap-y-3 min-h-[50px]">
-            <ViewSelector
-              selectedView={selectedView}
-              onViewChange={setSelectedView}
-              disabledViews={disabledViewsForCurrentTuning}
-            />
+            <ViewSelector selectedView={selectedView} onViewChange={setSelectedView} />
             {isAllNotesKey ? (
               <p className="text-fg-muted text-sm">
                 Pick a key above to see scales and chords.
