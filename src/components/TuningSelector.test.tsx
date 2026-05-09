@@ -21,40 +21,47 @@ describe("TuningSelector", () => {
   it("renders all four tuning category groups when open", async () => {
     render(<TuningSelector tuningId="standard" onTuningChange={() => {}} />);
     await userEvent.click(screen.getByRole("button", { name: /Tuning:/ }));
-    // Headers are visual `<div>`s — assert presence by text, not role.
-    expect(screen.getByText("Standard")).toBeInTheDocument();
-    expect(screen.getByText("Open Tunings")).toBeInTheDocument();
-    expect(screen.getByText("Drop Tunings")).toBeInTheDocument();
-    expect(screen.getByText("Modal & Other")).toBeInTheDocument();
+    // Group headers are `<div role="presentation">`. Scope queries to that
+    // role so option text containing the same words ("Standard" appears in
+    // four option labels too) doesn't cause ambiguity.
+    const headers = screen.getAllByRole("presentation");
+    const headerTexts = headers.map((h) => h.textContent);
+    expect(headerTexts).toContain("Standard");
+    expect(headerTexts).toContain("Open Tunings");
+    expect(headerTexts).toContain("Drop Tunings");
+    expect(headerTexts).toContain("Modal & Other");
   });
 
+  // jsdom's accessible-name computation concatenates the option's two spans
+  // ("Standard" + the string preview) with no whitespace separator, e.g.
+  // "StandardE A D G B E". Match that exact form.
   it("renders each preset as an option with its name and string preview", async () => {
     render(<TuningSelector tuningId="standard" onTuningChange={() => {}} />);
     await userEvent.click(screen.getByRole("button", { name: /Tuning:/ }));
-    const standardOption = screen.getByRole("option", { name: /Standard E A D G B E/ });
-    expect(standardOption).toBeInTheDocument();
-    const openG = screen.getByRole("option", { name: /Open G D G D G B D/ });
-    expect(openG).toBeInTheDocument();
+    expect(
+      screen.getByRole("option", { name: "StandardE A D G B E" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("option", { name: "Open GD G D G B D" }),
+    ).toBeInTheDocument();
   });
 
   it("marks the active tuning's option with aria-selected=true", async () => {
     render(<TuningSelector tuningId="open-g" onTuningChange={() => {}} />);
     await userEvent.click(screen.getByRole("button", { name: /Tuning:/ }));
-    expect(screen.getByRole("option", { name: /Open G/ })).toHaveAttribute(
-      "aria-selected",
-      "true",
-    );
-    expect(screen.getByRole("option", { name: /Standard E A D G B E/ })).toHaveAttribute(
-      "aria-selected",
-      "false",
-    );
+    expect(
+      screen.getByRole("option", { name: "Open GD G D G B D" }),
+    ).toHaveAttribute("aria-selected", "true");
+    expect(
+      screen.getByRole("option", { name: "StandardE A D G B E" }),
+    ).toHaveAttribute("aria-selected", "false");
   });
 
   it("fires onTuningChange with the selected id and closes the popover", async () => {
     const onTuningChange = vi.fn();
     render(<TuningSelector tuningId="standard" onTuningChange={onTuningChange} />);
     await userEvent.click(screen.getByRole("button", { name: /Tuning:/ }));
-    await userEvent.click(screen.getByRole("option", { name: /DADGAD/ }));
+    await userEvent.click(screen.getByRole("option", { name: "DADGADD A D G A D" }));
     expect(onTuningChange).toHaveBeenCalledWith("dadgad");
     expect(screen.queryByRole("listbox")).not.toBeInTheDocument();
   });
