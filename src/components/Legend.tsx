@@ -40,9 +40,10 @@ const LEGEND_ITEMS: {
 type LegendProps = {
   enabledRoles: Set<HighlightableRole>;
   onToggleRole: (role: HighlightableRole) => void;
+  disabledRoles?: Set<HighlightableRole>;
 };
 
-export function Legend({ enabledRoles, onToggleRole }: LegendProps) {
+export function Legend({ enabledRoles, onToggleRole, disabledRoles }: LegendProps) {
   return (
     <div
       className="inline-flex rounded overflow-hidden border border-line"
@@ -51,16 +52,20 @@ export function Legend({ enabledRoles, onToggleRole }: LegendProps) {
     >
       {LEGEND_ITEMS.map((item) => {
         const isEnabled = enabledRoles.has(item.role);
+        const isDisabled = disabledRoles?.has(item.role) ?? false;
         return (
           <button
             key={item.label}
             onClick={() => onToggleRole(item.role)}
             title={item.title}
             aria-pressed={isEnabled}
-            className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-semibold transition-colors cursor-pointer ${
-              isEnabled
-                ? "bg-surface-active text-fg-emphasis"
-                : "bg-surface text-fg-muted hover:bg-surface-raised"
+            disabled={isDisabled}
+            className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-semibold transition-colors ${
+              isDisabled
+                ? "bg-surface text-fg-muted opacity-40 cursor-not-allowed"
+                : isEnabled
+                  ? "bg-surface-active text-fg-emphasis cursor-pointer"
+                  : "bg-surface text-fg-muted hover:bg-surface-raised cursor-pointer"
             }`}
           >
             <span
