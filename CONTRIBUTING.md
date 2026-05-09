@@ -76,8 +76,48 @@ docs/
 
 ### Testing
 
-- Tests live alongside the module they cover (`foo.ts` → `foo.test.ts`).
-- Test pure theory functions directly; do not test React rendering for theory behavior.
+Fretlab uses a **two-tier test split** sized to feedback cost:
+
+**Tier 1 — fast (pre-commit + CI):** vitest runs both pure-logic unit tests and React
+component tests in a single command (`npm test`).
+
+- **Unit / theory tests** — `src/theory/<module>.test.ts`. Node environment. Test pure
+  functions directly; do not mount React.
+- **Component tests** — `src/components/<Component>.test.tsx`. jsdom environment via
+  React Testing Library + `@testing-library/jest-dom`. Use `getByRole` / `getByText`
+  over CSS or `data-testid` selectors.
+
+The split is configured in `vitest.config.ts` via `environmentMatchGlobs`.
+`window.matchMedia` is stubbed in `vitest.setup.ts` for components that read system
+color-scheme preference.
+
+**Tier 2 — slow (CI only, NOT pre-commit):** Playwright E2E tests in
+`tests/e2e/<scenario>.spec.ts`. Each test boots a real browser; including them in
+pre-commit would make every commit slow. CI runs them in a separate `e2e` job parallel
+to the main `ci` job.
+
+Run locally with `npm run test:e2e` (or `npm run test:e2e:ui` for the interactive
+runner). Browsers must be installed once with `npx playwright install chromium`.
+
+**When to use which tier:**
+
+- Pure theory function → unit test.
+- Single component's behavior (rendering, props, events) → RTL component test.
+- Integration bug crossing component boundaries — especially anything where a
+  parameterized function is called with a hardcoded value at the call site — →
+  Playwright E2E test. The Fretboard exposes `data-testid="note-marker"`,
+  `data-testid="position-window"`, plus per-marker `data-string` / `data-fret` /
+  `data-note` and per-window `data-low` / `data-high` / `data-label` for test
+  assertions; add similar `data-*` hooks to other rendered elements as needed rather
+  than asserting on visual layout.
+
+**Conventions:**
+
+- Tests live alongside the module they cover (`foo.ts` → `foo.test.ts`, `Foo.tsx` →
+  `Foo.test.tsx`).
+- For tests over registries (e.g., `TUNINGS`), iterate the registry rather than
+  enumerating items. Pre-fill any per-element fixture data so adding a new entry doesn't
+  require multi-file edits.
 - Aim for one assertion per `it()` block. Group related cases with `describe()`.
 
 ## GitHub Actions
