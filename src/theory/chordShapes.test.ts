@@ -315,7 +315,9 @@ describe("SEVENTH_SHAPES — structure", () => {
 
 import { buildChordShapeMarkers } from "./chordShapes";
 import { TUNINGS } from "./tuning";
+import type { Tuning } from "./tuning";
 import { getModalDiatonicChords, getModalDiatonicTriads } from "./modes";
+import { CHROMATIC_SCALE, getNoteAtFret, getNoteIndex } from "./notes";
 import { ALL_NOTES_KEY } from "../components/KeySelector";
 import { DEFAULT_END_FRET } from "./constants";
 
@@ -710,5 +712,105 @@ describe("buildChordShapeMarkers — modal", () => {
     // Cm7 = C-Eb-G-Bb. Dorian's characteristic note is A (♮6) — not in Cm7.
     expect(markers.length).toBeGreaterThan(0); // sanity: voicings exist
     expect(markers.every((m) => !m.isCharacteristic)).toBe(true);
+  });
+});
+
+describe("buildChordShapeMarkers — tuning-agnostic invariant", () => {
+  // Seeded LCG so failures are reproducible.
+  function makeRandom(seed: number) {
+    let s = seed >>> 0;
+    return () => {
+      s = (s * 1664525 + 1013904223) >>> 0;
+      return s / 0x100000000;
+    };
+  }
+
+  function randomTuning(rand: () => number): Tuning {
+    const pick = () => CHROMATIC_SCALE[Math.floor(rand() * CHROMATIC_SCALE.length)];
+    return {
+      id: "standard", // any TuningId; the predicate doesn't read this field
+      name: "Random",
+      strings: [pick(), pick(), pick(), pick(), pick(), pick()],
+    };
+  }
+
+  it("every emitted marker maps back to its open-string note via getNoteAtFret", () => {
+    // Universal property: regardless of tuning, the (string, fret) returned by
+    // buildChordShapeMarkers must encode a note consistent with the tuning's
+    // open string at that index. Catches any silent regression to a hardcoded
+    // tuning at the call site.
+    const rand = makeRandom(0xdeadbeef);
+    const chord = getModalDiatonicTriads("C", "ionian", "sharp")[0]; // C major
+    for (let iter = 0; iter < 20; iter++) {
+      const tuning = randomTuning(rand);
+      const markers = buildChordShapeMarkers({
+        tuning,
+        mode: "triads",
+        chord,
+        key: "C",
+        accidentalStyle: "sharp",
+        stringSets: ["1-2-3", "2-3-4", "3-4-5", "4-5-6"],
+        inversions: ["root", "first", "second"],
+        startFret: 0,
+        endFret: 24,
+      });
+      // The random tuning may place the chord outside the fret range — that's
+      // fine; just iterate over whatever markers are returned.
+      for (const m of markers) {
+        const openString = tuning.strings[m.string];
+        const expectedAtFret = getNoteAtFret(openString, m.fret);
+        // m.note may be re-spelled (sharp/flat) for display; compare via
+        // chromatic index for enharmonic equivalence.
+        expect(getNoteIndex(m.note)).toBe(getNoteIndex(expectedAtFret));
+      }
+    }
+  });
+});
+
+describe("buildChordShapeMarkers — step-down anchor-fret regression", () => {
+  // C major triad, root inversion on string set 4-5-6 should anchor at
+  // different frets depending on tuning: the root (C) must fall on the lowest
+  // string (index 0 in the 0..5 scheme) at the fret that reaches C from that
+  // string's open note.
+  //
+  //   Standard  (low E):  E  + 8  = C
+  //   Eb Standard (D#):   D# + 9  = C
+  //   D Standard (D):     D  + 10 = C
+  //   C# Standard (C#):   C# + 11 = C
+
+  const chord = getModalDiatonicTriads("C", "ionian", "sharp")[0]; // C major
+
+  function firstRootFret(tuning: Tuning): number {
+    const markers = buildChordShapeMarkers({
+      tuning,
+      mode: "triads",
+      chord,
+      key: "C",
+      accidentalStyle: "sharp",
+      stringSets: ["4-5-6"],
+      inversions: ["root"],
+      startFret: 0,
+      endFret: 24,
+    });
+    const rootMarkers = markers.filter((m) => m.role === "root" && m.string === 0);
+    expect(rootMarkers.length).toBeGreaterThan(0);
+    // Return the lowest-fret root marker.
+    return Math.min(...rootMarkers.map((m) => m.fret));
+  }
+
+  it("Standard tuning: C major root-inv 4-5-6 anchors at fret 8 on low E", () => {
+    expect(firstRootFret(TUNINGS.standard)).toBe(8);
+  });
+
+  it("Eb Standard: C major root-inv 4-5-6 anchors at fret 9 on low D#", () => {
+    expect(firstRootFret(TUNINGS["eb-standard"])).toBe(9);
+  });
+
+  it("D Standard: C major root-inv 4-5-6 anchors at fret 10 on low D", () => {
+    expect(firstRootFret(TUNINGS["d-standard"])).toBe(10);
+  });
+
+  it("C# Standard: C major root-inv 4-5-6 anchors at fret 11 on low C#", () => {
+    expect(firstRootFret(TUNINGS["csharp-standard"])).toBe(11);
   });
 });
