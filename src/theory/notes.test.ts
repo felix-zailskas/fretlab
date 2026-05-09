@@ -1,11 +1,13 @@
 import { describe, it, expect } from "vitest";
 import {
+  CHROMATIC_SCALE,
   getNoteIndex,
   getNoteAtFret,
   getDisplayName,
   naturalAccidentalForKey,
-  STANDARD_TUNING,
+  type ChromaticNote,
 } from "./notes";
+import { TUNINGS, type TuningId } from "./tuning";
 
 describe("getNoteIndex", () => {
   it("returns correct index for natural notes", () => {
@@ -64,10 +66,35 @@ describe("getNoteAtFret", () => {
     expect(getNoteAtFret("B", 5)).toBe("E");
   });
 
-  it("wraps around correctly at fret 12", () => {
-    // Fret 12 = same note as open string
-    for (const openString of STANDARD_TUNING) {
+  it("wraps around correctly at fret 12 for standard tuning", () => {
+    for (const openString of TUNINGS.standard.strings) {
       expect(getNoteAtFret(openString, 12)).toBe(openString);
+    }
+  });
+
+  it("wraps around correctly at fret 12 for any open-string note", () => {
+    // Property: getNoteAtFret(s, 12) === s for every chromatic note s.
+    // If a function regresses to assuming a fixed tuning, this fails.
+    for (const openString of CHROMATIC_SCALE) {
+      expect(getNoteAtFret(openString, 12)).toBe(openString);
+    }
+  });
+
+  it("wraps around correctly at fret 12 for randomized tunings", () => {
+    // Seeded LCG so failures are reproducible.
+    let seed = 0x517cc1b7;
+    const rand = () => {
+      seed = (seed * 1664525 + 1013904223) >>> 0;
+      return seed / 0x100000000;
+    };
+    for (let iter = 0; iter < 20; iter++) {
+      const tuning = Array.from(
+        { length: 6 },
+        () => CHROMATIC_SCALE[Math.floor(rand() * CHROMATIC_SCALE.length)],
+      );
+      for (const openString of tuning) {
+        expect(getNoteAtFret(openString, 12)).toBe(openString);
+      }
     }
   });
 });
@@ -143,4 +170,51 @@ describe("naturalAccidentalForKey", () => {
     expect(naturalAccidentalForKey("X")).toBeNull();
     expect(naturalAccidentalForKey("all")).toBeNull();
   });
+});
+
+// Ground-truth fixture: for each possible open-string note, the chromatic
+// progression frets 0-12 (sharp spelling). Hand-written so it stands as an
+// independent witness to the chromatic order — if getNoteAtFret regresses or
+// CHROMATIC_SCALE is reordered, the fixture catches it. Frets 13-24 are not
+// listed: they're verified separately by octave equivalence.
+const FRET_NOTES_BY_OPEN_STRING: Record<ChromaticNote, readonly ChromaticNote[]> = {
+  C: ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B", "C"],
+  "C#": ["C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B", "C", "C#"],
+  D: ["D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B", "C", "C#", "D"],
+  "D#": ["D#", "E", "F", "F#", "G", "G#", "A", "A#", "B", "C", "C#", "D", "D#"],
+  E: ["E", "F", "F#", "G", "G#", "A", "A#", "B", "C", "C#", "D", "D#", "E"],
+  F: ["F", "F#", "G", "G#", "A", "A#", "B", "C", "C#", "D", "D#", "E", "F"],
+  "F#": ["F#", "G", "G#", "A", "A#", "B", "C", "C#", "D", "D#", "E", "F", "F#"],
+  G: ["G", "G#", "A", "A#", "B", "C", "C#", "D", "D#", "E", "F", "F#", "G"],
+  "G#": ["G#", "A", "A#", "B", "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#"],
+  A: ["A", "A#", "B", "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A"],
+  "A#": ["A#", "B", "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#"],
+  B: ["B", "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"],
+};
+
+// Per-tuning, per-string, per-fret ground-truth check. Frets 0-24 covered:
+// 0-12 against the hand-written fixture (independent witness), 13-24 against
+// the octave-equivalence invariant. Generic over TUNINGS so adding a new
+// tuning to the registry auto-extends coverage with no edits here.
+describe("fretboard computation — ground truth across all tunings", () => {
+  const tuningIds = Object.keys(TUNINGS) as TuningId[];
+  for (const tuningId of tuningIds) {
+    const tuning = TUNINGS[tuningId];
+    describe(`${tuning.name} (${tuningId})`, () => {
+      for (let stringIdx = 0; stringIdx < tuning.strings.length; stringIdx++) {
+        const open = tuning.strings[stringIdx];
+        it(`string ${stringIdx + 1} (open ${open}): frets 0-12 match fixture`, () => {
+          const expected = FRET_NOTES_BY_OPEN_STRING[open];
+          for (let fret = 0; fret <= 12; fret++) {
+            expect(getNoteAtFret(open, fret)).toBe(expected[fret]);
+          }
+        });
+        it(`string ${stringIdx + 1} (open ${open}): frets 13-24 mirror frets 1-12 (octave invariant)`, () => {
+          for (let fret = 13; fret <= 24; fret++) {
+            expect(getNoteAtFret(open, fret)).toBe(getNoteAtFret(open, fret - 12));
+          }
+        });
+      }
+    });
+  }
 });

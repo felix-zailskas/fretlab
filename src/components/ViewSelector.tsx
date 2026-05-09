@@ -1,12 +1,14 @@
-const VIEWS = [
+import type { ViewId } from "../views/types";
+
+const VIEWS: ReadonlyArray<{ id: ViewId; label: string }> = [
   { id: "note-map", label: "Note Map" },
   { id: "scale-positions", label: "Scale Positions" },
   { id: "chord-shapes", label: "Chord Shapes" },
 ];
 
 type ViewSelectorProps = {
-  selectedView: string;
-  onViewChange: (view: string) => void;
+  selectedView: ViewId;
+  onViewChange: (view: ViewId) => void;
 };
 
 export function ViewSelector({ selectedView, onViewChange }: ViewSelectorProps) {

@@ -1,4 +1,5 @@
 import { getNoteIndex } from "./notes";
+import type { Tuning } from "./tuning";
 
 export type PositionId = "P1" | "P2" | "P3" | "P4" | "P5";
 export type CagedShape = "E" | "D" | "C" | "A" | "G";
@@ -25,10 +26,29 @@ export const CAGED_POSITIONS: ReadonlyArray<PositionDef> = [
 ];
 
 const C_INDEX = getNoteIndex("C");
+const STANDARD_LOW_INDEX = getNoteIndex("E"); // standard tuning's low E
 
 function getKeyOffset(key: string): number {
   const idx = getNoteIndex(key);
   return (idx - C_INDEX + 12) % 12;
+}
+
+// Semitone shift the box must apply to compensate for the tuning's open low
+// string sitting below standard's E. Eb Standard → +1, D Standard → +2, C#
+// Standard → +3. Standard → 0. Hypothetical step-up tunings produce a
+// negative offset.
+//
+// CAGED windows are anchored to standard's open-string layout. To play the
+// same SHAPE in a step-down tuning, every fret must move up by the tuning's
+// drop in semitones — so the window slides up by that same amount. Calling
+// this with a non-CAGED-compatible tuning is not meaningful; the view layer
+// gates such tunings out before reaching this code.
+function getTuningOffsetFromStandard(tuning: Tuning): number {
+  const lowIdx = getNoteIndex(tuning.strings[0]);
+  let diff = STANDARD_LOW_INDEX - lowIdx;
+  if (diff > 6) diff -= 12;
+  if (diff < -6) diff += 12;
+  return diff;
 }
 
 function lookup(position: PositionId): PositionDef {
@@ -53,9 +73,10 @@ export function getPositionWindows(
   position: PositionId,
   startFret: number,
   endFret: number,
+  tuning: Tuning,
 ): FretWindow[] {
   const { cMajorWindow } = lookup(position);
-  const offset = getKeyOffset(key);
+  const offset = getKeyOffset(key) + getTuningOffsetFromStandard(tuning);
   const naturalLow = cMajorWindow[0] + offset;
   const naturalHigh = cMajorWindow[1] + offset;
 
@@ -81,8 +102,9 @@ export function isInPositionWindow(
   fret: number,
   startFret: number,
   endFret: number,
+  tuning: Tuning,
 ): boolean {
-  return getPositionWindows(key, position, startFret, endFret).some(
+  return getPositionWindows(key, position, startFret, endFret, tuning).some(
     ([low, high]) => fret >= low && fret <= high,
   );
 }
@@ -104,14 +126,21 @@ export function computeOverlapZones(
   positions: ReadonlyArray<PositionId>,
   startFret: number,
   endFret: number,
+  tuning: Tuning,
 ): OverlapZone[] {
   if (positions.length < 2) return [];
 
   const result: OverlapZone[] = [];
   for (let i = 0; i < positions.length; i++) {
-    const aWindows = getPositionWindows(key, positions[i], startFret, endFret);
+    const aWindows = getPositionWindows(key, positions[i], startFret, endFret, tuning);
     for (let j = i + 1; j < positions.length; j++) {
-      const bWindows = getPositionWindows(key, positions[j], startFret, endFret);
+      const bWindows = getPositionWindows(
+        key,
+        positions[j],
+        startFret,
+        endFret,
+        tuning,
+      );
       aWindows.forEach(([aLow, aHigh], aIdx) => {
         bWindows.forEach(([bLow, bHigh], bIdx) => {
           const low = Math.max(aLow, bLow);

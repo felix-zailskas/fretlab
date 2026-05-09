@@ -209,6 +209,66 @@ adds capability without disturbing major-scale practice.
 - _Working with modal harmony_ — `♭IIImaj7` in Dorian or `♯ivø7` in Lydian read directly
   off the chord row, no mental transposition.
 
+## Tunings
+
+![Short recording of the Tuning selector — opening the grouped popover (Standard / Open / Drop / Modal & Other), picking D Standard to shift Note Map's note labels and Scale Positions' boxes up by 2 frets, then switching to Open G to surface the empty-state explanation on Scale Positions, then clicking "Switch to Standard tuning" to recover.](docs/images/tunings.gif)
+
+A header **Tuning selector** sits next to the fret-range control and lets you switch
+between 18 preset tunings. Presets are grouped by category in the popover:
+
+- **Standard** — Standard, Eb Standard, D Standard, C# Standard.
+- **Open** — Open G, Open D, Open E, Open A, Open C, Open Dm, Open Gm.
+- **Drop** — Drop D, Double Drop D, Drop C, Drop B.
+- **Modal & Other** — DADGAD, All Fourths, New Standard (NST).
+
+The active tuning is shown in the trigger label (`Tuning: Standard ▾`). Each option in
+the popover lists the tuning's open strings (low → high) as a memory aid.
+
+### View support across tunings
+
+CAGED, drop-2, and drop-3 voicings — the pedagogy underlying Scale Positions and Chord
+Shapes — depend on standard tuning's specific interval pattern between adjacent strings
+(`[5, 5, 5, 4, 5]` semitones). Tunings that **preserve** that pattern unlock all three
+views; tunings that **break** it are restricted to Note Map.
+
+| Tuning category                 | Note Map | Scale Positions | Chord Shapes |
+| ------------------------------- | :------: | :-------------: | :----------: |
+| Standard, Eb / D / C# Standard  |    ✓     |        ✓        |      ✓       |
+| All Open / Drop / Modal tunings |    ✓     |                 |              |
+
+The rule is **derived from the strings**, not hand-flagged — `isCagedCompatible()` in
+[`src/theory/tuning.ts`](src/theory/tuning.ts) checks the interval pattern at module
+load. Adding a future preset auto-resolves which views it supports.
+
+When you select a tuning that doesn't support the active view, the view body shows an
+empty state explaining why and offers a one-click **Switch to Standard tuning** button.
+Switching back re-renders the view normally; your previous tab selection is preserved.
+
+In CAGED-compatible step-down tunings (Eb / D / C# Standard), the entire CAGED-window
+math shifts by the tuning's offset — so C major P1 sits at frets 1-4 in Eb Standard, 2-5
+in D Standard, and 3-6 in C# Standard. The labeled shape (P1 — C, P2 — A, etc.)
+correctly identifies where each shape's barre actually lives on the new neck.
+
+**Features**
+
+- 18 preset tunings across four categories, grouped in the selector popover
+- Step-down standards (Eb / D / C# Standard) with all three views available; box and
+  chord-shape positions auto-shift to track the tuning
+- Non-CAGED tunings gated to Note Map with a clear empty state on the other tabs
+- 6-string tuple — open-string note for each string is what every downstream computation
+  reads from, so the data model is ready for arbitrary custom tunings (planned; see
+  [the vision doc](docs/design/2026-05-09-custom-tunings-vision.md))
+
+**During practice**
+
+- _Slide-blues study_ — pick Open G or Open D, see the in-key notes laid out for
+  bottleneck practice without doing the mental retuning.
+- _Tuned-down rock / metal_ — Eb / D Standard with key labels honest to the actual
+  fretboard; CAGED shapes still work because intervals are preserved.
+- _DADGAD fingerstyle_ — Note Map in DADGAD (key D) shows where the in-key notes fall on
+  the modally-tuned neck; chord-shape pedagogy isn't applicable so the gating message
+  keeps you honest.
+
 ## Keyboard shortcuts
 
 A few shortcuts speed up the most common practice flows. They're disabled while focus is
@@ -236,21 +296,25 @@ The dev server prints a local URL (typically `http://localhost:5173/`).
 
 ### Available scripts
 
-| Script               | Description                                          |
-| -------------------- | ---------------------------------------------------- |
-| `npm run dev`        | Start the Vite dev server with HMR                   |
-| `npm run build`      | Type-check and produce a production build in `dist/` |
-| `npm run preview`    | Preview the production build locally                 |
-| `npm run lint`       | Run ESLint                                           |
-| `npm test`           | Run the Vitest suite once                            |
-| `npm run test:watch` | Run Vitest in watch mode                             |
+| Script                | Description                                                   |
+| --------------------- | ------------------------------------------------------------- |
+| `npm run dev`         | Start the Vite dev server with HMR                            |
+| `npm run build`       | Type-check and produce a production build in `dist/`          |
+| `npm run preview`     | Preview the production build locally                          |
+| `npm run lint`        | Run ESLint                                                    |
+| `npm test`            | Run the Vitest suite once (theory unit + RTL component)       |
+| `npm run test:watch`  | Run Vitest in watch mode                                      |
+| `npm run test:e2e`    | Run Playwright E2E tests (boots the dev server automatically) |
+| `npm run test:e2e:ui` | Run Playwright in interactive UI mode for debugging           |
 
 ### Tech stack
 
 - **React 19** + **TypeScript ~6.0**
 - **Vite 8** for the dev server and build
 - **Tailwind v4** with semantic color tokens defined via `@theme`
-- **Vitest 3** for the theory-layer and pure-function tests
+- **Vitest 3** for theory-layer / pure-function tests + **React Testing Library +
+  jsdom** for component tests (single `npm test`, environment per file)
+- **Playwright** for browser-level E2E tests (separate CI job; not in pre-commit)
 
 ## Documentation
 

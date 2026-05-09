@@ -314,7 +314,10 @@ describe("SEVENTH_SHAPES — structure", () => {
 });
 
 import { buildChordShapeMarkers } from "./chordShapes";
+import { TUNINGS } from "./tuning";
+import type { Tuning } from "./tuning";
 import { getModalDiatonicChords, getModalDiatonicTriads } from "./modes";
+import { CHROMATIC_SCALE, getNoteAtFret, getNoteIndex } from "./notes";
 import { ALL_NOTES_KEY } from "../components/KeySelector";
 import { DEFAULT_END_FRET } from "./constants";
 
@@ -323,6 +326,7 @@ describe("buildChordShapeMarkers — chord-centric", () => {
     const chord = getModalDiatonicTriads("C", "ionian", "sharp")[0];
     expect(
       buildChordShapeMarkers({
+        tuning: TUNINGS.standard,
         mode: "triads",
         chord,
         key: ALL_NOTES_KEY,
@@ -339,6 +343,7 @@ describe("buildChordShapeMarkers — chord-centric", () => {
     const chord = getModalDiatonicChords("C", "ionian", "sharp")[0];
     expect(
       buildChordShapeMarkers({
+        tuning: TUNINGS.standard,
         mode: "sevenths",
         voicingSystem: "drop2",
         chord,
@@ -356,6 +361,7 @@ describe("buildChordShapeMarkers — chord-centric", () => {
     const chord = getModalDiatonicTriads("C", "ionian", "sharp")[0];
     expect(
       buildChordShapeMarkers({
+        tuning: TUNINGS.standard,
         mode: "triads",
         chord,
         key: "C",
@@ -372,6 +378,7 @@ describe("buildChordShapeMarkers — chord-centric", () => {
     const chord = getModalDiatonicTriads("C", "ionian", "sharp")[0];
     expect(
       buildChordShapeMarkers({
+        tuning: TUNINGS.standard,
         mode: "triads",
         chord,
         key: "C",
@@ -388,6 +395,7 @@ describe("buildChordShapeMarkers — chord-centric", () => {
     const chord = getModalDiatonicChords("C", "ionian", "sharp")[0];
     expect(
       buildChordShapeMarkers({
+        tuning: TUNINGS.standard,
         mode: "sevenths",
         voicingSystem: "drop2",
         chord,
@@ -405,6 +413,7 @@ describe("buildChordShapeMarkers — chord-centric", () => {
     const chord = getModalDiatonicChords("C", "ionian", "sharp")[0];
     expect(
       buildChordShapeMarkers({
+        tuning: TUNINGS.standard,
         mode: "sevenths",
         voicingSystem: "drop2",
         chord,
@@ -424,6 +433,7 @@ describe("buildChordShapeMarkers — chord-centric", () => {
     // second inv: C on B-string (marker 4) at frets 1 and 13 → 2 × 3 = 6
     const chord = getModalDiatonicTriads("C", "ionian", "sharp")[0]; // C major (I)
     const markers = buildChordShapeMarkers({
+      tuning: TUNINGS.standard,
       mode: "triads",
       chord,
       key: "C",
@@ -444,6 +454,7 @@ describe("buildChordShapeMarkers — chord-centric", () => {
   it("C major I (Triads), [1-2-3], inversions=[root,second] → 9 markers (first inv absent)", () => {
     const chord = getModalDiatonicTriads("C", "ionian", "sharp")[0];
     const markers = buildChordShapeMarkers({
+      tuning: TUNINGS.standard,
       mode: "triads",
       chord,
       key: "C",
@@ -465,6 +476,7 @@ describe("buildChordShapeMarkers — chord-centric", () => {
     // 4-5-6: root@str0f8, first@str2f10, second@str1f3, second@str1f15 → 12 markers
     const chord = getModalDiatonicTriads("C", "ionian", "sharp")[0];
     const markers = buildChordShapeMarkers({
+      tuning: TUNINGS.standard,
       mode: "triads",
       chord,
       key: "C",
@@ -495,6 +507,7 @@ describe("buildChordShapeMarkers — chord-centric", () => {
   it("F major V (Sevenths), 3-4-5-6 root → C7 E-shape barre at fret 8 on low E", () => {
     const chord = getModalDiatonicChords("F", "ionian", "flat")[4]; // V = C7
     const markers = buildChordShapeMarkers({
+      tuning: TUNINGS.standard,
       mode: "sevenths",
       voicingSystem: "drop2",
       chord,
@@ -526,6 +539,7 @@ describe("buildChordShapeMarkers — chord-centric", () => {
     //   3rd inv:  C on G string fret 5 (7 in bass at low E fret 7)
     const chord = getModalDiatonicChords("C", "ionian", "sharp")[0]; // I = Cmaj7
     const markers = buildChordShapeMarkers({
+      tuning: TUNINGS.standard,
       mode: "sevenths",
       voicingSystem: "drop2",
       chord,
@@ -551,6 +565,7 @@ describe("buildChordShapeMarkers — chord-centric", () => {
   it("Cmaj7 1st inv on 3-4-5-6 places frets E12 / A14 / D10 / G12 (drop-2 with 3 in bass)", () => {
     const chord = getModalDiatonicChords("C", "ionian", "sharp")[0]; // Cmaj7
     const markers = buildChordShapeMarkers({
+      tuning: TUNINGS.standard,
       mode: "sevenths",
       voicingSystem: "drop2",
       chord,
@@ -576,6 +591,7 @@ describe("buildChordShapeMarkers — chord-centric", () => {
     // 4-5-6/root: C on low E at fret 8 → 8 > 5 → 0 markers.
     const chord = getModalDiatonicTriads("C", "ionian", "sharp")[0];
     const markers = buildChordShapeMarkers({
+      tuning: TUNINGS.standard,
       mode: "triads",
       chord,
       key: "C",
@@ -595,6 +611,7 @@ describe("buildChordShapeMarkers — chord-centric", () => {
     // Shape offsets [0,-1,-1] → frets [1,0,0] and [13,12,12]; both sets in [0,15].
     const chord = getModalDiatonicTriads("C", "ionian", "sharp")[0];
     const markers = buildChordShapeMarkers({
+      tuning: TUNINGS.standard,
       mode: "triads",
       chord,
       key: "C",
@@ -614,6 +631,7 @@ describe("buildChordShapeMarkers — chord-centric", () => {
     // Root pos on 1-2-3: Gb on G-string (marker 3) at fret 11.
     const chord = getModalDiatonicTriads("D", "ionian", "flat")[2]; // iii = Gbm
     const markers = buildChordShapeMarkers({
+      tuning: TUNINGS.standard,
       mode: "triads",
       chord,
       key: "D",
@@ -635,6 +653,7 @@ describe("buildChordShapeMarkers — modal", () => {
   it("flags A as characteristic in C Dorian's IV7 (F7) voicings", () => {
     const cDorianIV = getModalDiatonicChords("C", "dorian", "flat")[3]; // F7
     const markers = buildChordShapeMarkers({
+      tuning: TUNINGS.standard,
       mode: "sevenths",
       modalMode: "dorian",
       voicingSystem: "drop2",
@@ -661,6 +680,7 @@ describe("buildChordShapeMarkers — modal", () => {
   it("modalMode='ionian' (default) sets no characteristic flags", () => {
     const cMajorIV = getModalDiatonicChords("C", "ionian")[3]; // Fmaj7
     const markers = buildChordShapeMarkers({
+      tuning: TUNINGS.standard,
       mode: "sevenths",
       voicingSystem: "drop2",
       chord: cMajorIV,
@@ -677,6 +697,7 @@ describe("buildChordShapeMarkers — modal", () => {
   it("Cm7 in C Dorian has no characteristic chord tones (Cm7 doesn't contain A)", () => {
     const cDorianI = getModalDiatonicChords("C", "dorian", "flat")[0]; // Cm7
     const markers = buildChordShapeMarkers({
+      tuning: TUNINGS.standard,
       mode: "sevenths",
       modalMode: "dorian",
       voicingSystem: "drop2",
@@ -691,5 +712,105 @@ describe("buildChordShapeMarkers — modal", () => {
     // Cm7 = C-Eb-G-Bb. Dorian's characteristic note is A (♮6) — not in Cm7.
     expect(markers.length).toBeGreaterThan(0); // sanity: voicings exist
     expect(markers.every((m) => !m.isCharacteristic)).toBe(true);
+  });
+});
+
+describe("buildChordShapeMarkers — tuning-agnostic invariant", () => {
+  // Seeded LCG so failures are reproducible.
+  function makeRandom(seed: number) {
+    let s = seed >>> 0;
+    return () => {
+      s = (s * 1664525 + 1013904223) >>> 0;
+      return s / 0x100000000;
+    };
+  }
+
+  function randomTuning(rand: () => number): Tuning {
+    const pick = () => CHROMATIC_SCALE[Math.floor(rand() * CHROMATIC_SCALE.length)];
+    return {
+      id: "standard", // any TuningId; the predicate doesn't read this field
+      name: "Random",
+      strings: [pick(), pick(), pick(), pick(), pick(), pick()],
+    };
+  }
+
+  it("every emitted marker maps back to its open-string note via getNoteAtFret", () => {
+    // Universal property: regardless of tuning, the (string, fret) returned by
+    // buildChordShapeMarkers must encode a note consistent with the tuning's
+    // open string at that index. Catches any silent regression to a hardcoded
+    // tuning at the call site.
+    const rand = makeRandom(0xdeadbeef);
+    const chord = getModalDiatonicTriads("C", "ionian", "sharp")[0]; // C major
+    for (let iter = 0; iter < 20; iter++) {
+      const tuning = randomTuning(rand);
+      const markers = buildChordShapeMarkers({
+        tuning,
+        mode: "triads",
+        chord,
+        key: "C",
+        accidentalStyle: "sharp",
+        stringSets: ["1-2-3", "2-3-4", "3-4-5", "4-5-6"],
+        inversions: ["root", "first", "second"],
+        startFret: 0,
+        endFret: 24,
+      });
+      // The random tuning may place the chord outside the fret range — that's
+      // fine; just iterate over whatever markers are returned.
+      for (const m of markers) {
+        const openString = tuning.strings[m.string];
+        const expectedAtFret = getNoteAtFret(openString, m.fret);
+        // m.note may be re-spelled (sharp/flat) for display; compare via
+        // chromatic index for enharmonic equivalence.
+        expect(getNoteIndex(m.note)).toBe(getNoteIndex(expectedAtFret));
+      }
+    }
+  });
+});
+
+describe("buildChordShapeMarkers — step-down anchor-fret regression", () => {
+  // C major triad, root inversion on string set 4-5-6 should anchor at
+  // different frets depending on tuning: the root (C) must fall on the lowest
+  // string (index 0 in the 0..5 scheme) at the fret that reaches C from that
+  // string's open note.
+  //
+  //   Standard  (low E):  E  + 8  = C
+  //   Eb Standard (D#):   D# + 9  = C
+  //   D Standard (D):     D  + 10 = C
+  //   C# Standard (C#):   C# + 11 = C
+
+  const chord = getModalDiatonicTriads("C", "ionian", "sharp")[0]; // C major
+
+  function firstRootFret(tuning: Tuning): number {
+    const markers = buildChordShapeMarkers({
+      tuning,
+      mode: "triads",
+      chord,
+      key: "C",
+      accidentalStyle: "sharp",
+      stringSets: ["4-5-6"],
+      inversions: ["root"],
+      startFret: 0,
+      endFret: 24,
+    });
+    const rootMarkers = markers.filter((m) => m.role === "root" && m.string === 0);
+    expect(rootMarkers.length).toBeGreaterThan(0);
+    // Return the lowest-fret root marker.
+    return Math.min(...rootMarkers.map((m) => m.fret));
+  }
+
+  it("Standard tuning: C major root-inv 4-5-6 anchors at fret 8 on low E", () => {
+    expect(firstRootFret(TUNINGS.standard)).toBe(8);
+  });
+
+  it("Eb Standard: C major root-inv 4-5-6 anchors at fret 9 on low D#", () => {
+    expect(firstRootFret(TUNINGS["eb-standard"])).toBe(9);
+  });
+
+  it("D Standard: C major root-inv 4-5-6 anchors at fret 10 on low D", () => {
+    expect(firstRootFret(TUNINGS["d-standard"])).toBe(10);
+  });
+
+  it("C# Standard: C major root-inv 4-5-6 anchors at fret 11 on low C#", () => {
+    expect(firstRootFret(TUNINGS["csharp-standard"])).toBe(11);
   });
 });
