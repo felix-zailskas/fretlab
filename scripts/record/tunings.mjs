@@ -1,56 +1,49 @@
 import { join } from "node:path";
 import { newDarkContext, loadApp, toGif, outDir, STEP, HOLD } from "./_lib.mjs";
 
-// Demonstrates the three things that matter about the tuning system:
-//   1. The grouped selector (Standard / Open / Drop / Modal).
-//   2. CAGED-compatible step-down tunings shift boxes & notes correctly
-//      (D Standard is +2 semitones from standard).
-//   3. Non-CAGED tunings gate Scale Positions / Chord Shapes via the
-//      empty-state component, with a "Switch to Standard" escape button.
+// Stays on Note Map throughout — that's the view that actually works in every
+// tuning. Showcases the grouped selector and demonstrates how the open-string
+// notes and in-key labels shift on the fretboard across step-down standards,
+// open tunings, drop tunings, and modal tunings.
+//
+// Key is set to G major so the in-key tones (G/B/D) light up as roots/thirds/
+// fifths in the tunings whose open strings include them — Standard, Open G,
+// Drop D, DADGAD, etc. — making each tuning's character visually distinct.
 export async function record(browser) {
   const start = Date.now();
   const context = await newDarkContext(browser, true);
   const page = await context.newPage();
   await loadApp(page);
 
-  // Hold a moment on the default Standard / Note Map state so the loop point
-  // is unambiguous when the GIF restarts.
-  await page.waitForTimeout(STEP);
+  // Switch to G major so open strings produce visible chord-tone color in
+  // most of the cycled tunings. I (G major triad) stays selected by default.
+  await page.getByRole("button", { name: "G", exact: true }).click();
+  await page.waitForTimeout(HOLD);
 
   const tuningTrigger = page.getByRole("button", { name: /Tuning:/ });
 
-  // Open the tuning selector — show the grouped popover.
-  await tuningTrigger.click();
-  await page.waitForTimeout(HOLD);
+  // Each pickTuning() opens the popover (showing the grouped categories) and
+  // clicks an option, so the viewer sees the grouped selector at every step
+  // without needing a dedicated intro. The fretboard re-renders with the new
+  // open-string notes between picks; G's R/3/5 redistribute across the neck
+  // as the tuning changes.
+  async function pickTuning(optionMatcher) {
+    await tuningTrigger.click();
+    await page.waitForTimeout(STEP);
+    await page
+      .getByRole("option", { name: optionMatcher })
+      .first()
+      .click();
+    await page.waitForTimeout(HOLD);
+  }
 
-  // Pick D Standard (CAGED-compatible). Note labels on Note Map shift down
-  // by 2 semitones on every string — same in-key notes, new fretboard
-  // anchors. Anchor the regex with ^ so it doesn't match "C# Standard" or
-  // "Eb Standard" via partial overlap.
-  await page.getByRole("option", { name: /^D Standard/ }).click();
-  await page.waitForTimeout(HOLD);
-
-  // Switch to Scale Positions to show the box-window shift. P1 was at
-  // [0,3] in standard; in D Standard it's at [2,5].
-  await page.getByRole("tab", { name: "Scale Positions" }).click();
-  await page.waitForTimeout(HOLD);
-
-  // Now switch to Open G — a non-CAGED tuning. The same view should
-  // surface the empty state with the explanation and the
-  // "Switch to Standard tuning" button. /Open G/ alone matches "Open Gm"
-  // too — use first() (Open G appears before Open Gm in the popover).
-  await tuningTrigger.click();
-  await page.waitForTimeout(STEP);
-  await page
-    .getByRole("option", { name: /Open G/ })
-    .first()
-    .click();
-  await page.waitForTimeout(HOLD);
-
-  // Click the empty-state's recovery button — view re-renders normally
-  // because Standard supports Scale Positions.
-  await page.getByRole("button", { name: "Switch to Standard tuning" }).click();
-  await page.waitForTimeout(HOLD);
+  // Cycle across categories. /^Open G/ would also match Open Gm — using the
+  // full string-preview form to disambiguate. /^DADGAD/ is unique.
+  await pickTuning(/^D Standard/); // step-down: every string -2 semitones
+  await pickTuning("Open G D G D G B D"); // open: G chord on open strings
+  await pickTuning("Drop D D A D G B E"); // drop: only low string changes
+  await pickTuning(/^DADGAD/); // modal: D-A-D-G-A-D
+  // pickTuning's own HOLD is the loop's tail — no extra wait needed.
 
   const video = page.video();
   await context.close();
