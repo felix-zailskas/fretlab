@@ -3,6 +3,7 @@
 [![CI](https://github.com/felix-zailskas/fretlab/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/felix-zailskas/fretlab/actions/workflows/ci.yml?query=branch%3Amain)
 [![Deploy to GitHub Pages](https://github.com/felix-zailskas/fretlab/actions/workflows/deploy.yml/badge.svg)](https://github.com/felix-zailskas/fretlab/actions/workflows/deploy.yml)
 [![License: MIT](https://img.shields.io/github/license/felix-zailskas/fretlab?cacheSeconds=0)](LICENSE)
+[![Ko-fi](https://img.shields.io/badge/Ko--fi-buy%20me%20a%20coffee-FF5E5B?logo=ko-fi&logoColor=white)](https://ko-fi.com/felixzailskas)
 
 **[Try it live →](https://felix-zailskas.github.io/fretlab/)**
 
@@ -359,3 +360,6 @@ The modal-practice-mode design draws on these sources:
 ## License
 
 Released under the [MIT License](LICENSE). Copyright © 2026 Felix Zailskas.
+
+Fretlab is free and MIT-licensed. If it saves you time,
+[a coffee](https://ko-fi.com/felixzailskas) is appreciated but never expected.
