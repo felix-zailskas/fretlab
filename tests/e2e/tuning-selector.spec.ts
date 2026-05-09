@@ -54,7 +54,10 @@ test.describe("TuningSelector", () => {
 
     // Click "Open G" — use .first() to resolve the strict-mode ambiguity
     // between "Open G" and "Open Gm" (both match /Open G/).
-    await page.getByRole("option", { name: /Open G/ }).first().click();
+    await page
+      .getByRole("option", { name: /Open G/ })
+      .first()
+      .click();
 
     // Popover closes
     await expect(page.getByRole("listbox", { name: "Tuning" })).not.toBeAttached();

@@ -30,10 +30,7 @@ export async function record(browser) {
   async function pickTuning(optionMatcher) {
     await tuningTrigger.click();
     await page.waitForTimeout(STEP);
-    await page
-      .getByRole("option", { name: optionMatcher })
-      .first()
-      .click();
+    await page.getByRole("option", { name: optionMatcher }).first().click();
     await page.waitForTimeout(HOLD);
   }
 

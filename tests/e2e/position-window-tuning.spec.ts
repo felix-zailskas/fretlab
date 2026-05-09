@@ -5,9 +5,7 @@ import { test, expect } from "@playwright/test";
 // tuning regardless of what the user had selected.
 
 test.describe("position-window tuning offset", () => {
-  test("C major P2 (A shape) anchors at frets 5-8 in C# Standard", async ({
-    page,
-  }) => {
+  test("C major P2 (A shape) anchors at frets 5-8 in C# Standard", async ({ page }) => {
     await page.goto("/");
 
     // Select C# Standard
@@ -49,9 +47,7 @@ test.describe("position-window tuning offset", () => {
     await expect(window.first()).toHaveAttribute("data-high", "5");
   });
 
-  test("C major P2 (A shape) anchors at frets 4-7 in D Standard", async ({
-    page,
-  }) => {
+  test("C major P2 (A shape) anchors at frets 4-7 in D Standard", async ({ page }) => {
     await page.goto("/");
 
     // Select D Standard

@@ -49,12 +49,14 @@ describe("TuningSelector", () => {
   it("marks the active tuning's option with aria-selected=true", async () => {
     render(<TuningSelector tuningId="open-g" onTuningChange={() => {}} />);
     await userEvent.click(screen.getByRole("button", { name: /Tuning:/ }));
-    expect(
-      screen.getByRole("option", { name: "Open GD G D G B D" }),
-    ).toHaveAttribute("aria-selected", "true");
-    expect(
-      screen.getByRole("option", { name: "StandardE A D G B E" }),
-    ).toHaveAttribute("aria-selected", "false");
+    expect(screen.getByRole("option", { name: "Open GD G D G B D" })).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
+    expect(screen.getByRole("option", { name: "StandardE A D G B E" })).toHaveAttribute(
+      "aria-selected",
+      "false",
+    );
   });
 
   it("fires onTuningChange with the selected id and closes the popover", async () => {
