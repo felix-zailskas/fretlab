@@ -61,7 +61,10 @@ export function KeySelector({
         >
           All
         </button>
-        <span aria-hidden="true" className="w-px h-6 bg-line self-center mx-1 shrink-0" />
+        <span
+          aria-hidden="true"
+          className="w-px h-6 bg-line self-center mx-1 shrink-0"
+        />
         {noteKeys.map((key) => (
           <button
             key={key}
