@@ -67,7 +67,7 @@ export function Legend({ enabledRoles, onToggleRole, disabledRoles }: LegendProp
               title={isDisabled ? undefined : tooltip}
               aria-pressed={isEnabled}
               disabled={isDisabled}
-              className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-semibold transition-colors ${
+              className={`flex items-center gap-1 md:gap-1.5 px-2 py-1 md:px-3 md:py-1.5 text-xs md:text-sm font-semibold transition-colors ${
                 isDisabled
                   ? "bg-surface text-fg-muted opacity-40 pointer-events-none"
                   : isEnabled

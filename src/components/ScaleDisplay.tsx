@@ -57,51 +57,56 @@ export function ScaleDisplay({
   };
 
   return (
-    <div className="overflow-x-auto overflow-y-clip">
-      <div
-        role="list"
-        aria-label={`${selectedKey} ${MODE_DISPLAY_NAME[mode]} scale degrees`}
-        className="inline-grid items-center gap-x-2 gap-y-1 text-sm"
-        style={gridStyle}
-      >
-        <span
-          className="text-xs text-fg-muted uppercase tracking-wide self-center"
-          style={{ gridRow: 1, gridColumn: 1 }}
+    <div className="relative after:absolute after:right-0 after:top-0 after:bottom-0 after:w-8 after:bg-gradient-to-l after:from-surface after:to-transparent after:pointer-events-none">
+      <div className="overflow-x-auto overflow-y-clip pr-8">
+        <div
+          role="list"
+          aria-label={`${selectedKey} ${MODE_DISPLAY_NAME[mode]} scale degrees`}
+          className="inline-grid items-center gap-x-2 gap-y-1 text-sm"
+          style={gridStyle}
         >
-          {selectedKey} {MODE_DISPLAY_NAME[mode]}
-        </span>
-        {notes.map((note, i) => {
-          let role = roleFromChordTone(note, selectedChord);
-          if (HIGHLIGHTABLE.has(role) && !enabledRoles.has(role as HighlightableRole)) {
-            role = "scale";
-          }
-          const isHighlighted = HIGHLIGHTABLE.has(role);
-          const pillClasses = isHighlighted
-            ? ROLE_PILL_CLASSES[role as HighlightableRole]
-            : NEUTRAL_PILL_CLASSES;
-          return (
-            <div
-              key={`pill-${i}-${note}`}
-              role="listitem"
-              aria-label={`Degree ${labels[i]}, ${note}`}
-              className={`flex items-baseline gap-1 px-2 py-1 rounded border ${pillClasses}`}
-              style={{ gridRow: 1, gridColumn: i + 2 }}
-            >
-              <span className="text-xs opacity-70">{labels[i]}</span>
-              <span className="font-semibold">{note}</span>
-            </div>
-          );
-        })}
-        {steps.map((step, i) => (
           <span
-            key={`step-${i}`}
-            className="text-xs leading-none text-fg-muted text-center select-none px-1.5 py-0.5 rounded bg-surface-raised mx-auto"
-            style={{ gridRow: 2, gridColumn: `${i + 2} / span 2` }}
-            title={step === "half" ? "Half step" : "Whole step"}
+            className="hidden md:inline text-xs text-fg-muted uppercase tracking-wide self-center"
+            style={{ gridRow: 1, gridColumn: 1 }}
           >
-            {step === "half" ? "H" : "W"}
+            {selectedKey} {MODE_DISPLAY_NAME[mode]}
           </span>
-        ))}
+          {notes.map((note, i) => {
+            let role = roleFromChordTone(note, selectedChord);
+            if (
+              HIGHLIGHTABLE.has(role) &&
+              !enabledRoles.has(role as HighlightableRole)
+            ) {
+              role = "scale";
+            }
+            const isHighlighted = HIGHLIGHTABLE.has(role);
+            const pillClasses = isHighlighted
+              ? ROLE_PILL_CLASSES[role as HighlightableRole]
+              : NEUTRAL_PILL_CLASSES;
+            return (
+              <div
+                key={`pill-${i}-${note}`}
+                role="listitem"
+                aria-label={`Degree ${labels[i]}, ${note}`}
+                className={`flex items-baseline gap-1 px-2 py-1 rounded border ${pillClasses}`}
+                style={{ gridRow: 1, gridColumn: i + 2 }}
+              >
+                <span className="text-xs opacity-70">{labels[i]}</span>
+                <span className="font-semibold">{note}</span>
+              </div>
+            );
+          })}
+          {steps.map((step, i) => (
+            <span
+              key={`step-${i}`}
+              className="text-xs leading-none text-fg-muted text-center select-none px-1.5 py-0.5 rounded bg-surface-raised mx-auto"
+              style={{ gridRow: 2, gridColumn: `${i + 2} / span 2` }}
+              title={step === "half" ? "Half step" : "Whole step"}
+            >
+              {step === "half" ? "H" : "W"}
+            </span>
+          ))}
+        </div>
       </div>
     </div>
   );

@@ -68,7 +68,7 @@ export function DiatonicChords({
   const activeIndex = MODE_OPTIONS.findIndex((o) => o.value === mode);
 
   return (
-    <section className="mt-8">
+    <section className="mt-4 md:mt-8">
       <div className="flex items-center justify-start mb-3">
         <div
           className="relative inline-grid grid-cols-2 rounded overflow-hidden border border-line"
@@ -87,7 +87,7 @@ export function DiatonicChords({
               role="radio"
               aria-checked={mode === opt.value}
               onClick={() => onModeChange(opt.value)}
-              className={`relative z-10 px-3 py-2.5 pointer-coarse:py-3 text-sm font-semibold cursor-pointer ${
+              className={`relative z-10 px-2 py-1.5 md:px-3 md:py-2.5 pointer-coarse:py-3 text-xs md:text-sm font-semibold cursor-pointer ${
                 mode === opt.value
                   ? "text-fg-emphasis"
                   : "text-fg-muted hover:text-fg-secondary"
@@ -98,7 +98,7 @@ export function DiatonicChords({
           ))}
         </div>
       </div>
-      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-4">
+      <div className="grid grid-cols-4 lg:grid-cols-7 gap-2 md:gap-4">
         {chords.map((chord) => {
           const isSelected = selectedDegree === chord.degree;
           return (
@@ -108,19 +108,19 @@ export function DiatonicChords({
               onClick={() => onSelectDegree(chord.degree)}
               aria-pressed={isSelected}
               title={`${chord.romanNumeral} — ${chord.symbol} (${QUALITY_NAMES[chord.quality]}): ${chord.notes.join(", ")}`}
-              className={`flex flex-col items-center justify-center gap-1.5 px-3 py-4 min-h-[6.5rem] rounded-xl border-2 shadow-sm cursor-pointer transition-colors active:scale-[0.98] ${
+              className={`flex flex-col items-center justify-center gap-1 md:gap-1.5 px-1 py-2 md:px-3 md:py-4 md:min-h-[6.5rem] rounded-xl border-2 shadow-sm cursor-pointer transition-colors active:scale-[0.98] ${
                 isSelected
                   ? "border-line-selected bg-surface-active ring-2 ring-selection ring-inset"
                   : `${QUALITY_ACCENT[chord.quality]} hover:border-line-hover`
               }`}
             >
-              <span className="text-sm text-fg-muted font-mono font-semibold">
+              <span className="text-xs text-fg-muted font-mono font-semibold">
                 {chord.romanNumeral}
               </span>
-              <span className="text-xl font-bold text-fg-emphasis leading-none">
+              <span className="text-sm md:text-xl font-bold text-fg-emphasis leading-none">
                 {chord.symbol}
               </span>
-              <span className="text-xs text-fg-secondary tracking-wider font-medium">
+              <span className="hidden md:block text-xs md:tracking-wider text-fg-secondary font-medium">
                 {chord.notes.join(" – ")}
               </span>
             </button>

@@ -97,13 +97,13 @@ export function NoteMapView({
   ]);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-2 md:space-y-4">
       <Fretboard markers={markers} startFret={startFret} endFret={endFret} />
       {/* min-h reserves the height of the tallest sibling-view controls bar so
           the diatonic chord row sits at the same y on every view. At ≥1320px
           everything fits on one row (~36px); below that, Chord Shapes Sevenths
           wraps to two rows (~80px) and the other views match it. */}
-      <div className="flex flex-wrap items-center gap-x-6 gap-y-3 min-h-9 max-[1319px]:min-h-20">
+      <div className="flex flex-wrap items-center gap-x-3 md:gap-x-6 gap-y-2 md:gap-y-3 min-h-9 md:max-[1319px]:min-h-20">
         <Legend
           enabledRoles={enabledHighlights}
           onToggleRole={onToggleRole}

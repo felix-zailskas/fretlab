@@ -210,14 +210,14 @@ export function ChordShapesView({
           : undefined;
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-2 md:space-y-4">
       <Fretboard
         markers={visibleMarkers}
         startFret={startFret}
         endFret={endFret}
         emptyMessage={fretboardMessage}
       />
-      <div className="flex flex-wrap items-center gap-x-6 gap-y-3 min-h-9 max-[1319px]:min-h-20">
+      <div className="flex flex-wrap items-center gap-x-3 md:gap-x-6 gap-y-2 md:gap-y-3 min-h-9 md:max-[1319px]:min-h-20">
         <Legend
           enabledRoles={enabledHighlights}
           onToggleRole={onToggleRole}

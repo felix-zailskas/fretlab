@@ -53,7 +53,7 @@ export function TuningSelector({ tuningId, onTuningChange }: TuningSelectorProps
           role="listbox"
           aria-label="Tuning"
           data-popover
-          className="absolute right-0 top-full mt-2 z-10 w-80 p-1 rounded-lg border border-line bg-surface-raised shadow-lg origin-top-right max-h-[70vh] overflow-y-auto"
+          className="absolute right-0 top-full mt-2 z-10 w-80 max-w-[calc(100vw-1rem)] p-1 rounded-lg border border-line bg-surface-raised shadow-lg origin-top-right max-h-[70vh] overflow-y-auto"
         >
           {TUNING_GROUPS.map((group, groupIdx) => (
             <Fragment key={group.category}>
