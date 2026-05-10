@@ -130,6 +130,20 @@ function App() {
     });
   }, []);
 
+  const effectiveHighlights = useMemo(
+    () =>
+      chordRowMode === "triads"
+        ? new Set([...enabledHighlights].filter((r) => r !== "seventh"))
+        : enabledHighlights,
+    [enabledHighlights, chordRowMode],
+  );
+
+  const seventhDisabledRoles = useMemo(
+    () =>
+      chordRowMode === "triads" ? new Set<HighlightableRole>(["seventh"]) : undefined,
+    [chordRowMode],
+  );
+
   const isAllNotesKey = selectedKey === ALL_NOTES_KEY;
 
   function renderView(): ReactNode {
@@ -150,12 +164,13 @@ function App() {
               tuning={TUNINGS[tuningId]}
               selectedKey={selectedKey}
               accidentalStyle={accidentalStyle}
-              enabledHighlights={enabledHighlights}
+              enabledHighlights={effectiveHighlights}
               onToggleRole={toggleHighlight}
               selectedChord={selectedChord}
               startFret={startFret}
               endFret={endFret}
               mode={mode}
+              disabledRoles={seventhDisabledRoles}
             />
             <DiatonicChords
               selectedKey={selectedKey}
@@ -175,13 +190,14 @@ function App() {
               tuning={TUNINGS[tuningId]}
               selectedKey={selectedKey}
               accidentalStyle={accidentalStyle}
-              enabledHighlights={enabledHighlights}
+              enabledHighlights={effectiveHighlights}
               onToggleRole={toggleHighlight}
               selectedChord={selectedChord}
               startFret={startFret}
               endFret={endFret}
               controls={scalePositionsControls}
               mode={mode}
+              disabledRoles={seventhDisabledRoles}
             />
             <DiatonicChords
               selectedKey={selectedKey}
@@ -205,10 +221,11 @@ function App() {
               endFret={endFret}
               selectedChord={selectedChord}
               chordRowMode={chordRowMode}
-              enabledHighlights={enabledHighlights}
+              enabledHighlights={effectiveHighlights}
               onToggleRole={toggleHighlight}
               controls={chordShapesControls}
               modalMode={mode}
+              disabledRoles={seventhDisabledRoles}
             />
             <DiatonicChords
               selectedKey={selectedKey}
