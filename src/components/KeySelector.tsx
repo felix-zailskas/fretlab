@@ -49,31 +49,33 @@ export function KeySelector({
   const isAllSelected = selectedKey === ALL_NOTES_KEY;
 
   return (
-    <div className="flex flex-wrap items-center gap-1">
-      <button
-        onClick={() => onKeyChange(ALL_NOTES_KEY)}
-        className={`px-3 py-2.5 pointer-coarse:py-3 rounded text-sm font-semibold border transition-colors cursor-pointer ${
-          isAllSelected
-            ? "bg-selection text-fg-emphasis border-selection"
-            : "bg-transparent text-fg-secondary border-line hover:bg-surface-raised"
-        }`}
-      >
-        All
-      </button>
-      <span aria-hidden="true" className="w-px h-6 bg-line self-center mx-1" />
-      {noteKeys.map((key) => (
+    <div className="relative after:absolute after:right-0 after:top-0 after:bottom-0 after:w-6 after:bg-gradient-to-l after:from-surface after:to-transparent after:pointer-events-none md:after:hidden">
+      <div className="flex flex-nowrap overflow-x-auto md:flex-wrap items-center gap-1 pb-0.5">
         <button
-          key={key}
-          onClick={() => onKeyChange(key)}
-          className={`min-w-[2.5rem] px-3 py-2.5 pointer-coarse:py-3 rounded text-sm font-semibold transition-colors cursor-pointer ${
-            selectedKey === key
-              ? "bg-selection text-fg-emphasis"
-              : "bg-surface-raised text-fg-secondary hover:bg-surface-active"
+          onClick={() => onKeyChange(ALL_NOTES_KEY)}
+          className={`px-2 py-1.5 md:px-3 md:py-2.5 pointer-coarse:py-3 rounded text-xs md:text-sm font-semibold border transition-colors cursor-pointer shrink-0 ${
+            isAllSelected
+              ? "bg-selection text-fg-emphasis border-selection"
+              : "bg-transparent text-fg-secondary border-line hover:bg-surface-raised"
           }`}
         >
-          {key}
+          All
         </button>
-      ))}
+        <span aria-hidden="true" className="w-px h-6 bg-line self-center mx-1 shrink-0" />
+        {noteKeys.map((key) => (
+          <button
+            key={key}
+            onClick={() => onKeyChange(key)}
+            className={`min-w-[2rem] md:min-w-[2.5rem] px-2 py-1.5 md:px-3 md:py-2.5 pointer-coarse:py-3 rounded text-xs md:text-sm font-semibold transition-colors cursor-pointer shrink-0 ${
+              selectedKey === key
+                ? "bg-selection text-fg-emphasis"
+                : "bg-surface-raised text-fg-secondary hover:bg-surface-active"
+            }`}
+          >
+            {key}
+          </button>
+        ))}
+      </div>
     </div>
   );
 }

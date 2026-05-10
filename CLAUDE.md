@@ -18,6 +18,59 @@ npm test                # Run the test suite
 These are also enforced by the pre-commit hook (husky + lint-staged), but running them
 manually first avoids surprises.
 
+## Project Structure
+
+```
+src/
+  theory/         # Pure music-theory functions and types (no React)
+  components/     # Shared UI components (Fretboard, Legend, controls …)
+  views/          # One file per tab/view (NoteMapView, ScalePositionsView, …)
+  App.tsx         # Root layout, shared state, view routing
+  main.tsx        # React entry point
+
+docs/
+  design/         # Vision and per-view design notes
+  superpowers/
+    specs/        # Feature spec files (research output, committed to source control)
+    plans/        # Implementation plans tracked task-by-task (committed to source control)
+  practice/       # Structured practice plans that utilize the application
+```
+
+**Conventions:**
+
+- Theory logic lives exclusively in `src/theory/`. Views and components must not
+  reimplement music-theory calculations inline.
+- Every theory module with non-trivial logic has a matching `.test.ts` file.
+- Components are kept generic and reusable; view-specific glue stays in the view file.
+- File names use PascalCase for React components (`FretboardString.tsx`) and camelCase
+  for plain TypeScript modules (`chordTones.ts`).
+
+## Style Guide
+
+### TypeScript
+
+- Strict mode is enabled. All types must be explicit at module boundaries; avoid `any`.
+- Prefer `type` aliases over `interface` for plain data shapes; use `interface` only
+  when extension or declaration merging is intentional.
+- Prefer named exports. Default exports are only used for the top-level React component
+  in a view or component file.
+
+### React / TSX
+
+- Functional components only — no class components.
+- Keep components small and focused. If a component grows past ~150 lines, consider
+  splitting it.
+- Shared state lives in `App.tsx` and is passed down via props; avoid introducing a
+  global state library unless the existing pattern genuinely breaks down.
+- No inline styles — use Tailwind utility classes only.
+
+### Tailwind
+
+- Color tokens are defined via `@theme` in `src/index.css` and represent semantic roles
+  (root, third, fifth, seventh, muted). Use those tokens rather than raw Tailwind
+  palette colors wherever interval coloring is involved.
+- Do not hardcode hex or rgb values in JSX.
+
 ## Testing
 
 Two-tier split:

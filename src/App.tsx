@@ -23,7 +23,11 @@ import { ScalePositionsView } from "./views/ScalePositionsView";
 import { useChordShapesState } from "./views/useChordShapesState";
 import { useScalePositionsState } from "./views/useScalePositionsState";
 import type { ViewId } from "./views/types";
-import { DEFAULT_END_FRET } from "./theory/constants";
+import {
+  DEFAULT_END_FRET,
+  DEFAULT_END_FRET_MOBILE,
+  MOBILE_BREAKPOINT,
+} from "./theory/constants";
 import { TUNINGS, tuningSupportsView, type TuningId } from "./theory/tuning";
 import { getModalDiatonicChords, getModalDiatonicTriads } from "./theory/modes";
 import { tonalReducer } from "./tonalReducer";
@@ -45,7 +49,9 @@ function App() {
   const [selectedChordDegree, setSelectedChordDegree] = useState<number | null>(1);
   const [chordRowMode, setChordRowMode] = useState<ChordRowMode>("triads");
   const [startFret, setStartFret] = useState(0);
-  const [endFret, setEndFret] = useState(DEFAULT_END_FRET);
+  const [endFret, setEndFret] = useState(() =>
+    window.innerWidth < MOBILE_BREAKPOINT ? DEFAULT_END_FRET_MOBILE : DEFAULT_END_FRET,
+  );
   const [themeMode, setThemeMode] = useState<"auto" | "light" | "dark">("auto");
 
   // Per-view selector state, lifted here so it survives tab switches. Each
@@ -269,9 +275,9 @@ function App() {
       </div>
       <header className="max-w-[90rem] mx-auto">
         {/* Top bar: title + global preferences (sharp/flat, fret range) */}
-        <div className="flex items-center justify-between gap-4 px-4 py-3 border-b border-line">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 md:gap-4 px-4 py-3 border-b border-line">
           <h1 className="text-xl font-bold">Fretlab</h1>
-          <div className="flex items-center gap-4">
+          <div className="flex flex-wrap items-center gap-2 md:gap-4">
             <AccidentalToggle
               accidentalStyle={accidentalStyle}
               onChange={(style) => dispatchTonal({ type: "set-accidental", style })}
