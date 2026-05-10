@@ -57,7 +57,11 @@ export function Legend({ enabledRoles, onToggleRole, disabledRoles }: LegendProp
           ? "Switch chord mode to Sevenths to enable the 7th highlight"
           : item.title;
         return (
-          <span key={item.label} title={isDisabled ? tooltip : undefined}>
+          <span
+            key={item.label}
+            title={isDisabled ? tooltip : undefined}
+            className={isDisabled ? "cursor-not-allowed" : undefined}
+          >
             <button
               onClick={() => onToggleRole(item.role)}
               title={isDisabled ? undefined : tooltip}
@@ -65,7 +69,7 @@ export function Legend({ enabledRoles, onToggleRole, disabledRoles }: LegendProp
               disabled={isDisabled}
               className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-semibold transition-colors ${
                 isDisabled
-                  ? "bg-surface text-fg-muted opacity-40 cursor-not-allowed"
+                  ? "bg-surface text-fg-muted opacity-40 pointer-events-none"
                   : isEnabled
                     ? "bg-surface-active text-fg-emphasis cursor-pointer"
                     : "bg-surface text-fg-muted hover:bg-surface-raised cursor-pointer"
