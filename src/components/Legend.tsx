@@ -53,27 +53,31 @@ export function Legend({ enabledRoles, onToggleRole, disabledRoles }: LegendProp
       {LEGEND_ITEMS.map((item) => {
         const isEnabled = enabledRoles.has(item.role);
         const isDisabled = disabledRoles?.has(item.role) ?? false;
+        const tooltip = isDisabled
+          ? "Switch chord mode to Sevenths to enable the 7th highlight"
+          : item.title;
         return (
-          <button
-            key={item.label}
-            onClick={() => onToggleRole(item.role)}
-            title={item.title}
-            aria-pressed={isEnabled}
-            disabled={isDisabled}
-            className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-semibold transition-colors ${
-              isDisabled
-                ? "bg-surface text-fg-muted opacity-40 cursor-not-allowed"
-                : isEnabled
-                  ? "bg-surface-active text-fg-emphasis cursor-pointer"
-                  : "bg-surface text-fg-muted hover:bg-surface-raised cursor-pointer"
-            }`}
-          >
-            <span
-              className="inline-block w-3 h-3 rounded-full shrink-0"
-              style={{ backgroundColor: item.color }}
-            />
-            <span>{item.label}</span>
-          </button>
+          <span key={item.label} title={isDisabled ? tooltip : undefined}>
+            <button
+              onClick={() => onToggleRole(item.role)}
+              title={isDisabled ? undefined : tooltip}
+              aria-pressed={isEnabled}
+              disabled={isDisabled}
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-semibold transition-colors ${
+                isDisabled
+                  ? "bg-surface text-fg-muted opacity-40 cursor-not-allowed"
+                  : isEnabled
+                    ? "bg-surface-active text-fg-emphasis cursor-pointer"
+                    : "bg-surface text-fg-muted hover:bg-surface-raised cursor-pointer"
+              }`}
+            >
+              <span
+                className="inline-block w-3 h-3 rounded-full shrink-0"
+                style={{ backgroundColor: item.color }}
+              />
+              <span>{item.label}</span>
+            </button>
+          </span>
         );
       })}
     </div>
