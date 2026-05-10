@@ -39,7 +39,7 @@ const CONTROLS = [
 ] as const;
 
 const SHORTCUTS = [
-  ["1 – 7", "Select chord degree"],
+  ["1 - 7", "Select chord degree"],
   ["t", "Switch to Triads mode"],
   ["s", "Switch to Sevenths mode"],
 ] as const;
@@ -87,9 +87,9 @@ export function AboutModal({ open, onClose }: AboutModalProps) {
         <div className="px-6 py-5 space-y-6 text-sm text-fg-secondary">
           <section className="space-y-2">
             <p>
-              Fretlab is a key-aware fretboard reference for intermediate and advanced
-              guitarists, built to sit on a music stand and answer theory questions fast
-              enough not to break your practice flow.
+              fretlab.studio is a passion project for every guitarist who wants a
+              single, clean reference for the theory and charts they reach for during
+              practice.
             </p>
             <p className="text-fg-muted">
               Built by{" "}
@@ -121,7 +121,7 @@ export function AboutModal({ open, onClose }: AboutModalProps) {
               <h4 className="font-semibold text-fg-primary">Scale Positions</h4>
               <p>
                 Toggle any of the five CAGED box positions. Overlap zones show where
-                adjacent positions connect — useful for practising transitions between
+                adjacent positions connect, useful for practising transitions between
                 positions.
               </p>
             </div>

@@ -278,13 +278,8 @@ function App() {
       <header className="max-w-[90rem] mx-auto">
         {/* Top bar: title + global preferences (sharp/flat, fret range) */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 md:gap-4 px-4 py-3 border-b border-line">
-          <h1 className="text-xl font-bold">Fretlab</h1>
-          <div className="flex flex-wrap items-center gap-2 md:gap-4">
-            <AccidentalToggle
-              accidentalStyle={accidentalStyle}
-              onChange={(style) => dispatchTonal({ type: "set-accidental", style })}
-            />
-            <ThemeToggle mode={themeMode} onCycle={cycleTheme} />
+          <div className="flex items-center gap-2">
+            <h1 className="text-xl font-bold">Fretlab</h1>
             <button
               onClick={() => setShowAbout(true)}
               title="About Fretlab"
@@ -307,6 +302,13 @@ function App() {
                 />
               </svg>
             </button>
+          </div>
+          <div className="flex flex-wrap items-center gap-2 md:gap-4">
+            <AccidentalToggle
+              accidentalStyle={accidentalStyle}
+              onChange={(style) => dispatchTonal({ type: "set-accidental", style })}
+            />
+            <ThemeToggle mode={themeMode} onCycle={cycleTheme} />
             <TuningSelector tuningId={tuningId} onTuningChange={setTuningId} />
             <FretRangeControl
               startFret={startFret}
