@@ -11,8 +11,6 @@ export default defineConfig({
   retries: process.env.CI ? 1 : 0,
   reporter: process.env.CI ? "github" : "list",
   use: {
-    // App is served at the root of the dev server (no /fretlab/ prefix
-    // since the production site moved to fretlab.studio).
     baseURL: "http://localhost:5173/",
     trace: "on-first-retry",
   },
