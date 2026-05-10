@@ -140,9 +140,7 @@ function App() {
 
   const seventhDisabledRoles = useMemo(
     () =>
-      chordRowMode === "triads"
-        ? new Set<HighlightableRole>(["seventh"])
-        : undefined,
+      chordRowMode === "triads" ? new Set<HighlightableRole>(["seventh"]) : undefined,
     [chordRowMode],
   );
 
