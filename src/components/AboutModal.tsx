@@ -68,11 +68,13 @@ export function AboutModal({ open, onClose }: AboutModalProps) {
         data-modal-panel=""
         role="dialog"
         aria-modal="true"
-        aria-label="About Fretlab"
+        aria-labelledby="about-modal-title"
         className="relative w-full max-w-2xl my-auto rounded-xl border border-line bg-surface shadow-xl"
       >
         <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-line">
-          <h2 className="text-base font-bold">About Fretlab</h2>
+          <h2 id="about-modal-title" className="text-base font-bold">
+            About Fretlab
+          </h2>
           <button
             onClick={onClose}
             aria-label="Close"
