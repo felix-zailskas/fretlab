@@ -16,6 +16,7 @@ import { TuningSelector } from "./components/TuningSelector";
 import { UnavailableInTuning } from "./components/UnavailableInTuning";
 import { type HighlightableRole } from "./components/Legend";
 import { ScaleDisplay } from "./components/ScaleDisplay";
+import { AboutModal } from "./components/AboutModal";
 import { DiatonicChords, type ChordRowMode } from "./components/DiatonicChords";
 import { ChordShapesView } from "./views/ChordShapesView";
 import { NoteMapView } from "./views/NoteMapView";
@@ -48,6 +49,7 @@ function App() {
   );
   const [selectedChordDegree, setSelectedChordDegree] = useState<number | null>(1);
   const [chordRowMode, setChordRowMode] = useState<ChordRowMode>("triads");
+  const [showAbout, setShowAbout] = useState(false);
   const [startFret, setStartFret] = useState(0);
   const [endFret, setEndFret] = useState(() =>
     window.innerWidth < MOBILE_BREAKPOINT ? DEFAULT_END_FRET_MOBILE : DEFAULT_END_FRET,
@@ -283,6 +285,28 @@ function App() {
               onChange={(style) => dispatchTonal({ type: "set-accidental", style })}
             />
             <ThemeToggle mode={themeMode} onCycle={cycleTheme} />
+            <button
+              onClick={() => setShowAbout(true)}
+              title="About Fretlab"
+              aria-label="About Fretlab"
+              className="px-3 py-2.5 pointer-coarse:py-3 rounded text-sm font-semibold bg-surface-raised text-fg-secondary hover:bg-surface-active cursor-pointer inline-flex items-center"
+            >
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 14 14"
+                fill="none"
+                aria-hidden="true"
+              >
+                <circle cx="7" cy="7" r="6" stroke="currentColor" strokeWidth="1.5" />
+                <path
+                  d="M7 6.5v3.5M7 4v.5"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                />
+              </svg>
+            </button>
             <TuningSelector tuningId={tuningId} onTuningChange={setTuningId} />
             <FretRangeControl
               startFret={startFret}
@@ -345,6 +369,7 @@ function App() {
       >
         {renderView()}
       </main>
+      <AboutModal open={showAbout} onClose={() => setShowAbout(false)} />
     </div>
   );
 }
