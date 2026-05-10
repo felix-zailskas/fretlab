@@ -43,3 +43,6 @@ scripts/.recording-tmp/
 test-results/
 playwright-report/
 playwright/.cache/
+
+# Git worktrees
+.worktrees/

@@ -16,6 +16,7 @@ import { TuningSelector } from "./components/TuningSelector";
 import { UnavailableInTuning } from "./components/UnavailableInTuning";
 import { type HighlightableRole } from "./components/Legend";
 import { ScaleDisplay } from "./components/ScaleDisplay";
+import { AboutModal } from "./components/AboutModal";
 import { DiatonicChords, type ChordRowMode } from "./components/DiatonicChords";
 import { ChordShapesView } from "./views/ChordShapesView";
 import { NoteMapView } from "./views/NoteMapView";
@@ -48,6 +49,7 @@ function App() {
   );
   const [selectedChordDegree, setSelectedChordDegree] = useState<number | null>(1);
   const [chordRowMode, setChordRowMode] = useState<ChordRowMode>("triads");
+  const [showAbout, setShowAbout] = useState(false);
   const [startFret, setStartFret] = useState(0);
   const [endFret, setEndFret] = useState(() =>
     window.innerWidth < MOBILE_BREAKPOINT ? DEFAULT_END_FRET_MOBILE : DEFAULT_END_FRET,
@@ -276,7 +278,31 @@ function App() {
       <header className="max-w-[90rem] mx-auto">
         {/* Top bar: title + global preferences (sharp/flat, fret range) */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 md:gap-4 px-4 py-3 border-b border-line">
-          <h1 className="text-xl font-bold">Fretlab</h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-xl font-bold">Fretlab</h1>
+            <button
+              onClick={() => setShowAbout(true)}
+              title="About Fretlab"
+              aria-label="About Fretlab"
+              className="px-3 py-2.5 pointer-coarse:py-3 rounded text-sm font-semibold bg-surface-raised text-fg-secondary hover:bg-surface-active cursor-pointer inline-flex items-center"
+            >
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 14 14"
+                fill="none"
+                aria-hidden="true"
+              >
+                <circle cx="7" cy="7" r="6" stroke="currentColor" strokeWidth="1.5" />
+                <path
+                  d="M7 6.5v3.5M7 4v.5"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                />
+              </svg>
+            </button>
+          </div>
           <div className="flex flex-wrap items-center gap-2 md:gap-4">
             <AccidentalToggle
               accidentalStyle={accidentalStyle}
@@ -345,6 +371,7 @@ function App() {
       >
         {renderView()}
       </main>
+      <AboutModal open={showAbout} onClose={() => setShowAbout(false)} />
     </div>
   );
 }
