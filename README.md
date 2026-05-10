@@ -5,7 +5,7 @@
 [![License: MIT](https://img.shields.io/github/license/felix-zailskas/fretlab?cacheSeconds=0)](LICENSE)
 [![Ko-fi](https://img.shields.io/badge/Ko--fi-buy%20me%20a%20coffee-FF5E5B?logo=ko-fi&logoColor=white)](https://ko-fi.com/felixzailskas)
 
-**[Try it live →](https://felix-zailskas.github.io/fretlab/)**
+**[Try it live →](https://fretlab.studio/)**
 
 A key-aware fretboard reference for guitarists. Sits next to you during practice —
 laptop or iPad on a music stand — and answers questions like _"which notes do I target
