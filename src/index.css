@@ -10,6 +10,8 @@ body {
 @source not "../docs";
 
 @theme {
+  --breakpoint-md: 900px;
+
   /* Surfaces — backgrounds, dark to active */
   --color-surface: #111827;
   --color-surface-raised: #1f2937;
