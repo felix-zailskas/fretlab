@@ -162,9 +162,7 @@ export function getCharacteristicNoteIndexSet(
   key: string,
   mode: Mode,
 ): ReadonlySet<number> {
-  return new Set(
-    getCharacteristicNotes(key, mode).map((n) => getNoteIndex(n)),
-  );
+  return new Set(getCharacteristicNotes(key, mode).map((n) => getNoteIndex(n)));
 }
 
 // Modal degree-prefix derived from the same-root major scale's degree label.
@@ -214,10 +212,7 @@ function buildTriadRomanNumeral(
   return `${prefix}${numeral}${suffix}`;
 }
 
-export function getModalDiatonicTriads(
-  key: string,
-  mode: Mode,
-): DiatonicTriad[] {
+export function getModalDiatonicTriads(key: string, mode: Mode): DiatonicTriad[] {
   const scale = getModalScaleNotes(key, mode);
   const intervals = MODE_INTERVALS[mode];
   return scale.map((root, i) => {
@@ -307,10 +302,7 @@ function buildSeventhRomanNumeral(
   return `${prefix}${numeral}${suffix}`;
 }
 
-export function getModalDiatonicChords(
-  key: string,
-  mode: Mode,
-): DiatonicChord[] {
+export function getModalDiatonicChords(key: string, mode: Mode): DiatonicChord[] {
   const scale = getModalScaleNotes(key, mode);
   const intervals = MODE_INTERVALS[mode];
   return scale.map((root, i) => {
