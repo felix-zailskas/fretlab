@@ -1,12 +1,39 @@
 import { Fragment, useEffect, useRef, useState } from "react";
-import { TUNINGS, TUNING_GROUPS, type TuningId } from "../theory/tuning";
+import {
+  TUNINGS,
+  TUNING_GROUPS,
+  type AnyTuningId,
+  type CustomTuning,
+  type CustomTuningId,
+  type TuningId,
+} from "../theory/tuning";
 
 type TuningSelectorProps = {
-  tuningId: TuningId;
-  onTuningChange: (id: TuningId) => void;
+  tuningId: AnyTuningId;
+  customs: readonly CustomTuning[];
+  onTuningChange: (id: AnyTuningId) => void;
+  onOpenCreateModal: () => void;
+  onOpenEditModal: (id: CustomTuningId) => void;
 };
 
-export function TuningSelector({ tuningId, onTuningChange }: TuningSelectorProps) {
+function isCustomId(id: AnyTuningId): id is CustomTuningId {
+  return id.startsWith("custom:");
+}
+
+function resolveName(id: AnyTuningId, customs: readonly CustomTuning[]): string {
+  if (isCustomId(id)) {
+    return customs.find((c) => c.id === id)?.name ?? "Standard";
+  }
+  return TUNINGS[id as TuningId].name;
+}
+
+export function TuningSelector({
+  tuningId,
+  customs,
+  onTuningChange,
+  onOpenCreateModal,
+  onOpenEditModal,
+}: TuningSelectorProps) {
   const [open, setOpen] = useState(false);
   const wrapperRef = useRef<HTMLDivElement | null>(null);
 
@@ -32,13 +59,21 @@ export function TuningSelector({ tuningId, onTuningChange }: TuningSelectorProps
     };
   }, [open]);
 
-  function handleSelect(id: TuningId) {
+  function handleSelect(id: AnyTuningId) {
     onTuningChange(id);
     setOpen(false);
   }
 
+  function handleCreate() {
+    setOpen(false);
+    onOpenCreateModal();
+  }
+
+  const activeName = resolveName(tuningId, customs);
+  const editDisabled = !isCustomId(tuningId);
+
   return (
-    <div className="relative" ref={wrapperRef}>
+    <div className="relative flex items-center gap-2" ref={wrapperRef}>
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
@@ -46,7 +81,23 @@ export function TuningSelector({ tuningId, onTuningChange }: TuningSelectorProps
         aria-haspopup="listbox"
         aria-expanded={open}
       >
-        Tuning: {TUNINGS[tuningId].name} ▾
+        Tuning: {activeName} ▾
+      </button>
+      <button
+        type="button"
+        onClick={() => {
+          if (!editDisabled) onOpenEditModal(tuningId as CustomTuningId);
+        }}
+        aria-disabled={editDisabled}
+        aria-label="Edit tuning"
+        title={editDisabled ? "Select a custom tuning to edit" : "Edit tuning"}
+        className={`px-2.5 py-2.5 pointer-coarse:py-3 rounded text-sm bg-surface-raised text-fg-secondary transition-transform active:scale-[0.97] ${
+          editDisabled
+            ? "opacity-50 cursor-not-allowed"
+            : "hover:bg-surface-active cursor-pointer"
+        }`}
+      >
+        ✎
       </button>
       {open && (
         <div
@@ -90,6 +141,50 @@ export function TuningSelector({ tuningId, onTuningChange }: TuningSelectorProps
               })}
             </Fragment>
           ))}
+          {customs.length > 0 && (
+            <Fragment>
+              <div
+                className="px-3 pt-3 pb-1 text-xs uppercase tracking-wide text-fg-muted font-semibold"
+                role="presentation"
+              >
+                Custom
+              </div>
+              {[...customs]
+                .sort((a, b) => a.createdAt - b.createdAt)
+                .map((c) => {
+                  const isActive = c.id === tuningId;
+                  return (
+                    <button
+                      key={c.id}
+                      type="button"
+                      role="option"
+                      aria-selected={isActive}
+                      onClick={() => handleSelect(c.id)}
+                      className={`w-full flex items-center justify-between gap-3 px-3 py-2 rounded text-sm cursor-pointer ${
+                        isActive
+                          ? "bg-surface-active text-fg-emphasis font-semibold"
+                          : "text-fg-secondary hover:bg-surface-active"
+                      }`}
+                    >
+                      <span>{c.name}</span>
+                      <span className="font-mono text-xs text-fg-faint tabular-nums">
+                        {c.strings.join(" ")}
+                      </span>
+                    </button>
+                  );
+                })}
+            </Fragment>
+          )}
+          <div className="border-t border-line my-1" role="presentation" />
+          <button
+            type="button"
+            role="option"
+            aria-selected={false}
+            onClick={handleCreate}
+            className="w-full flex items-center justify-start px-3 py-2 rounded text-sm cursor-pointer text-fg-secondary hover:bg-surface-active"
+          >
+            + New custom tuning…
+          </button>
         </div>
       )}
     </div>

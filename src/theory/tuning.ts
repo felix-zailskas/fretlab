@@ -24,7 +24,7 @@ export type TuningId =
 // A tuning is its open-string notes ordered low-pitch → high-pitch (string 6
 // → string 1 in standard guitar nomenclature).
 export type Tuning = {
-  id: TuningId;
+  id: TuningId | CustomTuningId;
   name: string;
   strings: readonly [
     ChromaticNote,
@@ -34,6 +34,23 @@ export type Tuning = {
     ChromaticNote,
     ChromaticNote,
   ];
+};
+
+export type CustomTuningId = `custom:${string}`;
+export type AnyTuningId = TuningId | CustomTuningId;
+
+export type CustomTuning = {
+  id: CustomTuningId;
+  name: string;
+  strings: readonly [
+    ChromaticNote,
+    ChromaticNote,
+    ChromaticNote,
+    ChromaticNote,
+    ChromaticNote,
+    ChromaticNote,
+  ];
+  createdAt: number;
 };
 
 // Single source of truth for all preset tunings. Keying by TuningId means the
@@ -137,7 +154,7 @@ export const TUNING_GROUPS: ReadonlyArray<{
 // fingerings).
 const STANDARD_INTERVALS: readonly number[] = [5, 5, 5, 4, 5];
 
-function isCagedCompatible(tuning: Tuning): boolean {
+export function isCagedCompatible(tuning: Tuning): boolean {
   for (let i = 0; i < STANDARD_INTERVALS.length; i++) {
     const semis =
       (getNoteIndex(tuning.strings[i + 1]) - getNoteIndex(tuning.strings[i]) + 12) % 12;
@@ -160,7 +177,36 @@ export const VIEWS_BY_TUNING: Record<TuningId, ReadonlySet<ViewId>> = (() => {
   return result;
 })();
 
-// The only predicate any view-gating logic should need.
-export function tuningSupportsView(tuningId: TuningId, view: ViewId): boolean {
-  return VIEWS_BY_TUNING[tuningId].has(view);
+// Resolve any tuning id (preset or custom) to a fully-formed Tuning. Falls
+// back to the standard preset when a custom id isn't in the list — keeps
+// the type narrow at call sites and protects against stale persisted ids.
+export function getTuning(id: AnyTuningId, customs: readonly CustomTuning[]): Tuning {
+  if (id.startsWith("custom:")) {
+    const found = customs.find((c) => c.id === id);
+    return found ?? TUNINGS.standard;
+  }
+  return TUNINGS[id as TuningId];
+}
+
+// All known tuning ids in display order: presets first (canonical group
+// order from TUNING_GROUPS), then customs sorted by createdAt ascending.
+export function getAllTuningIds(
+  customs: readonly CustomTuning[],
+): readonly AnyTuningId[] {
+  const presetIds: TuningId[] = [];
+  for (const group of TUNING_GROUPS) {
+    presetIds.push(...group.ids);
+  }
+  const sortedCustoms = [...customs]
+    .sort((a, b) => a.createdAt - b.createdAt)
+    .map((c) => c.id);
+  return [...presetIds, ...sortedCustoms];
+}
+
+// The only predicate any view-gating logic should need. Takes a resolved
+// Tuning (preset or custom — they're structurally compatible) and derives
+// view support from the string interval pattern at call time.
+export function tuningSupportsView(tuning: Tuning, view: ViewId): boolean {
+  if (isCagedCompatible(tuning)) return CAGED_VIEWS.has(view);
+  return NOTE_MAP_ONLY.has(view);
 }

@@ -55,7 +55,10 @@ describe("tuningSupportsView — CAGED-compatible tunings", () => {
   it("supports every view for tunings with standard's [5,5,5,4,5] interval pattern", () => {
     for (const id of CAGED_COMPATIBLE) {
       for (const view of ALL_VIEW_IDS) {
-        expect(tuningSupportsView(id, view), `${id} should support ${view}`).toBe(true);
+        expect(
+          tuningSupportsView(TUNINGS[id], view),
+          `${id} should support ${view}`,
+        ).toBe(true);
       }
     }
   });
@@ -65,30 +68,31 @@ describe("tuningSupportsView — non-CAGED tunings", () => {
   it("supports only note-map for tunings whose intervals diverge from standard", () => {
     for (const id of ALL_TUNING_IDS) {
       if (CAGED_COMPATIBLE.has(id)) continue;
-      expect(tuningSupportsView(id, "note-map"), `${id} should support note-map`).toBe(
-        true,
-      );
       expect(
-        tuningSupportsView(id, "scale-positions"),
+        tuningSupportsView(TUNINGS[id], "note-map"),
+        `${id} should support note-map`,
+      ).toBe(true);
+      expect(
+        tuningSupportsView(TUNINGS[id], "scale-positions"),
         `${id} should NOT support scale-positions`,
       ).toBe(false);
       expect(
-        tuningSupportsView(id, "chord-shapes"),
+        tuningSupportsView(TUNINGS[id], "chord-shapes"),
         `${id} should NOT support chord-shapes`,
       ).toBe(false);
     }
   });
 
   it("drop-d is note-map-only (low E lowered breaks the [5,5,5,4,5] pattern)", () => {
-    expect(tuningSupportsView("drop-d", "scale-positions")).toBe(false);
+    expect(tuningSupportsView(TUNINGS["drop-d"], "scale-positions")).toBe(false);
   });
 
   it("DADGAD is note-map-only (different interval pattern)", () => {
-    expect(tuningSupportsView("dadgad", "chord-shapes")).toBe(false);
+    expect(tuningSupportsView(TUNINGS.dadgad, "chord-shapes")).toBe(false);
   });
 
   it("all-fourths is note-map-only (no major-3rd B-string oddity)", () => {
-    expect(tuningSupportsView("all-fourths", "scale-positions")).toBe(false);
+    expect(tuningSupportsView(TUNINGS["all-fourths"], "scale-positions")).toBe(false);
   });
 });
 
@@ -122,5 +126,88 @@ describe("TUNING_GROUPS", () => {
         expect(known.has(id), `${id} is not a defined TuningId`).toBe(true);
       }
     }
+  });
+});
+
+import {
+  getTuning,
+  getAllTuningIds,
+  isCagedCompatible,
+  type CustomTuning,
+  type CustomTuningId,
+} from "./tuning";
+
+const SAMPLE_CUSTOM: CustomTuning = {
+  id: "custom:1715600000-aaa",
+  name: "My DADGAD",
+  strings: ["D", "A", "D", "G", "A", "D"],
+  createdAt: 1715600000,
+};
+
+const STANDARD_CUSTOM: CustomTuning = {
+  id: "custom:1715600001-bbb",
+  name: "Standard clone",
+  strings: ["E", "A", "D", "G", "B", "E"],
+  createdAt: 1715600001,
+};
+
+describe("getTuning", () => {
+  it("resolves preset ids from the TUNINGS registry", () => {
+    expect(getTuning("standard", [])).toBe(TUNINGS.standard);
+    expect(getTuning("dadgad", [])).toBe(TUNINGS.dadgad);
+  });
+
+  it("resolves custom ids from the customs list", () => {
+    const result = getTuning(SAMPLE_CUSTOM.id, [SAMPLE_CUSTOM]);
+    expect(result.id).toBe(SAMPLE_CUSTOM.id);
+    expect(result.name).toBe("My DADGAD");
+    expect(result.strings).toEqual(["D", "A", "D", "G", "A", "D"]);
+  });
+
+  it("falls back to standard when a custom id is missing", () => {
+    expect(getTuning("custom:does-not-exist" as CustomTuningId, [])).toBe(
+      TUNINGS.standard,
+    );
+  });
+});
+
+describe("getAllTuningIds", () => {
+  it("returns preset ids in canonical group order with no customs", () => {
+    const ids = getAllTuningIds([]);
+    expect(ids[0]).toBe("standard");
+    const presetCount = TUNING_GROUPS.reduce((n, g) => n + g.ids.length, 0);
+    expect(ids).toHaveLength(presetCount);
+  });
+
+  it("appends customs after presets in createdAt order", () => {
+    const ids = getAllTuningIds([STANDARD_CUSTOM, SAMPLE_CUSTOM]);
+    const customIds = ids.filter((id): id is CustomTuningId =>
+      id.startsWith("custom:"),
+    );
+    expect(customIds).toEqual([SAMPLE_CUSTOM.id, STANDARD_CUSTOM.id]);
+  });
+});
+
+describe("isCagedCompatible (exported)", () => {
+  it("returns true for a CAGED-shaped custom tuning", () => {
+    expect(isCagedCompatible(STANDARD_CUSTOM)).toBe(true);
+  });
+
+  it("returns false for a custom tuning that breaks [5,5,5,4,5]", () => {
+    expect(isCagedCompatible(SAMPLE_CUSTOM)).toBe(false);
+  });
+});
+
+describe("tuningSupportsView with a resolved Tuning", () => {
+  it("CAGED-compatible custom unlocks all three views", () => {
+    expect(tuningSupportsView(STANDARD_CUSTOM, "scale-positions")).toBe(true);
+    expect(tuningSupportsView(STANDARD_CUSTOM, "chord-shapes")).toBe(true);
+    expect(tuningSupportsView(STANDARD_CUSTOM, "note-map")).toBe(true);
+  });
+
+  it("non-CAGED custom unlocks only Note Map", () => {
+    expect(tuningSupportsView(SAMPLE_CUSTOM, "note-map")).toBe(true);
+    expect(tuningSupportsView(SAMPLE_CUSTOM, "scale-positions")).toBe(false);
+    expect(tuningSupportsView(SAMPLE_CUSTOM, "chord-shapes")).toBe(false);
   });
 });
