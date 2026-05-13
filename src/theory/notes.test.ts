@@ -272,9 +272,15 @@ describe("spellScale", () => {
   });
 
   it("emits double-sharps when the target pitch is two semitones above the natural", () => {
-    const notes = spellScale("A#", MODE_INTERVALS.lydian);
-    expect(notes).toHaveLength(7);
-    expect(notes[0]).toBe("A#");
-    expect(new Set(notes.map((n) => n[0])).size).toBe(7);
+    // A# Lydian: A#, B#, C##, D##, E#, F##, G##
+    expect(spellScale("A#", MODE_INTERVALS.lydian)).toEqual([
+      "A#",
+      "B#",
+      "C##",
+      "D##",
+      "E#",
+      "F##",
+      "G##",
+    ]);
   });
 });
