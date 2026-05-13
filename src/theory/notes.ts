@@ -35,10 +35,34 @@ const FLAT_TO_SHARP: Record<string, string> = {
   Bb: "A#",
 };
 
+const LETTER_PITCH_CLASS: Record<string, number> = {
+  C: 0,
+  D: 2,
+  E: 4,
+  F: 5,
+  G: 7,
+  A: 9,
+  B: 11,
+};
+
+// Resolves any spelled note (chromatic, flat enharmonic, theoretical letter
+// names like E#/B#/Cb/Fb, double accidentals like F##/Bbb) to its pitch
+// class 0-11. Returns -1 only when the first character isn't a letter.
 export function getNoteIndex(note: string): number {
+  // Fast path: chromatic sharp-form or single-flat enharmonic.
   const sharpName = FLAT_TO_SHARP[note] ?? note;
-  const index = CHROMATIC_SCALE.indexOf(sharpName as (typeof CHROMATIC_SCALE)[number]);
-  return index;
+  const idx = CHROMATIC_SCALE.indexOf(sharpName as (typeof CHROMATIC_SCALE)[number]);
+  if (idx !== -1) return idx;
+
+  // Fallback: parse letter + accidental run for any other spelling.
+  const base = LETTER_PITCH_CLASS[note[0]];
+  if (base === undefined) return -1;
+  let pitch = base;
+  for (let i = 1; i < note.length; i++) {
+    if (note[i] === "#") pitch += 1;
+    else if (note[i] === "b") pitch -= 1;
+  }
+  return ((pitch % 12) + 12) % 12;
 }
 
 export function getNoteAtFret(openString: string, fret: number): ChromaticNote {

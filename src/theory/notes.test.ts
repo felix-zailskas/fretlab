@@ -34,6 +34,21 @@ describe("getNoteIndex", () => {
     expect(getNoteIndex("Ab")).toBe(8);
     expect(getNoteIndex("Bb")).toBe(10);
   });
+
+  it("returns correct index for theoretical letter spellings (E#, B#, Cb, Fb)", () => {
+    expect(getNoteIndex("E#")).toBe(5);
+    expect(getNoteIndex("B#")).toBe(0);
+    expect(getNoteIndex("Cb")).toBe(11);
+    expect(getNoteIndex("Fb")).toBe(4);
+  });
+
+  it("returns correct index for double accidentals", () => {
+    expect(getNoteIndex("F##")).toBe(7);
+    expect(getNoteIndex("C##")).toBe(2);
+    expect(getNoteIndex("G##")).toBe(9);
+    expect(getNoteIndex("Bbb")).toBe(9);
+    expect(getNoteIndex("Abb")).toBe(7);
+  });
 });
 
 describe("getNoteAtFret", () => {
