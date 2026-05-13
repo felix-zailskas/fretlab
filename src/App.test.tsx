@@ -93,3 +93,34 @@ describe("App — custom tuning view gating", () => {
     expect(screen.queryByText(/Not available in this tuning/)).not.toBeInTheDocument();
   });
 });
+
+describe("App — string-toggle state is global across views", () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  it("muting a string in Scale Positions keeps it muted after switching to Note Map", async () => {
+    render(<App />);
+    // Switch to Scale Positions tab
+    await userEvent.click(screen.getByRole("tab", { name: /Scale Positions/ }));
+
+    // Find the string 5 toggle (top row, high E)
+    const toggle5 = screen
+      .getAllByTestId("string-toggle")
+      .find((t) => t.getAttribute("data-string-index") === "5");
+    if (!toggle5) throw new Error("toggle not found");
+    expect(toggle5).toHaveAttribute("data-enabled", "true");
+    await userEvent.click(toggle5);
+    expect(toggle5).toHaveAttribute("data-enabled", "false");
+
+    // Switch to Note Map
+    await userEvent.click(screen.getByRole("tab", { name: /Note Map/ }));
+
+    // String 5 toggle on Note Map should still report disabled
+    const noteMapToggle5 = screen
+      .getAllByTestId("string-toggle")
+      .find((t) => t.getAttribute("data-string-index") === "5");
+    if (!noteMapToggle5) throw new Error("toggle not found in Note Map");
+    expect(noteMapToggle5).toHaveAttribute("data-enabled", "false");
+  });
+});
