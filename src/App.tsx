@@ -14,6 +14,7 @@ import { ModeSelector } from "./components/ModeSelector";
 import { ViewSelector } from "./components/ViewSelector";
 import { TuningSelector } from "./components/TuningSelector";
 import { UnavailableInTuning } from "./components/UnavailableInTuning";
+import { CustomTuningModal } from "./components/CustomTuningModal";
 import { type HighlightableRole } from "./components/Legend";
 import { ScaleDisplay } from "./components/ScaleDisplay";
 import { AboutModal } from "./components/AboutModal";
@@ -29,11 +30,39 @@ import {
   DEFAULT_END_FRET_MOBILE,
   MOBILE_BREAKPOINT,
 } from "./theory/constants";
-import { TUNINGS, tuningSupportsView, type TuningId } from "./theory/tuning";
+import {
+  getTuning,
+  tuningSupportsView,
+  type AnyTuningId,
+  type CustomTuning,
+  type CustomTuningId,
+} from "./theory/tuning";
+import {
+  loadCustomTunings,
+  saveCustomTunings,
+  type StoredState,
+} from "./theory/customTuningStorage";
 import { getModalDiatonicChords, getModalDiatonicTriads } from "./theory/modes";
 import { tonalReducer } from "./tonalReducer";
 
 const DEFAULT_HIGHLIGHTS: HighlightableRole[] = ["root", "third", "fifth", "seventh"];
+
+function createCustomTuningId(): CustomTuningId {
+  const ts = Date.now();
+  const rand = Math.random().toString(36).slice(2, 8);
+  return `custom:${ts}-${rand}`;
+}
+
+function pickNextCustomName(customs: readonly CustomTuning[]): string {
+  const usedNumbers = new Set<number>();
+  for (const c of customs) {
+    const match = c.name.match(/^Custom (\d+)$/);
+    if (match) usedNumbers.add(parseInt(match[1], 10));
+  }
+  let n = 1;
+  while (usedNumbers.has(n)) n++;
+  return `Custom ${n}`;
+}
 
 function App() {
   const [tonal, dispatchTonal] = useReducer(tonalReducer, {
@@ -43,7 +72,22 @@ function App() {
   });
   const { key: selectedKey, mode, accidentalStyle } = tonal;
   const [selectedView, setSelectedView] = useState<ViewId>("note-map");
-  const [tuningId, setTuningId] = useState<TuningId>("standard");
+  const [persisted, setPersisted] = useState<StoredState>(loadCustomTunings);
+  const customs = persisted.tunings;
+  const tuningId: AnyTuningId = persisted.selectedTuningId ?? "standard";
+  const tuning = getTuning(tuningId, customs);
+
+  const [modalState, setModalState] = useState<
+    null | { mode: "create" } | { mode: "edit"; id: CustomTuningId }
+  >(null);
+
+  useEffect(() => {
+    saveCustomTunings(persisted);
+  }, [persisted]);
+
+  function setTuningId(id: AnyTuningId) {
+    setPersisted((prev) => ({ ...prev, selectedTuningId: id }));
+  }
   const [enabledHighlights, setEnabledHighlights] = useState<Set<HighlightableRole>>(
     () => new Set(DEFAULT_HIGHLIGHTS),
   );
@@ -155,12 +199,13 @@ function App() {
   const isAllNotesKey = selectedKey === ALL_NOTES_KEY;
 
   function renderView(): ReactNode {
-    if (!tuningSupportsView(tuningId, selectedView)) {
+    if (!tuningSupportsView(tuning, selectedView)) {
       return (
         <UnavailableInTuning
           viewId={selectedView}
-          tuningId={tuningId}
+          tuning={tuning}
           onSwitchToStandard={() => setTuningId("standard")}
+          onSwitchToNoteMap={() => setSelectedView("note-map")}
         />
       );
     }
@@ -169,7 +214,7 @@ function App() {
         return (
           <>
             <NoteMapView
-              tuning={TUNINGS[tuningId]}
+              tuning={tuning}
               selectedKey={selectedKey}
               accidentalStyle={accidentalStyle}
               enabledHighlights={effectiveHighlights}
@@ -194,7 +239,7 @@ function App() {
         return (
           <>
             <ScalePositionsView
-              tuning={TUNINGS[tuningId]}
+              tuning={tuning}
               selectedKey={selectedKey}
               enabledHighlights={effectiveHighlights}
               onToggleRole={toggleHighlight}
@@ -219,7 +264,7 @@ function App() {
         return (
           <>
             <ChordShapesView
-              tuning={TUNINGS[tuningId]}
+              tuning={tuning}
               selectedKey={selectedKey}
               startFret={startFret}
               endFret={endFret}
@@ -304,7 +349,13 @@ function App() {
               onChange={(style) => dispatchTonal({ type: "set-accidental", style })}
             />
             <ThemeToggle mode={themeMode} onCycle={cycleTheme} />
-            <TuningSelector tuningId={tuningId} onTuningChange={setTuningId} />
+            <TuningSelector
+              tuningId={tuningId}
+              customs={customs}
+              onTuningChange={setTuningId}
+              onOpenCreateModal={() => setModalState({ mode: "create" })}
+              onOpenEditModal={(id) => setModalState({ mode: "edit", id })}
+            />
             <FretRangeControl
               startFret={startFret}
               endFret={endFret}
@@ -366,6 +417,70 @@ function App() {
         {renderView()}
       </main>
       <AboutModal open={showAbout} onClose={() => setShowAbout(false)} />
+      {modalState !== null && (
+        <CustomTuningModal
+          mode={modalState.mode}
+          initialName={
+            modalState.mode === "edit"
+              ? (customs.find((c) => c.id === modalState.id)?.name ?? "")
+              : pickNextCustomName(customs)
+          }
+          initialStrings={
+            modalState.mode === "edit"
+              ? (customs.find((c) => c.id === modalState.id)?.strings ?? tuning.strings)
+              : tuning.strings
+          }
+          onSave={(name, strings) => {
+            if (modalState.mode === "create") {
+              const newTuning: CustomTuning = {
+                id: createCustomTuningId(),
+                name,
+                strings,
+                createdAt: Date.now(),
+              };
+              setPersisted((prev) => ({
+                ...prev,
+                tunings: [...prev.tunings, newTuning],
+                selectedTuningId: newTuning.id,
+              }));
+            } else {
+              setPersisted((prev) => ({
+                ...prev,
+                tunings: prev.tunings.map((c) =>
+                  c.id === modalState.id ? { ...c, name, strings } : c,
+                ),
+              }));
+            }
+            setModalState(null);
+          }}
+          onSaveCopy={(name, strings) => {
+            const copy: CustomTuning = {
+              id: createCustomTuningId(),
+              name: `${name} copy`,
+              strings,
+              createdAt: Date.now(),
+            };
+            setPersisted((prev) => ({
+              ...prev,
+              tunings: [...prev.tunings, copy],
+              selectedTuningId: copy.id,
+            }));
+            setModalState(null);
+          }}
+          onDelete={() => {
+            if (modalState.mode !== "edit") return;
+            const id = modalState.id;
+            setPersisted((prev) => ({
+              ...prev,
+              tunings: prev.tunings.filter((c) => c.id !== id),
+              selectedTuningId:
+                prev.selectedTuningId === id ? "standard" : prev.selectedTuningId,
+            }));
+            setModalState(null);
+          }}
+          onCancel={() => setModalState(null)}
+        />
+      )}
     </div>
   );
 }
