@@ -451,7 +451,7 @@ describe("buildChordToneMarkers — modal", () => {
   });
 
   it("drops out-of-mode notes (C Lydian filters out F)", () => {
-    const cLydianI = getModalDiatonicChords("C", "lydian", "sharp")[0]; // Cmaj7
+    const cLydianI = getModalDiatonicChords("C", "lydian")[0]; // Cmaj7
     const markers = buildChordToneMarkers({
       tuning: TUNINGS.standard,
       key: "C",
@@ -471,7 +471,7 @@ describe("buildChordToneMarkers — modal", () => {
   });
 
   it("flags characteristic notes in Dorian (♮6 = A in C Dorian)", () => {
-    const cDorianI = getModalDiatonicTriads("C", "dorian", "flat")[0]; // Cm
+    const cDorianI = getModalDiatonicTriads("C", "dorian")[0]; // Cm
     const markers = buildChordToneMarkers({
       tuning: TUNINGS.standard,
       key: "C",

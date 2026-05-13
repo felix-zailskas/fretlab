@@ -51,7 +51,7 @@ export function NoteMapView({
 
     const characteristicSet = showAll
       ? (new Set<number>() as ReadonlySet<number>)
-      : getCharacteristicNoteIndexSet(selectedKey, mode, accidentalStyle);
+      : getCharacteristicNoteIndexSet(selectedKey, mode);
 
     for (let stringIndex = 0; stringIndex < tuning.strings.length; stringIndex++) {
       const openString = tuning.strings[stringIndex];
