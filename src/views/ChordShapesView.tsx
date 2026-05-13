@@ -143,6 +143,7 @@ export function ChordShapesView({
         key: selectedKey,
         stringSets: Array.from(selectedStringSets),
         inversions: Array.from(selectedInversions),
+        enabledStrings,
         startFret,
         endFret,
       });
@@ -156,6 +157,7 @@ export function ChordShapesView({
       key: selectedKey,
       stringSets: activeSeventhStringSets,
       inversions: Array.from(selectedSeventhInversions),
+      enabledStrings,
       startFret,
       endFret,
     });
@@ -170,6 +172,7 @@ export function ChordShapesView({
     selectedVoicingSystem,
     activeSeventhStringSets,
     selectedSeventhInversions,
+    enabledStrings,
     startFret,
     endFret,
   ]);

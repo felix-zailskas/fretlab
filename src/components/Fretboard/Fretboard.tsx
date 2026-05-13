@@ -35,7 +35,16 @@ type FretboardProps = {
 // PADDING.top reserves space above the board for position-window labels.
 // boardTop = PADDING.top, so increasing top padding pushes the whole board
 // down and exposes a header strip for label text.
-const PADDING = { top: 40, bottom: 40, left: 50, right: 20 };
+// PADDING.left reserves space for open-note markers (rendered at nutX-20)
+// AND the string-toggle eye column (rendered at viewBox-x=0..STRING_TOGGLE_RIGHT).
+// Increasing left padding pushes the nut right so both can sit side-by-side
+// without overlap.
+const PADDING = { top: 40, bottom: 40, left: 70, right: 20 };
+// X range reserved for the string-toggle eye column (viewBox coords). The
+// eye column lives flush-left in this strip; the rest of PADDING.left is
+// open-note marker territory.
+const STRING_TOGGLE_X = 4;
+const STRING_TOGGLE_WIDTH = 24;
 const STRING_SPACING = 30;
 const NUM_STRINGS = 6;
 
@@ -372,10 +381,11 @@ export function Fretboard({
           const stringNumber = 6 - stringIndex;
           const y = stringY(stringIndex);
           // The SVG uses a viewBox of totalWidth x totalHeight rendered to w-full.
-          // We express the button position as a percentage so it tracks the
-          // responsive SVG scaling.
+          // We express the button position + size as percentages so they track
+          // the responsive SVG scaling.
           const topPct = (y / totalHeight) * 100;
-          const leftPct = (8 / totalWidth) * 100;
+          const leftPct = (STRING_TOGGLE_X / totalWidth) * 100;
+          const widthPct = (STRING_TOGGLE_WIDTH / totalWidth) * 100;
           return (
             <button
               key={stringIndex}
@@ -388,12 +398,16 @@ export function Fretboard({
                 enabled ? "enabled" : "muted"
               }`}
               onClick={() => onToggleString(stringIndex)}
-              className={`absolute flex items-center justify-center w-8 h-6 rounded transition-transform active:scale-[0.92] pointer-events-auto cursor-pointer -translate-y-1/2 ${
+              className={`absolute flex items-center justify-center h-6 rounded transition-transform active:scale-[0.92] pointer-events-auto cursor-pointer -translate-y-1/2 ${
                 enabled
                   ? "text-fg-muted hover:text-fg-secondary opacity-60 hover:opacity-100"
                   : "text-fg-faint opacity-40 hover:opacity-60"
               }`}
-              style={{ top: `${topPct}%`, left: `${leftPct}%` }}
+              style={{
+                top: `${topPct}%`,
+                left: `${leftPct}%`,
+                width: `${widthPct}%`,
+              }}
             >
               {enabled ? <EyeIcon /> : <EyeOffIcon />}
             </button>
