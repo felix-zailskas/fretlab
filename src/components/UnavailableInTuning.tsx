@@ -27,15 +27,15 @@ export function UnavailableInTuning({
       </p>
       <p className="text-fg-secondary text-sm">
         <span className="font-semibold text-fg-emphasis">{VIEW_LABEL[viewId]}</span>{" "}
-        relies on the standard-tuning interval pattern (5-5-5-4-5 semitones
-        between adjacent strings). Your current tuning{" "}
-        <span className="font-semibold text-fg-emphasis">{tuning.name}</span> has
-        a different pattern, so its shapes don't transfer here.
+        relies on the standard-tuning interval pattern (5-5-5-4-5 semitones between
+        adjacent strings). Your current tuning{" "}
+        <span className="font-semibold text-fg-emphasis">{tuning.name}</span> has a
+        different pattern, so its shapes don't transfer here.
       </p>
       <p className="text-fg-muted text-sm">
-        Switch back to <span className="font-semibold">Standard</span> to use
-        this view, or stay on <span className="font-semibold">Note Map</span>{" "}
-        which works for any tuning.
+        Switch back to <span className="font-semibold">Standard</span> to use this view,
+        or stay on <span className="font-semibold">Note Map</span> which works for any
+        tuning.
       </p>
       <div className="flex items-center justify-center gap-3 pt-2">
         <button

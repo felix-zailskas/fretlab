@@ -186,9 +186,7 @@ describe("TuningSelector — custom tunings", () => {
       />,
     );
     await userEvent.click(screen.getByRole("button", { name: /Tuning:/ }));
-    await userEvent.click(
-      screen.getByRole("option", { name: /New custom tuning/ }),
-    );
+    await userEvent.click(screen.getByRole("option", { name: /New custom tuning/ }));
     expect(onOpenCreateModal).toHaveBeenCalledOnce();
     expect(onTuningChange).not.toHaveBeenCalled();
   });

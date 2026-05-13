@@ -55,7 +55,10 @@ describe("tuningSupportsView — CAGED-compatible tunings", () => {
   it("supports every view for tunings with standard's [5,5,5,4,5] interval pattern", () => {
     for (const id of CAGED_COMPATIBLE) {
       for (const view of ALL_VIEW_IDS) {
-        expect(tuningSupportsView(TUNINGS[id], view), `${id} should support ${view}`).toBe(true);
+        expect(
+          tuningSupportsView(TUNINGS[id], view),
+          `${id} should support ${view}`,
+        ).toBe(true);
       }
     }
   });
@@ -65,9 +68,10 @@ describe("tuningSupportsView — non-CAGED tunings", () => {
   it("supports only note-map for tunings whose intervals diverge from standard", () => {
     for (const id of ALL_TUNING_IDS) {
       if (CAGED_COMPATIBLE.has(id)) continue;
-      expect(tuningSupportsView(TUNINGS[id], "note-map"), `${id} should support note-map`).toBe(
-        true,
-      );
+      expect(
+        tuningSupportsView(TUNINGS[id], "note-map"),
+        `${id} should support note-map`,
+      ).toBe(true);
       expect(
         tuningSupportsView(TUNINGS[id], "scale-positions"),
         `${id} should NOT support scale-positions`,
