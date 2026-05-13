@@ -30,11 +30,18 @@ const CONTROLS = [
     "R 3 5 7",
     "Show or hide each chord-tone role on the fretboard. The 7th toggle is only active in Sevenths mode.",
   ],
-  ["♭ / ♯", "Toggle between flat and sharp accidental display."],
+  [
+    "♭ / ♯",
+    "Toggle between flat and sharp accidental display for the chromatic All-Notes view. In-scale notes are always spelled diatonically (C♯ Ionian → B♯, not C).",
+  ],
   ["Fret range", "Configure which frets are visible (0–24)."],
   [
     "Tuning",
-    "Choose from 18 presets: Standard, open, drop, DADGAD, All Fourths, and more.",
+    "Choose from 18 presets — Standard, open, drop, DADGAD, All Fourths, and more — or define your own custom tunings (saved locally and persisted across reloads).",
+  ],
+  [
+    "String focus",
+    "The eye icons on the left of every fretboard mute individual strings. Muted strings keep showing the same set of notes, dimmed.",
   ],
 ] as const;
 
@@ -103,6 +110,10 @@ export function AboutModal({ open, onClose }: AboutModalProps) {
               >
                 Source on GitHub
               </a>
+              {" · "}
+              <span className="font-mono" data-testid="app-version">
+                v{__APP_VERSION__}
+              </span>
             </p>
           </section>
 
