@@ -795,3 +795,51 @@ describe("buildChordShapeMarkers — step-down anchor-fret regression", () => {
     expect(firstRootFret(TUNINGS["csharp-standard"])).toBe(11);
   });
 });
+
+describe("buildChordShapeMarkers — enabledStrings", () => {
+  const cMajorTriad = getModalDiatonicTriads("C", "ionian")[0];
+  const baseline = {
+    mode: "triads" as const,
+    tuning: TUNINGS.standard,
+    chord: cMajorTriad,
+    key: "C",
+    stringSets: ["1-2-3"] as const,
+    inversions: ["root"] as const,
+    startFret: 0,
+    endFret: 12,
+    enabledStrings: new Set<number>([0, 1, 2, 3, 4, 5]),
+  };
+
+  it("baseline with all strings enabled: no muted markers from disabled-string override", () => {
+    const markers = buildChordShapeMarkers(baseline);
+    expect(markers.length).toBeGreaterThan(0);
+    expect(markers.every((m) => m.role !== "muted")).toBe(true);
+  });
+
+  it("disabling string 5 demotes every string-5 marker to 'muted'", () => {
+    // "1-2-3" → shape strings 1,2,3 → marker strings 5,4,3 (high-E side).
+    // Disabling string 5 (high-E marker index) must demote those markers to "muted".
+    const input = {
+      ...baseline,
+      stringSets: ["1-2-3"] as const,
+      enabledStrings: new Set<number>([0, 1, 2, 3, 4]),
+    };
+    const markers = buildChordShapeMarkers(input);
+    const stringFive = markers.filter((m) => m.string === 5);
+    expect(stringFive.length).toBeGreaterThan(0);
+    expect(stringFive.every((m) => m.role === "muted")).toBe(true);
+  });
+
+  it("disabling a string a shape doesn't touch produces no new markers on that string", () => {
+    // "4-5-6" → shape strings 4,5,6 → marker strings 2,1,0 (low-E side).
+    // Disabling string 5 (high-E marker index) affects no markers in this shape.
+    const input = {
+      ...baseline,
+      stringSets: ["4-5-6"] as const,
+      enabledStrings: new Set<number>([0, 1, 2, 3, 4]),
+    };
+    const markers = buildChordShapeMarkers(input);
+    const stringFive = markers.filter((m) => m.string === 5);
+    expect(stringFive).toHaveLength(0);
+  });
+});
