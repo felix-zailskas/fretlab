@@ -182,13 +182,17 @@ export function ChordShapesView({
   // user actually wants to study. Matches the Note Map / Scale Positions
   // behavior in chordTones.ts so dimmed chord tones look identical to the
   // surrounding non-highlighted scale notes.
+  //
+  // "muted" is preserved as-is: it carries different intent (the string is
+  // toggled off) and must not be folded into "scale".
   const visibleMarkers = useMemo(
     () =>
-      markers.map((m) =>
-        enabledHighlights.has(m.role as HighlightableRole)
+      markers.map((m) => {
+        if (m.role === "muted") return m;
+        return enabledHighlights.has(m.role as HighlightableRole)
           ? m
-          : { ...m, role: "scale" as const },
-      ),
+          : { ...m, role: "scale" as const };
+      }),
     [markers, enabledHighlights],
   );
 
