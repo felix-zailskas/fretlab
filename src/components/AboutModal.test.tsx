@@ -36,4 +36,10 @@ describe("AboutModal", () => {
       "https://github.com/felix-zailskas/fretlab",
     );
   });
+
+  it("renders the app version with a leading 'v'", () => {
+    render(<AboutModal open={true} onClose={() => {}} />);
+    const version = screen.getByTestId("app-version");
+    expect(version.textContent).toMatch(/^v\d+\.\d+\.\d+/);
+  });
 });

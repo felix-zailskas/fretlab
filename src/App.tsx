@@ -99,6 +99,20 @@ function App() {
   const [enabledHighlights, setEnabledHighlights] = useState<Set<HighlightableRole>>(
     () => new Set(DEFAULT_HIGHLIGHTS),
   );
+  const [enabledStrings, setEnabledStrings] = useState<ReadonlySet<number>>(
+    () => new Set([0, 1, 2, 3, 4, 5]),
+  );
+  const toggleString = useCallback((stringIndex: number) => {
+    setEnabledStrings((prev) => {
+      const next = new Set(prev);
+      if (next.has(stringIndex)) {
+        next.delete(stringIndex);
+      } else {
+        next.add(stringIndex);
+      }
+      return next;
+    });
+  }, []);
   const [selectedChordDegree, setSelectedChordDegree] = useState<number | null>(1);
   const [chordRowMode, setChordRowMode] = useState<ChordRowMode>("triads");
   const [showAbout, setShowAbout] = useState(false);
@@ -232,6 +246,8 @@ function App() {
               endFret={endFret}
               mode={mode}
               disabledRoles={seventhDisabledRoles}
+              enabledStrings={enabledStrings}
+              onToggleString={toggleString}
             />
             <DiatonicChords
               selectedKey={selectedKey}
@@ -257,6 +273,8 @@ function App() {
               controls={scalePositionsControls}
               mode={mode}
               disabledRoles={seventhDisabledRoles}
+              enabledStrings={enabledStrings}
+              onToggleString={toggleString}
             />
             <DiatonicChords
               selectedKey={selectedKey}
@@ -283,6 +301,8 @@ function App() {
               controls={chordShapesControls}
               modalMode={mode}
               disabledRoles={seventhDisabledRoles}
+              enabledStrings={enabledStrings}
+              onToggleString={toggleString}
             />
             <DiatonicChords
               selectedKey={selectedKey}

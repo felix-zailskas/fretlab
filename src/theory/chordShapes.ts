@@ -618,6 +618,7 @@ export type BuildChordShapeMarkersInput =
       key: string;
       stringSets: ReadonlyArray<StringSet>;
       inversions: ReadonlyArray<Inversion>;
+      enabledStrings?: ReadonlySet<number>;
       startFret: number;
       endFret: number;
     }
@@ -630,6 +631,7 @@ export type BuildChordShapeMarkersInput =
       key: string;
       stringSets: ReadonlyArray<SeventhStringSet>;
       inversions: ReadonlyArray<SeventhInversion>;
+      enabledStrings?: ReadonlySet<number>;
       startFret: number;
       endFret: number;
     };
@@ -679,6 +681,7 @@ function placeChordOnCombo(
   startFret: number,
   endFret: number,
   characteristicSet: ReadonlySet<number>,
+  enabledStrings: ReadonlySet<number>,
 ): NoteMarker[] {
   const anchorMarkerString = shapeStringToMarkerString(shape.rootString);
   const openAnchorNote = tuning.strings[anchorMarkerString];
@@ -698,11 +701,12 @@ function placeChordOnCombo(
       const openNote = tuning.strings[markerString];
       const noteSharp = getNoteAtFret(openNote, absFret);
       const isCharacteristic = characteristicSet.has(getNoteIndex(noteSharp));
+      const finalRole = enabledStrings.has(markerString) ? p.role : "muted";
       result.push({
         string: markerString,
         fret: absFret,
         note: spellingMap.get(getNoteIndex(noteSharp)) ?? noteSharp,
-        role: p.role,
+        role: finalRole,
         ...(isCharacteristic ? { isCharacteristic: true } : {}),
       });
     }
@@ -723,6 +727,7 @@ export function buildChordShapeMarkers(
 ): NoteMarker[] {
   if (input.key === ALL_NOTES_KEY) return [];
 
+  const enabledStrings = input.enabledStrings ?? new Set([0, 1, 2, 3, 4, 5]);
   const modalMode = input.modalMode ?? "ionian";
   const characteristicSet = getCharacteristicNoteIndexSet(input.key, modalMode);
   const spellingMap = buildDiatonicSpellingMap(
@@ -749,6 +754,7 @@ export function buildChordShapeMarkers(
             input.startFret,
             input.endFret,
             characteristicSet,
+            enabledStrings,
           ),
         );
       }
@@ -778,6 +784,7 @@ export function buildChordShapeMarkers(
           input.startFret,
           input.endFret,
           characteristicSet,
+          enabledStrings,
         ),
       );
     }

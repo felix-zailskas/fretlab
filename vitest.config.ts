@@ -1,5 +1,6 @@
 import { defineConfig } from "vitest/config";
 import react from "@vitejs/plugin-react";
+import pkg from "./package.json" with { type: "json" };
 
 // Test runner config kept separate from vite.config.ts so the dev/build
 // pipeline doesn't pull in jsdom/testing-library deps.
@@ -9,6 +10,10 @@ import react from "@vitejs/plugin-react";
 // The `environmentMatchGlobs` mechanism applies the right environment per file.
 export default defineConfig({
   plugins: [react()],
+  define: {
+    // Mirrors vite.config.ts so __APP_VERSION__ resolves under vitest too.
+    __APP_VERSION__: JSON.stringify(pkg.version),
+  },
   test: {
     globals: false,
     environment: "node",

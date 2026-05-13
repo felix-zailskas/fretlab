@@ -20,6 +20,8 @@ import { record as recordScalePositions } from "./record/scale-positions.mjs";
 import { record as recordChordShapes } from "./record/chord-shapes.mjs";
 import { record as recordModalMode } from "./record/modal-mode.mjs";
 import { record as recordTunings } from "./record/tunings.mjs";
+import { record as recordCustomTuning } from "./record/custom-tuning.mjs";
+import { record as recordStringToggle } from "./record/string-toggle.mjs";
 
 const RECORDERS = {
   hero: recordHero,
@@ -28,6 +30,8 @@ const RECORDERS = {
   "chord-shapes": recordChordShapes,
   "modal-mode": recordModalMode,
   tunings: recordTunings,
+  "custom-tuning": recordCustomTuning,
+  "string-toggle": recordStringToggle,
 };
 
 const requested = process.argv.slice(2);

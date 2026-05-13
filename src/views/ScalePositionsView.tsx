@@ -28,6 +28,8 @@ type ScalePositionsViewProps = {
   startFret: number;
   endFret: number;
   controls: ScalePositionsControls;
+  enabledStrings: ReadonlySet<number>;
+  onToggleString: (stringIndex: number) => void;
   // Optional — defaults to 'ionian', preserving today's behavior. Phase D's
   // App.tsx wiring passes this explicitly from global state.
   mode?: Mode;
@@ -47,6 +49,8 @@ export function ScalePositionsView({
   startFret,
   endFret,
   controls,
+  enabledStrings,
+  onToggleString,
   mode = "ionian",
 }: ScalePositionsViewProps) {
   const { selectedPositions, togglePosition, showContext, setShowContext } = controls;
@@ -99,6 +103,7 @@ export function ScalePositionsView({
         positions: positionsArray,
         showContext,
         enabledHighlights,
+        enabledStrings,
         startFret,
         endFret,
         mode,
@@ -110,6 +115,7 @@ export function ScalePositionsView({
       positionsArray,
       showContext,
       enabledHighlights,
+      enabledStrings,
       startFret,
       endFret,
       mode,
@@ -136,6 +142,9 @@ export function ScalePositionsView({
         positionWindows={positionWindows}
         overlapZones={overlapZones}
         emptyMessage={fretboardEmptyMessage}
+        tuning={tuning}
+        enabledStrings={enabledStrings}
+        onToggleString={onToggleString}
       />
       <div className="flex flex-wrap items-center gap-x-3 md:gap-x-6 gap-y-2 md:gap-y-3 min-h-9 md:max-[1319px]:min-h-20">
         <Legend

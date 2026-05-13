@@ -59,8 +59,11 @@ highlights so every in-key note renders as a plain scale tone.
 **Features**
 
 - 12-key selector plus an "All Notes" mode that disables key filtering
-- Sharp / flat accidental toggle (with automatic enharmonic key swap so you stay on the
-  same scale)
+- **Diatonic note spelling** — every scale uses all 7 letter names with the right
+  accidentals, so C♯ Ionian reads as `C♯ D♯ E♯ F♯ G♯ A♯ B♯` (not the enharmonic mishmash
+  `C♯ D♯ F F♯ G♯ A♯ C`). Double accidentals appear for theoretical roots like A♯ major.
+- Sharp / flat accidental toggle for the chromatic "All Notes" view (in-scale notes are
+  always spelled diatonically — the toggle has no effect on them)
 - Configurable fret range (default 0–15, ceiling 24) via a header popover; the chosen
   range applies to every view
 - 7 diatonic chord cards with a triads / sevenths toggle (R/3/5 or R/3/5/7 highlighting)
@@ -215,15 +218,34 @@ adds capability without disturbing major-scale practice.
 ![Short recording of the Tuning selector — opening the grouped popover (Standard / Open / Drop / Modal & Other), picking D Standard to shift Note Map's note labels and Scale Positions' boxes up by 2 frets, then switching to Open G to surface the empty-state explanation on Scale Positions, then clicking "Switch to Standard tuning" to recover.](docs/images/tunings.gif)
 
 A header **Tuning selector** sits next to the fret-range control and lets you switch
-between 18 preset tunings. Presets are grouped by category in the popover:
+between 18 preset tunings plus any custom tunings you've saved. Presets are grouped by
+category in the popover:
 
 - **Standard** — Standard, Eb Standard, D Standard, C# Standard.
 - **Open** — Open G, Open D, Open E, Open A, Open C, Open Dm, Open Gm.
 - **Drop** — Drop D, Double Drop D, Drop C, Drop B.
 - **Modal & Other** — DADGAD, All Fourths, New Standard (NST).
+- **Custom** — your saved custom tunings (only visible once you've created one).
 
 The active tuning is shown in the trigger label (`Tuning: Standard ▾`). Each option in
 the popover lists the tuning's open strings (low → high) as a memory aid.
+
+### Custom tunings
+
+![Screenshot of the New custom tuning modal — name field with "My DADGAD" filled in, six string pickers below showing D A D G A D from low to high, and a Cancel / Save action row. The modal sits over the Note Map view with the standard-tuning fretboard visible behind it.](docs/images/custom-tuning.png)
+
+Pick `+ New custom tuning…` at the bottom of the tuning popover to define your own
+6-string tuning: a name plus a chromatic-note pick for each string (low → high). Custom
+tunings are saved to `localStorage` and survive reloads, including the
+currently-selected one. The `✎` button next to the tuning selector opens the same modal
+in edit mode for the active custom tuning, with **Save**, **Save as copy** (forks the
+current values into a new entry), and **Delete** (two-stage inline confirm) actions.
+
+Custom tunings participate in view gating identically to presets — if the intervals
+between adjacent strings match standard's `[5, 5, 5, 4, 5]` semitone pattern, all three
+views unlock; otherwise the tuning is restricted to Note Map. Anything goes for the note
+choices themselves: duplicates, non-monotonic orderings, and theoretical roots are all
+allowed.
 
 ### View support across tunings
 
@@ -232,14 +254,16 @@ Shapes — depend on standard tuning's specific interval pattern between adjacen
 (`[5, 5, 5, 4, 5]` semitones). Tunings that **preserve** that pattern unlock all three
 views; tunings that **break** it are restricted to Note Map.
 
-| Tuning category                 | Note Map | Scale Positions | Chord Shapes |
-| ------------------------------- | :------: | :-------------: | :----------: |
-| Standard, Eb / D / C# Standard  |    ✓     |        ✓        |      ✓       |
-| All Open / Drop / Modal tunings |    ✓     |                 |              |
+| Tuning category                 | Note Map |   Scale Positions   |    Chord Shapes     |
+| ------------------------------- | :------: | :-----------------: | :-----------------: |
+| Standard, Eb / D / C# Standard  |    ✓     |          ✓          |          ✓          |
+| All Open / Drop / Modal tunings |    ✓     |                     |                     |
+| Custom tunings                  |    ✓     | if CAGED-compatible | if CAGED-compatible |
 
 The rule is **derived from the strings**, not hand-flagged — `isCagedCompatible()` in
 [`src/theory/tuning.ts`](src/theory/tuning.ts) checks the interval pattern at module
-load. Adding a future preset auto-resolves which views it supports.
+load. Adding a future preset (or saving a new custom tuning) auto-resolves which views
+it supports.
 
 When you select a tuning that doesn't support the active view, the view body shows an
 empty state explaining why and offers a one-click **Switch to Standard tuning** button.
@@ -255,10 +279,10 @@ correctly identifies where each shape's barre actually lives on the new neck.
 - 18 preset tunings across four categories, grouped in the selector popover
 - Step-down standards (Eb / D / C# Standard) with all three views available; box and
   chord-shape positions auto-shift to track the tuning
-- Non-CAGED tunings gated to Note Map with a clear empty state on the other tabs
-- 6-string tuple — open-string note for each string is what every downstream computation
-  reads from, so the data model is ready for arbitrary custom tunings (planned; see
-  [the vision doc](docs/design/2026-05-09-custom-tunings-vision.md))
+- Non-CAGED tunings gated to Note Map with a clear empty state on the other tabs (with a
+  "Stay on Note Map" shortcut so you stay productive in the one view that does work)
+- Custom tunings with `localStorage` persistence — save, edit, fork (Save as copy),
+  delete, and the last-selected tuning is restored on reload
 
 **During practice**
 
@@ -269,6 +293,31 @@ correctly identifies where each shape's barre actually lives on the new neck.
 - _DADGAD fingerstyle_ — Note Map in DADGAD (key D) shows where the in-key notes fall on
   the modally-tuned neck; chord-shape pedagogy isn't applicable so the gating message
   keeps you honest.
+
+## String focus
+
+![Screenshot of Scale Positions with strings 1 and 2 (high E and B) muted via the eye column on the left of the fretboard. The two muted-string rows render in dim gray; the remaining four strings show normal chord-tone coloring with the C major P1 position bracketed.](docs/images/string-toggle.png)
+
+An eye-icon column on the left of every fretboard lets you mute individual strings.
+Click an eye to toggle that string — the icon swaps to an eye-with-slash, and every
+marker on that string demotes to the muted color (dim gray) on Note Map, Scale
+Positions, and Chord Shapes. Muting a string never reveals notes that weren't already
+visible: it only changes how the existing markers render, so the box framing and
+chord-shape geometry stay intact and the muted strings act as a visual "ignore this for
+now" cue.
+
+String state is global across views (mute the high E in Scale Positions and it stays
+muted when you switch to Chord Shapes) and ephemeral within a session — the default is
+all six strings enabled on every reload.
+
+**During practice**
+
+- _Three-string set focus_ — drilling chord shapes on strings 1-3? Mute the bottom three
+  so your eye doesn't wander.
+- _Bass-string isolation_ — practicing walking bass lines on strings 5-6? Mute the top
+  four to keep the page visually quiet.
+- _Single-string scale runs_ — mute everything except one string for horizontal-scale
+  practice up the neck.
 
 ## Keyboard shortcuts
 

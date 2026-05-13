@@ -74,6 +74,7 @@ describe("buildChordToneMarkers", () => {
       positions: ["P1"],
       showContext: false,
       enabledHighlights: allRoles,
+      enabledStrings: new Set([0, 1, 2, 3, 4, 5]),
       startFret: 0,
       endFret: DEFAULT_END_FRET,
     });
@@ -88,6 +89,7 @@ describe("buildChordToneMarkers", () => {
       positions: [],
       showContext: false,
       enabledHighlights: allRoles,
+      enabledStrings: new Set([0, 1, 2, 3, 4, 5]),
       startFret: 0,
       endFret: DEFAULT_END_FRET,
     });
@@ -104,6 +106,7 @@ describe("buildChordToneMarkers", () => {
       positions: ["P1"],
       showContext: false,
       enabledHighlights: allRoles,
+      enabledStrings: new Set([0, 1, 2, 3, 4, 5]),
       startFret: 0,
       endFret: DEFAULT_END_FRET,
     });
@@ -123,6 +126,7 @@ describe("buildChordToneMarkers", () => {
       positions: ["P1"],
       showContext: false,
       enabledHighlights: allRoles,
+      enabledStrings: new Set([0, 1, 2, 3, 4, 5]),
       startFret: 0,
       endFret: DEFAULT_END_FRET,
     });
@@ -149,6 +153,7 @@ describe("buildChordToneMarkers", () => {
       positions: ["P1"],
       showContext: false,
       enabledHighlights: allRoles,
+      enabledStrings: new Set([0, 1, 2, 3, 4, 5]),
       startFret: 0,
       endFret: DEFAULT_END_FRET,
     });
@@ -169,6 +174,7 @@ describe("buildChordToneMarkers", () => {
       positions: ["P1"],
       showContext: true,
       enabledHighlights: allRoles,
+      enabledStrings: new Set([0, 1, 2, 3, 4, 5]),
       startFret: 0,
       endFret: DEFAULT_END_FRET,
     });
@@ -188,6 +194,7 @@ describe("buildChordToneMarkers", () => {
       positions: ["P1"],
       showContext: false,
       enabledHighlights: without5,
+      enabledStrings: new Set([0, 1, 2, 3, 4, 5]),
       startFret: 0,
       endFret: DEFAULT_END_FRET,
     });
@@ -209,6 +216,7 @@ describe("buildChordToneMarkers", () => {
       positions: ["P1", "P2"],
       showContext: false,
       enabledHighlights: allRoles,
+      enabledStrings: new Set([0, 1, 2, 3, 4, 5]),
       startFret: 0,
       endFret: DEFAULT_END_FRET,
     });
@@ -232,6 +240,7 @@ describe("buildChordToneMarkers", () => {
       positions: ["P1"],
       showContext: false,
       enabledHighlights: allRoles,
+      enabledStrings: new Set([0, 1, 2, 3, 4, 5]),
       startFret: 0,
       endFret: DEFAULT_END_FRET,
     });
@@ -249,6 +258,7 @@ describe("buildChordToneMarkers", () => {
       positions: ["P1", "P2", "P3", "P4", "P5"],
       showContext: false,
       enabledHighlights: allRoles,
+      enabledStrings: new Set([0, 1, 2, 3, 4, 5]),
       startFret: 0,
       endFret: DEFAULT_END_FRET,
     });
@@ -304,6 +314,7 @@ describe("buildChordToneMarkers with triads", () => {
       positions: ["P1"],
       showContext: false,
       enabledHighlights: allRoles,
+      enabledStrings: new Set([0, 1, 2, 3, 4, 5]),
       startFret: 0,
       endFret: DEFAULT_END_FRET,
     });
@@ -321,6 +332,7 @@ describe("buildChordToneMarkers with triads", () => {
       positions: ["P1"],
       showContext: false,
       enabledHighlights: allRoles,
+      enabledStrings: new Set([0, 1, 2, 3, 4, 5]),
       startFret: 0,
       endFret: DEFAULT_END_FRET,
     });
@@ -340,6 +352,7 @@ describe("buildChordToneMarkers with triads", () => {
       positions: ["P1"],
       showContext: false,
       enabledHighlights: allRoles,
+      enabledStrings: new Set([0, 1, 2, 3, 4, 5]),
       startFret: 0,
       endFret: DEFAULT_END_FRET,
     });
@@ -368,6 +381,7 @@ describe("buildChordToneMarkers — narrowed range", () => {
       positions: ["P1"],
       showContext: false,
       enabledHighlights: allRoles,
+      enabledStrings: new Set([0, 1, 2, 3, 4, 5]),
       startFret: 5,
       endFret: 12,
     });
@@ -383,6 +397,7 @@ describe("buildChordToneMarkers — narrowed range", () => {
       positions: ["P3"],
       showContext: false,
       enabledHighlights: allRoles,
+      enabledStrings: new Set([0, 1, 2, 3, 4, 5]),
       startFret: 4,
       endFret: 8,
     });
@@ -403,6 +418,7 @@ describe("buildChordToneMarkers — modal", () => {
       positions: ["P1" as const],
       showContext: false,
       enabledHighlights: new Set(["root", "third", "fifth", "seventh"] as const),
+      enabledStrings: new Set([0, 1, 2, 3, 4, 5]),
       startFret: 0,
       endFret: 12,
     };
@@ -421,6 +437,7 @@ describe("buildChordToneMarkers — modal", () => {
       positions: ["P1"],
       showContext: false,
       enabledHighlights: new Set(["root", "third", "fifth", "seventh"]),
+      enabledStrings: new Set([0, 1, 2, 3, 4, 5]),
       startFret: 0,
       endFret: 12,
     });
@@ -443,6 +460,7 @@ describe("buildChordToneMarkers — modal", () => {
       positions: ["P1"],
       showContext: true, // include context so we'd see F if it weren't filtered
       enabledHighlights: new Set(["root", "third", "fifth", "seventh"]),
+      enabledStrings: new Set([0, 1, 2, 3, 4, 5]),
       startFret: 0,
       endFret: 12,
     });
@@ -462,6 +480,7 @@ describe("buildChordToneMarkers — modal", () => {
       positions: ["P1", "P2", "P3", "P4", "P5"],
       showContext: false,
       enabledHighlights: new Set(["root", "third", "fifth", "seventh"]),
+      enabledStrings: new Set([0, 1, 2, 3, 4, 5]),
       startFret: 0,
       endFret: 12,
     });
@@ -474,6 +493,60 @@ describe("buildChordToneMarkers — modal", () => {
     for (const m of cMarkers) {
       expect(m.isCharacteristic).toBeFalsy();
     }
+  });
+});
+
+describe("buildChordToneMarkers — enabledStrings", () => {
+  const baselineInput = {
+    tuning: TUNINGS.standard,
+    key: "C",
+    chord: null,
+    positions: ["P1"],
+    showContext: false,
+    enabledHighlights: new Set<HighlightableRole>([
+      "root",
+      "third",
+      "fifth",
+      "seventh",
+    ]),
+    startFret: 0,
+    endFret: 12,
+    enabledStrings: new Set<number>([0, 1, 2, 3, 4, 5]),
+  } as const;
+
+  it("baseline: with all strings enabled, no marker has role 'muted' (showContext=false drops out-of-window context)", () => {
+    const markers = buildChordToneMarkers(baselineInput);
+    expect(markers.length).toBeGreaterThan(0);
+    expect(markers.every((m) => m.role !== "muted")).toBe(true);
+  });
+
+  it("disabling string 5 overrides every string-5 marker's role to 'muted'", () => {
+    const disabled = {
+      ...baselineInput,
+      enabledStrings: new Set<number>([0, 1, 2, 3, 4]),
+    };
+    const markers = buildChordToneMarkers(disabled);
+    const stringFiveMarkers = markers.filter((m) => m.string === 5);
+    expect(stringFiveMarkers.length).toBeGreaterThan(0);
+    expect(stringFiveMarkers.every((m) => m.role === "muted")).toBe(true);
+  });
+
+  it("disabling string 5 does not change marker count on other strings", () => {
+    const enabled = baselineInput;
+    const disabled = {
+      ...baselineInput,
+      enabledStrings: new Set<number>([0, 1, 2, 3, 4]),
+    };
+    const enabledMarkers = buildChordToneMarkers(enabled).filter((m) => m.string !== 5);
+    const disabledMarkers = buildChordToneMarkers(disabled).filter(
+      (m) => m.string !== 5,
+    );
+    expect(disabledMarkers).toHaveLength(enabledMarkers.length);
+    expect(
+      disabledMarkers.every((m) =>
+        enabledMarkers.some((e) => e.string === m.string && e.fret === m.fret),
+      ),
+    ).toBe(true);
   });
 });
 
@@ -511,6 +584,7 @@ describe("buildChordToneMarkers — tuning-agnostic invariant", () => {
         positions: ["P1", "P2", "P3", "P4", "P5"],
         showContext: true,
         enabledHighlights: new Set(["root", "third", "fifth", "seventh"]),
+        enabledStrings: new Set([0, 1, 2, 3, 4, 5]),
         startFret: 0,
         endFret: 12,
       });

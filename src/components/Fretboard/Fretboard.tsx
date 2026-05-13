@@ -1,4 +1,5 @@
 import type { NoteMarker } from "../../theory/types";
+import type { Tuning } from "../../theory/tuning";
 import { DEFAULT_END_FRET } from "../../theory/constants";
 import { FretboardString } from "./FretboardString";
 import { FretMarkers } from "./FretMarkers";
@@ -26,12 +27,24 @@ type FretboardProps = {
   // When set, an overlay with this message renders on top of the fretboard.
   // The presence of the message is the signal — omit it to render normally.
   emptyMessage?: string;
+  tuning: Tuning;
+  enabledStrings: ReadonlySet<number>;
+  onToggleString: (stringIndex: number) => void;
 };
 
 // PADDING.top reserves space above the board for position-window labels.
 // boardTop = PADDING.top, so increasing top padding pushes the whole board
 // down and exposes a header strip for label text.
-const PADDING = { top: 40, bottom: 40, left: 50, right: 20 };
+// PADDING.left reserves space for open-note markers (rendered at nutX-20)
+// AND the string-toggle eye column (rendered at viewBox-x=0..STRING_TOGGLE_RIGHT).
+// Increasing left padding pushes the nut right so both can sit side-by-side
+// without overlap.
+const PADDING = { top: 40, bottom: 40, left: 70, right: 20 };
+// X range reserved for the string-toggle eye column (viewBox coords). The
+// eye column lives flush-left in this strip; the rest of PADDING.left is
+// open-note marker territory.
+const STRING_TOGGLE_X = 4;
+const STRING_TOGGLE_WIDTH = 24;
 const STRING_SPACING = 30;
 const NUM_STRINGS = 6;
 
@@ -51,6 +64,46 @@ const OVERLAP_FILL = "rgba(255, 255, 255, 0.13)";
 const OVERLAP_STROKE = "rgba(255, 255, 255, 0.55)";
 const OVERLAP_STROKE_WIDTH = 1.5;
 
+function EyeIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width="16"
+      height="16"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
+      <circle cx="12" cy="12" r="3" />
+    </svg>
+  );
+}
+
+function EyeOffIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width="16"
+      height="16"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24" />
+      <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68" />
+      <path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61" />
+      <line x1="2" x2="22" y1="2" y2="22" />
+    </svg>
+  );
+}
+
 export function Fretboard({
   markers,
   startFret = 0,
@@ -58,6 +111,9 @@ export function Fretboard({
   positionWindows,
   overlapZones,
   emptyMessage,
+  tuning,
+  enabledStrings,
+  onToggleString,
 }: FretboardProps) {
   const boardTop = PADDING.top;
   const boardBottom = PADDING.top + (NUM_STRINGS - 1) * STRING_SPACING;
@@ -313,6 +369,51 @@ export function Fretboard({
           </div>
         </div>
       )}
+      {/* String toggle column — HTML buttons overlaid on the left padding area */}
+      <div
+        className="absolute top-0 left-0 pointer-events-none"
+        style={{ width: "100%", height: "100%" }}
+        aria-label="String toggles"
+      >
+        {Array.from({ length: NUM_STRINGS }).map((_, stringIndex) => {
+          const enabled = enabledStrings.has(stringIndex);
+          const openNote = tuning.strings[stringIndex];
+          const stringNumber = 6 - stringIndex;
+          const y = stringY(stringIndex);
+          // The SVG uses a viewBox of totalWidth x totalHeight rendered to w-full.
+          // We express the button position + size as percentages so they track
+          // the responsive SVG scaling.
+          const topPct = (y / totalHeight) * 100;
+          const leftPct = (STRING_TOGGLE_X / totalWidth) * 100;
+          const widthPct = (STRING_TOGGLE_WIDTH / totalWidth) * 100;
+          return (
+            <button
+              key={stringIndex}
+              type="button"
+              data-testid="string-toggle"
+              data-string-index={stringIndex}
+              data-enabled={enabled}
+              aria-pressed={!enabled}
+              aria-label={`String ${stringNumber}: ${openNote}, ${
+                enabled ? "enabled" : "muted"
+              }`}
+              onClick={() => onToggleString(stringIndex)}
+              className={`absolute flex items-center justify-center h-6 rounded transition-transform active:scale-[0.92] pointer-events-auto cursor-pointer -translate-y-1/2 ${
+                enabled
+                  ? "text-fg-muted hover:text-fg-secondary opacity-60 hover:opacity-100"
+                  : "text-fg-faint opacity-40 hover:opacity-60"
+              }`}
+              style={{
+                top: `${topPct}%`,
+                left: `${leftPct}%`,
+                width: `${widthPct}%`,
+              }}
+            >
+              {enabled ? <EyeIcon /> : <EyeOffIcon />}
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }
