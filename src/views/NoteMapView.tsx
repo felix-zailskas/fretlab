@@ -31,6 +31,8 @@ type NoteMapViewProps = {
   selectedChord: DiatonicChord | DiatonicTriad | null;
   startFret: number;
   endFret: number;
+  enabledStrings: ReadonlySet<number>;
+  onToggleString: (stringIndex: number) => void;
   // Optional — defaults to 'ionian', preserving today's behavior. Phase D
   // wires App.tsx to pass this explicitly from global state.
   mode?: Mode;
@@ -46,6 +48,8 @@ export function NoteMapView({
   selectedChord,
   startFret,
   endFret,
+  enabledStrings,
+  onToggleString,
   mode = "ionian",
 }: NoteMapViewProps) {
   const markers = useMemo(() => {
@@ -80,6 +84,7 @@ export function NoteMapView({
         }
 
         const isCharacteristic = characteristicSet.has(getNoteIndex(note));
+        const finalRole = enabledStrings.has(stringIndex) ? role : "muted";
 
         result.push({
           string: stringIndex,
@@ -87,7 +92,7 @@ export function NoteMapView({
           note:
             spellingMap?.get(getNoteIndex(note)) ??
             getDisplayName(note, selectedKey, accidentalStyle),
-          role,
+          role: finalRole,
           ...(isCharacteristic ? { isCharacteristic: true } : {}),
         });
       }
@@ -102,12 +107,20 @@ export function NoteMapView({
     selectedChord,
     startFret,
     endFret,
+    enabledStrings,
     mode,
   ]);
 
   return (
     <div className="space-y-2 md:space-y-4">
-      <Fretboard markers={markers} startFret={startFret} endFret={endFret} />
+      <Fretboard
+        markers={markers}
+        startFret={startFret}
+        endFret={endFret}
+        tuning={tuning}
+        enabledStrings={enabledStrings}
+        onToggleString={onToggleString}
+      />
       {/* min-h reserves the height of the tallest sibling-view controls bar so
           the diatonic chord row sits at the same y on every view. At ≥1320px
           everything fits on one row (~36px); below that, Chord Shapes Sevenths
