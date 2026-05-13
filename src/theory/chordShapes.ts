@@ -723,11 +723,7 @@ export function buildChordShapeMarkers(
   if (input.key === ALL_NOTES_KEY) return [];
 
   const modalMode = input.modalMode ?? "ionian";
-  const characteristicSet = getCharacteristicNoteIndexSet(
-    input.key,
-    modalMode,
-    input.accidentalStyle,
-  );
+  const characteristicSet = getCharacteristicNoteIndexSet(input.key, modalMode);
 
   if (input.mode === "triads") {
     if (input.stringSets.length === 0 || input.inversions.length === 0) return [];

@@ -96,7 +96,7 @@ export function buildChordToneMarkers({
   if (positions.length === 0) return [];
 
   const parentKey = parentMajorOf(key, mode);
-  const characteristicSet = getCharacteristicNoteIndexSet(key, mode, accidentalStyle);
+  const characteristicSet = getCharacteristicNoteIndexSet(key, mode);
 
   const result: NoteMarker[] = [];
 
