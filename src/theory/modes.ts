@@ -1,9 +1,10 @@
 import {
   CHROMATIC_SCALE,
-  getDisplayName,
   getNoteIndex,
   naturalAccidentalForKey,
+  spellScale,
   type AccidentalStyle,
+  type ChromaticNote,
 } from "./notes";
 import type {
   ChordQuality,
@@ -105,17 +106,8 @@ export const PARENT_MAJOR_OFFSET: Record<Mode, number> = {
   locrian: -11,
 };
 
-export function getModalScaleNotes(
-  key: string,
-  mode: Mode,
-  accidentalStyle?: AccidentalStyle,
-): string[] {
-  const rootIndex = getNoteIndex(key);
-  return MODE_INTERVALS[mode].map((interval) => {
-    const noteIndex = (rootIndex + interval) % 12;
-    const sharpName = CHROMATIC_SCALE[noteIndex];
-    return getDisplayName(sharpName, key, accidentalStyle);
-  });
+export function getModalScaleNotes(key: string, mode: Mode): string[] {
+  return spellScale(key as ChromaticNote, MODE_INTERVALS[mode]);
 }
 
 // Returns the tonic of the parent major scale for (modal-tonic, mode).
@@ -158,12 +150,8 @@ export function getModalIntervalRole(
   return INTERVAL_NAMES[idx];
 }
 
-export function getCharacteristicNotes(
-  key: string,
-  mode: Mode,
-  accidentalStyle?: AccidentalStyle,
-): string[] {
-  const scale = getModalScaleNotes(key, mode, accidentalStyle);
+export function getCharacteristicNotes(key: string, mode: Mode): string[] {
+  const scale = getModalScaleNotes(key, mode);
   return CHARACTERISTIC_DEGREES[mode].map((degreeIdx) => scale[degreeIdx]);
 }
 
@@ -173,10 +161,9 @@ export function getCharacteristicNotes(
 export function getCharacteristicNoteIndexSet(
   key: string,
   mode: Mode,
-  accidentalStyle?: AccidentalStyle,
 ): ReadonlySet<number> {
   return new Set(
-    getCharacteristicNotes(key, mode, accidentalStyle).map((n) => getNoteIndex(n)),
+    getCharacteristicNotes(key, mode).map((n) => getNoteIndex(n)),
   );
 }
 
@@ -230,9 +217,8 @@ function buildTriadRomanNumeral(
 export function getModalDiatonicTriads(
   key: string,
   mode: Mode,
-  accidentalStyle?: AccidentalStyle,
 ): DiatonicTriad[] {
-  const scale = getModalScaleNotes(key, mode, accidentalStyle);
+  const scale = getModalScaleNotes(key, mode);
   const intervals = MODE_INTERVALS[mode];
   return scale.map((root, i) => {
     const thirdInterval = intervals[(i + 2) % 7] - intervals[i];
@@ -324,9 +310,8 @@ function buildSeventhRomanNumeral(
 export function getModalDiatonicChords(
   key: string,
   mode: Mode,
-  accidentalStyle?: AccidentalStyle,
 ): DiatonicChord[] {
-  const scale = getModalScaleNotes(key, mode, accidentalStyle);
+  const scale = getModalScaleNotes(key, mode);
   const intervals = MODE_INTERVALS[mode];
   return scale.map((root, i) => {
     const third = (((intervals[(i + 2) % 7] - intervals[i]) % 12) + 12) % 12;

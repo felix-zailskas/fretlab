@@ -44,7 +44,7 @@ describe("getModalScaleNotes", () => {
   });
 
   it("returns C Dorian with flat spelling", () => {
-    expect(getModalScaleNotes("C", "dorian", "flat")).toEqual([
+    expect(getModalScaleNotes("C", "dorian")).toEqual([
       "C",
       "D",
       "Eb",
@@ -56,7 +56,7 @@ describe("getModalScaleNotes", () => {
   });
 
   it("returns C Phrygian with flat spelling", () => {
-    expect(getModalScaleNotes("C", "phrygian", "flat")).toEqual([
+    expect(getModalScaleNotes("C", "phrygian")).toEqual([
       "C",
       "Db",
       "Eb",
@@ -68,7 +68,7 @@ describe("getModalScaleNotes", () => {
   });
 
   it("returns C Lydian with sharp spelling", () => {
-    expect(getModalScaleNotes("C", "lydian", "sharp")).toEqual([
+    expect(getModalScaleNotes("C", "lydian")).toEqual([
       "C",
       "D",
       "E",
@@ -80,7 +80,7 @@ describe("getModalScaleNotes", () => {
   });
 
   it("returns C Mixolydian with flat spelling", () => {
-    expect(getModalScaleNotes("C", "mixolydian", "flat")).toEqual([
+    expect(getModalScaleNotes("C", "mixolydian")).toEqual([
       "C",
       "D",
       "E",
@@ -92,7 +92,7 @@ describe("getModalScaleNotes", () => {
   });
 
   it("returns C Aeolian (= C natural minor) with flat spelling", () => {
-    expect(getModalScaleNotes("C", "aeolian", "flat")).toEqual([
+    expect(getModalScaleNotes("C", "aeolian")).toEqual([
       "C",
       "D",
       "Eb",
@@ -104,7 +104,7 @@ describe("getModalScaleNotes", () => {
   });
 
   it("returns C Locrian with flat spelling", () => {
-    expect(getModalScaleNotes("C", "locrian", "flat")).toEqual([
+    expect(getModalScaleNotes("C", "locrian")).toEqual([
       "C",
       "Db",
       "Eb",
@@ -218,19 +218,19 @@ describe("getCharacteristicNotes", () => {
   });
 
   it("returns the ♭2 for Phrygian (Db with flat spelling for C tonic)", () => {
-    expect(getCharacteristicNotes("C", "phrygian", "flat")).toEqual(["Db"]);
+    expect(getCharacteristicNotes("C", "phrygian")).toEqual(["Db"]);
   });
 
   it("returns the ♯4 for Lydian (F# with sharp spelling for C tonic)", () => {
-    expect(getCharacteristicNotes("C", "lydian", "sharp")).toEqual(["F#"]);
+    expect(getCharacteristicNotes("C", "lydian")).toEqual(["F#"]);
   });
 
   it("returns the ♭7 for Mixolydian (Bb with flat spelling for C tonic)", () => {
-    expect(getCharacteristicNotes("C", "mixolydian", "flat")).toEqual(["Bb"]);
+    expect(getCharacteristicNotes("C", "mixolydian")).toEqual(["Bb"]);
   });
 
   it("returns the ♭5 for Locrian (Gb with flat spelling for C tonic)", () => {
-    expect(getCharacteristicNotes("C", "locrian", "flat")).toEqual(["Gb"]);
+    expect(getCharacteristicNotes("C", "locrian")).toEqual(["Gb"]);
   });
 });
 
@@ -246,18 +246,16 @@ describe("getCharacteristicNoteIndexSet", () => {
     expect(set.size).toBe(1);
   });
 
-  it("returns the ♭2 index for C Phrygian regardless of spelling", () => {
+  it("returns the ♭2 index for C Phrygian", () => {
     // Db = C# = chromatic index 1
-    const flat = getCharacteristicNoteIndexSet("C", "phrygian", "flat");
-    const sharp = getCharacteristicNoteIndexSet("C", "phrygian", "sharp");
-    expect(flat.has(1)).toBe(true);
-    expect(sharp.has(1)).toBe(true);
+    const set = getCharacteristicNoteIndexSet("C", "phrygian");
+    expect(set.has(1)).toBe(true);
   });
 });
 
 describe("getModalDiatonicTriads", () => {
   it("C Dorian triads (i, ii, ♭III, IV, v, vi°, ♭VII)", () => {
-    const triads = getModalDiatonicTriads("C", "dorian", "flat");
+    const triads = getModalDiatonicTriads("C", "dorian");
     expect(triads.map((t) => t.symbol)).toEqual([
       "Cm",
       "Dm",
@@ -288,7 +286,7 @@ describe("getModalDiatonicTriads", () => {
   });
 
   it("C Phrygian triad qualities (i, ♭II, ♭III, iv, v°, ♭VI, ♭vii)", () => {
-    const triads = getModalDiatonicTriads("C", "phrygian", "flat");
+    const triads = getModalDiatonicTriads("C", "phrygian");
     expect(triads.map((t) => t.quality)).toEqual([
       "min",
       "maj",
@@ -310,7 +308,7 @@ describe("getModalDiatonicTriads", () => {
   });
 
   it("C Lydian triad qualities (I, II, iii, ♯iv°, V, vi, vii)", () => {
-    const triads = getModalDiatonicTriads("C", "lydian", "sharp");
+    const triads = getModalDiatonicTriads("C", "lydian");
     expect(triads.map((t) => t.quality)).toEqual([
       "maj",
       "maj",
@@ -332,7 +330,7 @@ describe("getModalDiatonicTriads", () => {
   });
 
   it("C Locrian triad qualities (i°, ♭II, ♭iii, iv, ♭V, ♭VI, ♭vii)", () => {
-    const triads = getModalDiatonicTriads("C", "locrian", "flat");
+    const triads = getModalDiatonicTriads("C", "locrian");
     expect(triads.map((t) => t.quality)).toEqual([
       "dim",
       "maj",
@@ -356,7 +354,7 @@ describe("getModalDiatonicTriads", () => {
 
 describe("getModalDiatonicChords", () => {
   it("C Dorian sevenths (i7, ii7, ♭IIImaj7, IV7, v7, viø7, ♭VIImaj7)", () => {
-    const chords = getModalDiatonicChords("C", "dorian", "flat");
+    const chords = getModalDiatonicChords("C", "dorian");
     expect(chords.map((c) => c.symbol)).toEqual([
       "Cm7",
       "Dm7",
@@ -387,7 +385,7 @@ describe("getModalDiatonicChords", () => {
   });
 
   it("C Lydian sevenths qualities (maj7, 7, m7, m7b5, maj7, m7, m7)", () => {
-    const chords = getModalDiatonicChords("C", "lydian", "sharp");
+    const chords = getModalDiatonicChords("C", "lydian");
     expect(chords.map((c) => c.quality)).toEqual([
       "maj7",
       "7",
@@ -409,7 +407,7 @@ describe("getModalDiatonicChords", () => {
   });
 
   it("C Mixolydian sevenths (I7, ii7, iiiø7, IVmaj7, v7, vi7, ♭VIImaj7)", () => {
-    const chords = getModalDiatonicChords("C", "mixolydian", "flat");
+    const chords = getModalDiatonicChords("C", "mixolydian");
     expect(chords.map((c) => c.romanNumeral)).toEqual([
       "I7",
       "ii7",
@@ -431,7 +429,7 @@ describe("getModalDiatonicChords", () => {
   });
 
   it("C Locrian sevenths (iø7, ♭IImaj7, ♭iii7, iv7, ♭Vmaj7, ♭VI7, ♭vii7)", () => {
-    const chords = getModalDiatonicChords("C", "locrian", "flat");
+    const chords = getModalDiatonicChords("C", "locrian");
     expect(chords.map((c) => c.romanNumeral)).toEqual([
       "iø7",
       "♭IImaj7",
