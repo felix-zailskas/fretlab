@@ -34,6 +34,8 @@ type ChordShapesViewProps = {
   disabledRoles?: Set<HighlightableRole>;
   controls: ChordShapesControls;
   modalMode: Mode;
+  enabledStrings: ReadonlySet<number>;
+  onToggleString: (stringIndex: number) => void;
 };
 
 const STRING_SET_OPTIONS: ReadonlyArray<{ id: StringSet; label: string }> = [
@@ -93,6 +95,8 @@ export function ChordShapesView({
   disabledRoles,
   controls,
   modalMode,
+  enabledStrings,
+  onToggleString,
 }: ChordShapesViewProps) {
   const {
     selectedStringSets,
@@ -210,6 +214,9 @@ export function ChordShapesView({
         startFret={startFret}
         endFret={endFret}
         emptyMessage={fretboardMessage}
+        tuning={tuning}
+        enabledStrings={enabledStrings}
+        onToggleString={onToggleString}
       />
       <div className="flex flex-wrap items-center gap-x-3 md:gap-x-6 gap-y-2 md:gap-y-3 min-h-9 md:max-[1319px]:min-h-20">
         <Legend
