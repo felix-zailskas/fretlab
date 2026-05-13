@@ -14,11 +14,23 @@ const DEFAULTS: StoredState = {
   selectedTuningId: null,
 };
 
+function isCustomTuning(value: unknown): value is CustomTuning {
+  if (typeof value !== "object" || value === null) return false;
+  const v = value as Partial<CustomTuning>;
+  if (typeof v.id !== "string" || !v.id.startsWith("custom:")) return false;
+  if (typeof v.name !== "string") return false;
+  if (!Array.isArray(v.strings) || v.strings.length !== 6) return false;
+  if (!v.strings.every((s) => typeof s === "string")) return false;
+  if (typeof v.createdAt !== "number" || !Number.isFinite(v.createdAt)) return false;
+  return true;
+}
+
 function isStoredState(value: unknown): value is StoredState {
   if (typeof value !== "object" || value === null) return false;
   const v = value as Partial<StoredState>;
   if (v.version !== 1) return false;
   if (!Array.isArray(v.tunings)) return false;
+  if (!v.tunings.every(isCustomTuning)) return false;
   if (
     v.selectedTuningId !== null &&
     v.selectedTuningId !== undefined &&

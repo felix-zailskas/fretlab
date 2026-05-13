@@ -80,4 +80,16 @@ describe("customTuningStorage", () => {
     });
     expect(loadCustomTunings().selectedTuningId).toBe("dadgad");
   });
+
+  it("returns defaults when a tuning entry is malformed", () => {
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({
+        version: 1,
+        tunings: [{ id: "custom:x", name: "X", strings: ["E"], createdAt: 0 }],
+        selectedTuningId: null,
+      }),
+    );
+    expect(loadCustomTunings().tunings).toEqual([]);
+  });
 });
