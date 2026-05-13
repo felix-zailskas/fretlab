@@ -56,6 +56,7 @@ export type BuildChordToneMarkersInput = {
   positions: ReadonlyArray<PositionId>;
   showContext: boolean;
   enabledHighlights: Set<HighlightableRole>;
+  enabledStrings: ReadonlySet<number>;
   startFret: number;
   endFret: number;
   // Optional — defaults to 'ionian', preserving existing behavior. When
@@ -87,6 +88,7 @@ export function buildChordToneMarkers({
   positions,
   showContext,
   enabledHighlights,
+  enabledStrings,
   startFret,
   endFret,
   mode = "ionian",
@@ -128,11 +130,13 @@ export function buildChordToneMarkers({
 
       const isCharacteristic = characteristicSet.has(getNoteIndex(note));
 
+      const finalRole = enabledStrings.has(stringIndex) ? role : "muted";
+
       result.push({
         string: stringIndex,
         fret,
         note: spellingMap.get(getNoteIndex(note)) ?? note,
-        role,
+        role: finalRole,
         ...(isCharacteristic ? { isCharacteristic: true } : {}),
       });
     }
