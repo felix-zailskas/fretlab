@@ -18,7 +18,7 @@ test.describe("view gating — non-CAGED tunings", () => {
 
     // Empty-state button is present
     await expect(
-      page.getByRole("button", { name: "Switch to Standard tuning" }),
+      page.getByRole("button", { name: "Switch to Standard" }),
     ).toBeVisible();
 
     // No position windows rendered
@@ -26,7 +26,7 @@ test.describe("view gating — non-CAGED tunings", () => {
     expect(windowCount).toBe(0);
   });
 
-  test('"Switch to Standard tuning" button restores the view', async ({ page }) => {
+  test('"Switch to Standard" button restores the view', async ({ page }) => {
     await page.goto("/");
 
     // Switch to Open G — use .first() to disambiguate from "Open Gm"
@@ -40,7 +40,7 @@ test.describe("view gating — non-CAGED tunings", () => {
     await page.getByRole("tab", { name: "Scale Positions" }).click();
 
     // Click the recovery button
-    await page.getByRole("button", { name: "Switch to Standard tuning" }).click();
+    await page.getByRole("button", { name: "Switch to Standard" }).click();
 
     // Trigger label back to Standard
     await expect(page.getByRole("button", { name: /Tuning: Standard/ })).toBeVisible();
