@@ -8,7 +8,28 @@ import {
   getModalDiatonicTriads,
   getModalDiatonicChords,
   naturalAccidentalForKeyMode,
+  MODES,
+  MODE_INTERVALS,
+  MODE_DEGREE_LABELS,
 } from "./modes";
+import { CHROMATIC_SCALE, getNoteIndex } from "./notes";
+
+const LETTERS = ["C", "D", "E", "F", "G", "A", "B"] as const;
+
+// Test helper — converts a spelled note (e.g. "B#", "Cbb") to its pitch class.
+function spelledPitch(note: string): number {
+  const letter = note[0] as (typeof LETTERS)[number];
+  const accidentals = note.slice(1);
+  const letterPitch: Record<(typeof LETTERS)[number], number> = {
+    C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11,
+  };
+  let pitch = letterPitch[letter];
+  for (const ch of accidentals) {
+    if (ch === "#") pitch += 1;
+    else if (ch === "b") pitch -= 1;
+  }
+  return ((pitch % 12) + 12) % 12;
+}
 describe("getModalScaleNotes", () => {
   it("returns C Ionian (= C major)", () => {
     expect(getModalScaleNotes("C", "ionian")).toEqual([
@@ -454,4 +475,71 @@ describe("naturalAccidentalForKeyMode", () => {
   it("F Lydian's parent (C major) is neutral", () => {
     expect(naturalAccidentalForKeyMode("F", "lydian")).toBeNull();
   });
+});
+
+describe("getModalScaleNotes — structural correctness across all 84 scales", () => {
+  for (const root of CHROMATIC_SCALE) {
+    for (const mode of MODES) {
+      it(`${root} ${mode}: 7 notes, 7 distinct letters, correct pitches`, () => {
+        const notes = getModalScaleNotes(root, mode);
+        const rootPitch = getNoteIndex(root);
+        const rootLetterIdx = LETTERS.indexOf(
+          root[0] as (typeof LETTERS)[number],
+        );
+
+        expect(notes).toHaveLength(7);
+
+        const letters = notes.map((n) => n[0]);
+        const expectedLetters = Array.from(
+          { length: 7 },
+          (_, i) => LETTERS[(rootLetterIdx + i) % 7],
+        );
+        expect(letters).toEqual(expectedLetters);
+
+        const pitches = notes.map(spelledPitch);
+        const expectedPitches = MODE_INTERVALS[mode].map(
+          (iv) => (rootPitch + iv) % 12,
+        );
+        expect(pitches).toEqual(expectedPitches);
+      });
+    }
+  }
+});
+
+describe("getModalScaleNotes — canonical pinned spellings", () => {
+  it.each([
+    ["C#", "ionian", ["C#", "D#", "E#", "F#", "G#", "A#", "B#"]],
+    ["F#", "ionian", ["F#", "G#", "A#", "B", "C#", "D#", "E#"]],
+    ["F#", "lydian", ["F#", "G#", "A#", "B#", "C#", "D#", "E#"]],
+    ["E", "phrygian", ["E", "F", "G", "A", "B", "C", "D"]],
+    ["G#", "aeolian", ["G#", "A#", "B", "C#", "D#", "E", "F#"]],
+    ["D#", "dorian", ["D#", "E#", "F#", "G#", "A#", "B#", "C#"]],
+    ["B", "ionian", ["B", "C#", "D#", "E", "F#", "G#", "A#"]],
+    ["A#", "phrygian", ["A#", "B", "C#", "D#", "E#", "F#", "G#"]],
+  ] as const)("%s %s spells correctly", (root, mode, expected) => {
+    expect(getModalScaleNotes(root, mode as any)).toEqual(expected);
+  });
+});
+
+describe("MODE_DEGREE_LABELS agrees with MODE_INTERVALS", () => {
+  const INTERVAL_TO_LABEL: Record<number, string> = {
+    0: "1", 1: "♭2", 2: "2", 3: "♭3", 4: "3", 5: "4",
+    6: "♭5", 7: "5", 8: "♭6", 9: "6", 10: "♭7", 11: "7",
+  };
+  // Lydian is the one mode whose 4 is sharp rather than flat. INTERVAL_TO_LABEL
+  // can't distinguish ♯4 from ♭5 from interval alone, so patch position 3 for
+  // Lydian.
+  const expectedLabel = (mode: string, interval: number, position: number) => {
+    if (mode === "lydian" && position === 3) return "♯4";
+    return INTERVAL_TO_LABEL[interval];
+  };
+
+  for (const mode of MODES) {
+    it(`${mode}`, () => {
+      const derived = MODE_INTERVALS[mode].map((iv, i) =>
+        expectedLabel(mode, iv, i),
+      );
+      expect(MODE_DEGREE_LABELS[mode]).toEqual(derived);
+    });
+  }
 });
