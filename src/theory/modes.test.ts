@@ -11,6 +11,7 @@ import {
   MODES,
   MODE_INTERVALS,
   MODE_DEGREE_LABELS,
+  type Mode,
 } from "./modes";
 import { CHROMATIC_SCALE, getNoteIndex } from "./notes";
 
@@ -21,7 +22,13 @@ function spelledPitch(note: string): number {
   const letter = note[0] as (typeof LETTERS)[number];
   const accidentals = note.slice(1);
   const letterPitch: Record<(typeof LETTERS)[number], number> = {
-    C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11,
+    C: 0,
+    D: 2,
+    E: 4,
+    F: 5,
+    G: 7,
+    A: 9,
+    B: 11,
   };
   let pitch = letterPitch[letter];
   for (const ch of accidentals) {
@@ -481,9 +488,7 @@ describe("getModalScaleNotes — structural correctness across all 84 scales", (
       it(`${root} ${mode}: 7 notes, 7 distinct letters, correct pitches`, () => {
         const notes = getModalScaleNotes(root, mode);
         const rootPitch = getNoteIndex(root);
-        const rootLetterIdx = LETTERS.indexOf(
-          root[0] as (typeof LETTERS)[number],
-        );
+        const rootLetterIdx = LETTERS.indexOf(root[0] as (typeof LETTERS)[number]);
 
         expect(notes).toHaveLength(7);
 
@@ -495,9 +500,7 @@ describe("getModalScaleNotes — structural correctness across all 84 scales", (
         expect(letters).toEqual(expectedLetters);
 
         const pitches = notes.map(spelledPitch);
-        const expectedPitches = MODE_INTERVALS[mode].map(
-          (iv) => (rootPitch + iv) % 12,
-        );
+        const expectedPitches = MODE_INTERVALS[mode].map((iv) => (rootPitch + iv) % 12);
         expect(pitches).toEqual(expectedPitches);
       });
     }
@@ -515,14 +518,24 @@ describe("getModalScaleNotes — canonical pinned spellings", () => {
     ["B", "ionian", ["B", "C#", "D#", "E", "F#", "G#", "A#"]],
     ["A#", "phrygian", ["A#", "B", "C#", "D#", "E#", "F#", "G#"]],
   ] as const)("%s %s spells correctly", (root, mode, expected) => {
-    expect(getModalScaleNotes(root, mode as any)).toEqual(expected);
+    expect(getModalScaleNotes(root, mode as Mode)).toEqual(expected);
   });
 });
 
 describe("MODE_DEGREE_LABELS agrees with MODE_INTERVALS", () => {
   const INTERVAL_TO_LABEL: Record<number, string> = {
-    0: "1", 1: "♭2", 2: "2", 3: "♭3", 4: "3", 5: "4",
-    6: "♭5", 7: "5", 8: "♭6", 9: "6", 10: "♭7", 11: "7",
+    0: "1",
+    1: "♭2",
+    2: "2",
+    3: "♭3",
+    4: "3",
+    5: "4",
+    6: "♭5",
+    7: "5",
+    8: "♭6",
+    9: "6",
+    10: "♭7",
+    11: "7",
   };
   // Lydian is the one mode whose 4 is sharp rather than flat. INTERVAL_TO_LABEL
   // can't distinguish ♯4 from ♭5 from interval alone, so patch position 3 for
@@ -534,9 +547,7 @@ describe("MODE_DEGREE_LABELS agrees with MODE_INTERVALS", () => {
 
   for (const mode of MODES) {
     it(`${mode}`, () => {
-      const derived = MODE_INTERVALS[mode].map((iv, i) =>
-        expectedLabel(mode, iv, i),
-      );
+      const derived = MODE_INTERVALS[mode].map((iv, i) => expectedLabel(mode, iv, i));
       expect(MODE_DEGREE_LABELS[mode]).toEqual(derived);
     });
   }
