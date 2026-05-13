@@ -196,7 +196,6 @@ function App() {
             <ScalePositionsView
               tuning={TUNINGS[tuningId]}
               selectedKey={selectedKey}
-              accidentalStyle={accidentalStyle}
               enabledHighlights={effectiveHighlights}
               onToggleRole={toggleHighlight}
               selectedChord={selectedChord}
@@ -222,7 +221,6 @@ function App() {
             <ChordShapesView
               tuning={TUNINGS[tuningId]}
               selectedKey={selectedKey}
-              accidentalStyle={accidentalStyle}
               startFret={startFret}
               endFret={endFret}
               selectedChord={selectedChord}

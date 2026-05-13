@@ -14,7 +14,6 @@ import {
   computeOverlapZones,
   getPositionWindows,
 } from "../theory/positions";
-import type { AccidentalStyle } from "../theory/notes";
 import type { DiatonicChord, DiatonicTriad } from "../theory/scales";
 import { parentMajorOf, type Mode } from "../theory/modes";
 import { type ScalePositionsControls } from "./useScalePositionsState";
@@ -22,7 +21,6 @@ import { type ScalePositionsControls } from "./useScalePositionsState";
 type ScalePositionsViewProps = {
   tuning: Tuning;
   selectedKey: string;
-  accidentalStyle: AccidentalStyle;
   enabledHighlights: Set<HighlightableRole>;
   onToggleRole: (role: HighlightableRole) => void;
   disabledRoles?: Set<HighlightableRole>;
@@ -42,7 +40,6 @@ const EMPTY_KEY_MESSAGE = "Select a key to view scale positions.";
 export function ScalePositionsView({
   tuning,
   selectedKey,
-  accidentalStyle,
   enabledHighlights,
   onToggleRole,
   disabledRoles,
@@ -99,7 +96,6 @@ export function ScalePositionsView({
         tuning,
         key: selectedKey,
         chord: selectedChord,
-        accidentalStyle,
         positions: positionsArray,
         showContext,
         enabledHighlights,
@@ -111,7 +107,6 @@ export function ScalePositionsView({
       tuning,
       selectedKey,
       selectedChord,
-      accidentalStyle,
       positionsArray,
       showContext,
       enabledHighlights,

@@ -1,10 +1,10 @@
 import { ALL_NOTES_KEY } from "../components/KeySelector";
 import type { HighlightableRole } from "../components/Legend";
 import {
-  getDisplayName,
+  buildDiatonicSpellingMap,
   getNoteAtFret,
   getNoteIndex,
-  type AccidentalStyle,
+  type ChromaticNote,
 } from "./notes";
 import type { Tuning } from "./tuning";
 import { isInPositionWindow, type PositionId } from "./positions";
@@ -12,6 +12,7 @@ import { type DiatonicChord, type DiatonicTriad } from "./scales";
 import {
   getCharacteristicNoteIndexSet,
   getModalIntervalRole,
+  MODE_INTERVALS,
   parentMajorOf,
   type Mode,
 } from "./modes";
@@ -52,7 +53,6 @@ export type BuildChordToneMarkersInput = {
   tuning: Tuning;
   key: string;
   chord: DiatonicChord | DiatonicTriad | null;
-  accidentalStyle: AccidentalStyle;
   positions: ReadonlyArray<PositionId>;
   showContext: boolean;
   enabledHighlights: Set<HighlightableRole>;
@@ -84,7 +84,6 @@ export function buildChordToneMarkers({
   tuning,
   key,
   chord,
-  accidentalStyle,
   positions,
   showContext,
   enabledHighlights,
@@ -97,6 +96,10 @@ export function buildChordToneMarkers({
 
   const parentKey = parentMajorOf(key, mode);
   const characteristicSet = getCharacteristicNoteIndexSet(key, mode);
+  const spellingMap = buildDiatonicSpellingMap(
+    key as ChromaticNote,
+    MODE_INTERVALS[mode],
+  );
 
   const result: NoteMarker[] = [];
 
@@ -128,7 +131,7 @@ export function buildChordToneMarkers({
       result.push({
         string: stringIndex,
         fret,
-        note: getDisplayName(note, key, accidentalStyle),
+        note: spellingMap.get(getNoteIndex(note)) ?? note,
         role,
         ...(isCharacteristic ? { isCharacteristic: true } : {}),
       });

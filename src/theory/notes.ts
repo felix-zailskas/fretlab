@@ -141,3 +141,22 @@ export function spellScale(
     return letter + accidental;
   });
 }
+
+/**
+ * Returns a Map from pitch-class (0-11) to the diatonic spelling for that
+ * pitch in (root, intervals). Useful for fretboard pipelines that render
+ * in-scale notes — look up each marker's chromatic note-index and get the
+ * key-and-mode-correct letter+accidentals back.
+ */
+export function buildDiatonicSpellingMap(
+  root: ChromaticNote,
+  intervals: readonly number[],
+): ReadonlyMap<number, string> {
+  const rootPitch = getNoteIndex(root);
+  const spelled = spellScale(root, intervals);
+  const map = new Map<number, string>();
+  intervals.forEach((iv, i) => {
+    map.set((rootPitch + iv) % 12, spelled[i]);
+  });
+  return map;
+}

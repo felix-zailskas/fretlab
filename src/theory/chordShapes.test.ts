@@ -330,7 +330,6 @@ describe("buildChordShapeMarkers — chord-centric", () => {
         mode: "triads",
         chord,
         key: ALL_NOTES_KEY,
-        accidentalStyle: "sharp",
         stringSets: ["1-2-3"],
         inversions: ["root"],
         startFret: 0,
@@ -348,7 +347,6 @@ describe("buildChordShapeMarkers — chord-centric", () => {
         voicingSystem: "drop2",
         chord,
         key: ALL_NOTES_KEY,
-        accidentalStyle: "sharp",
         stringSets: ["3-4-5-6"],
         inversions: ["root"],
         startFret: 0,
@@ -365,7 +363,6 @@ describe("buildChordShapeMarkers — chord-centric", () => {
         mode: "triads",
         chord,
         key: "C",
-        accidentalStyle: "sharp",
         stringSets: [],
         inversions: ["root"],
         startFret: 0,
@@ -382,7 +379,6 @@ describe("buildChordShapeMarkers — chord-centric", () => {
         mode: "triads",
         chord,
         key: "C",
-        accidentalStyle: "sharp",
         stringSets: ["1-2-3"],
         inversions: [],
         startFret: 0,
@@ -400,7 +396,6 @@ describe("buildChordShapeMarkers — chord-centric", () => {
         voicingSystem: "drop2",
         chord,
         key: "C",
-        accidentalStyle: "sharp",
         stringSets: [],
         inversions: ["root"],
         startFret: 0,
@@ -418,7 +413,6 @@ describe("buildChordShapeMarkers — chord-centric", () => {
         voicingSystem: "drop2",
         chord,
         key: "C",
-        accidentalStyle: "sharp",
         stringSets: ["3-4-5-6"],
         inversions: [],
         startFret: 0,
@@ -437,7 +431,6 @@ describe("buildChordShapeMarkers — chord-centric", () => {
       mode: "triads",
       chord,
       key: "C",
-      accidentalStyle: "sharp",
       stringSets: ["1-2-3"],
       inversions: ["root", "first", "second"],
       startFret: 0,
@@ -458,7 +451,6 @@ describe("buildChordShapeMarkers — chord-centric", () => {
       mode: "triads",
       chord,
       key: "C",
-      accidentalStyle: "sharp",
       stringSets: ["1-2-3"],
       inversions: ["root", "second"],
       startFret: 0,
@@ -480,7 +472,6 @@ describe("buildChordShapeMarkers — chord-centric", () => {
       mode: "triads",
       chord,
       key: "C",
-      accidentalStyle: "sharp",
       stringSets: ["1-2-3", "4-5-6"],
       inversions: ["root", "first", "second"],
       startFret: 0,
@@ -512,7 +503,6 @@ describe("buildChordShapeMarkers — chord-centric", () => {
       voicingSystem: "drop2",
       chord,
       key: "F",
-      accidentalStyle: "flat",
       stringSets: ["3-4-5-6"],
       inversions: ["root"],
       startFret: 0,
@@ -544,7 +534,6 @@ describe("buildChordShapeMarkers — chord-centric", () => {
       voicingSystem: "drop2",
       chord,
       key: "C",
-      accidentalStyle: "sharp",
       stringSets: ["3-4-5-6"],
       inversions: ["root", "first", "second", "third"],
       startFret: 0,
@@ -570,7 +559,6 @@ describe("buildChordShapeMarkers — chord-centric", () => {
       voicingSystem: "drop2",
       chord,
       key: "C",
-      accidentalStyle: "sharp",
       stringSets: ["3-4-5-6"],
       inversions: ["first"],
       startFret: 0,
@@ -595,7 +583,6 @@ describe("buildChordShapeMarkers — chord-centric", () => {
       mode: "triads",
       chord,
       key: "C",
-      accidentalStyle: "sharp",
       stringSets: ["1-2-3", "4-5-6"],
       inversions: ["root"],
       startFret: 0,
@@ -615,7 +602,6 @@ describe("buildChordShapeMarkers — chord-centric", () => {
       mode: "triads",
       chord,
       key: "C",
-      accidentalStyle: "sharp",
       stringSets: ["1-2-3"],
       inversions: ["second"],
       startFret: 0,
@@ -626,16 +612,16 @@ describe("buildChordShapeMarkers — chord-centric", () => {
     expect(rootFrets).toEqual([1, 13]);
   });
 
-  it("accidental style: F# in D major shown as Gb with flat style", () => {
-    // D major iii = F#m. With flat accidentalStyle, root displays as Gb.
-    // Root pos on 1-2-3: Gb on G-string (marker 3) at fret 11.
-    const chord = getModalDiatonicTriads("D", "ionian")[2]; // iii = Gbm
+  it("diatonic spelling: F# in D major is spelled F# (not Gb)", () => {
+    // D major iii = F#m. The diatonic spelling for D major's iii degree is F#,
+    // not Gb — diatonic spelling takes precedence over enharmonic swaps.
+    // Root pos on 1-2-3: F# on G-string (marker 3) at fret 11.
+    const chord = getModalDiatonicTriads("D", "ionian")[2]; // iii = F#m
     const markers = buildChordShapeMarkers({
       tuning: TUNINGS.standard,
       mode: "triads",
       chord,
       key: "D",
-      accidentalStyle: "flat",
       stringSets: ["1-2-3"],
       inversions: ["root"],
       startFret: 0,
@@ -645,7 +631,7 @@ describe("buildChordShapeMarkers — chord-centric", () => {
       (m) => m.role === "root" && m.string === 3 && m.fret === 11,
     );
     expect(rootMarker).toBeDefined();
-    expect(rootMarker!.note).toBe("Gb");
+    expect(rootMarker!.note).toBe("F#");
   });
 });
 
@@ -659,7 +645,6 @@ describe("buildChordShapeMarkers — modal", () => {
       voicingSystem: "drop2",
       chord: cDorianIV,
       key: "C",
-      accidentalStyle: "flat",
       stringSets: ["3-4-5-6"],
       inversions: ["root"],
       startFret: 0,
@@ -685,7 +670,6 @@ describe("buildChordShapeMarkers — modal", () => {
       voicingSystem: "drop2",
       chord: cMajorIV,
       key: "C",
-      accidentalStyle: "flat",
       stringSets: ["3-4-5-6"],
       inversions: ["root"],
       startFret: 0,
@@ -703,7 +687,6 @@ describe("buildChordShapeMarkers — modal", () => {
       voicingSystem: "drop2",
       chord: cDorianI,
       key: "C",
-      accidentalStyle: "flat",
       stringSets: ["3-4-5-6"],
       inversions: ["root", "first", "second", "third"],
       startFret: 0,
@@ -748,7 +731,6 @@ describe("buildChordShapeMarkers — tuning-agnostic invariant", () => {
         mode: "triads",
         chord,
         key: "C",
-        accidentalStyle: "sharp",
         stringSets: ["1-2-3", "2-3-4", "3-4-5", "4-5-6"],
         inversions: ["root", "first", "second"],
         startFret: 0,
@@ -786,7 +768,6 @@ describe("buildChordShapeMarkers — step-down anchor-fret regression", () => {
       mode: "triads",
       chord,
       key: "C",
-      accidentalStyle: "sharp",
       stringSets: ["4-5-6"],
       inversions: ["root"],
       startFret: 0,
