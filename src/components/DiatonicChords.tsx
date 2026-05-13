@@ -1,4 +1,3 @@
-import type { AccidentalStyle } from "../theory/notes";
 import { type ChordQuality, type TriadQuality } from "../theory/scales";
 import {
   getModalDiatonicChords,
@@ -11,7 +10,6 @@ export type ChordRowMode = "triads" | "sevenths";
 
 type DiatonicChordsProps = {
   selectedKey: string;
-  accidentalStyle: AccidentalStyle;
   selectedDegree: number | null;
   onSelectDegree: (degree: number) => void;
   mode: ChordRowMode;
@@ -51,7 +49,6 @@ const MODE_OPTIONS: { value: ChordRowMode; label: string }[] = [
 
 export function DiatonicChords({
   selectedKey,
-  accidentalStyle,
   selectedDegree,
   onSelectDegree,
   mode,
@@ -62,8 +59,8 @@ export function DiatonicChords({
 
   const chords =
     mode === "sevenths"
-      ? getModalDiatonicChords(selectedKey, modalMode, accidentalStyle)
-      : getModalDiatonicTriads(selectedKey, modalMode, accidentalStyle);
+      ? getModalDiatonicChords(selectedKey, modalMode)
+      : getModalDiatonicTriads(selectedKey, modalMode);
 
   const activeIndex = MODE_OPTIONS.findIndex((o) => o.value === mode);
 

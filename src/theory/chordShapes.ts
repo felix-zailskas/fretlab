@@ -1,9 +1,9 @@
 import { ALL_NOTES_KEY } from "../components/KeySelector";
 import {
-  getDisplayName,
+  buildDiatonicSpellingMap,
   getNoteAtFret,
   getNoteIndex,
-  type AccidentalStyle,
+  type ChromaticNote,
 } from "./notes";
 import type { Tuning } from "./tuning";
 import type {
@@ -12,7 +12,11 @@ import type {
   DiatonicTriad,
   DiatonicChord,
 } from "./scales";
-import { getCharacteristicNoteIndexSet, type Mode as ModalMode } from "./modes";
+import {
+  getCharacteristicNoteIndexSet,
+  MODE_INTERVALS,
+  type Mode as ModalMode,
+} from "./modes";
 import type { NoteMarker } from "./types";
 
 // String numbering follows standard guitar nomenclature: string 1 = high E,
@@ -612,7 +616,6 @@ export type BuildChordShapeMarkersInput =
       modalMode?: ModalMode;
       chord: DiatonicTriad;
       key: string;
-      accidentalStyle: AccidentalStyle;
       stringSets: ReadonlyArray<StringSet>;
       inversions: ReadonlyArray<Inversion>;
       startFret: number;
@@ -625,7 +628,6 @@ export type BuildChordShapeMarkersInput =
       voicingSystem: VoicingSystem;
       chord: DiatonicChord;
       key: string;
-      accidentalStyle: AccidentalStyle;
       stringSets: ReadonlyArray<SeventhStringSet>;
       inversions: ReadonlyArray<SeventhInversion>;
       startFret: number;
@@ -673,8 +675,7 @@ function placeChordOnCombo(
   chord: { quality: string; notes: readonly string[] },
   shape: TriadShape | SeventhShape,
   tuning: Tuning,
-  key: string,
-  accidentalStyle: AccidentalStyle,
+  spellingMap: ReadonlyMap<number, string>,
   startFret: number,
   endFret: number,
   characteristicSet: ReadonlySet<number>,
@@ -700,7 +701,7 @@ function placeChordOnCombo(
       result.push({
         string: markerString,
         fret: absFret,
-        note: getDisplayName(noteSharp, key, accidentalStyle),
+        note: spellingMap.get(getNoteIndex(noteSharp)) ?? noteSharp,
         role: p.role,
         ...(isCharacteristic ? { isCharacteristic: true } : {}),
       });
@@ -723,10 +724,10 @@ export function buildChordShapeMarkers(
   if (input.key === ALL_NOTES_KEY) return [];
 
   const modalMode = input.modalMode ?? "ionian";
-  const characteristicSet = getCharacteristicNoteIndexSet(
-    input.key,
-    modalMode,
-    input.accidentalStyle,
+  const characteristicSet = getCharacteristicNoteIndexSet(input.key, modalMode);
+  const spellingMap = buildDiatonicSpellingMap(
+    input.key as ChromaticNote,
+    MODE_INTERVALS[modalMode],
   );
 
   if (input.mode === "triads") {
@@ -744,8 +745,7 @@ export function buildChordShapeMarkers(
             input.chord,
             shape,
             input.tuning,
-            input.key,
-            input.accidentalStyle,
+            spellingMap,
             input.startFret,
             input.endFret,
             characteristicSet,
@@ -774,8 +774,7 @@ export function buildChordShapeMarkers(
           input.chord,
           shape,
           input.tuning,
-          input.key,
-          input.accidentalStyle,
+          spellingMap,
           input.startFret,
           input.endFret,
           characteristicSet,

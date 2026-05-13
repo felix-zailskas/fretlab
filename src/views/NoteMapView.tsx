@@ -4,16 +4,19 @@ import { ALL_NOTES_KEY } from "../components/KeySelector";
 import { Legend, type HighlightableRole } from "../components/Legend";
 import { roleFromChordTone, HIGHLIGHTABLE } from "../theory/chordTones";
 import {
+  buildDiatonicSpellingMap,
   getNoteAtFret,
   getNoteIndex,
   getDisplayName,
   type AccidentalStyle,
+  type ChromaticNote,
 } from "../theory/notes";
 import type { Tuning } from "../theory/tuning";
 import { type DiatonicChord, type DiatonicTriad } from "../theory/scales";
 import {
   getCharacteristicNoteIndexSet,
   getModalIntervalRole,
+  MODE_INTERVALS,
   type Mode,
 } from "../theory/modes";
 import type { NoteMarker, NoteDisplayRole } from "../theory/types";
@@ -51,7 +54,11 @@ export function NoteMapView({
 
     const characteristicSet = showAll
       ? (new Set<number>() as ReadonlySet<number>)
-      : getCharacteristicNoteIndexSet(selectedKey, mode, accidentalStyle);
+      : getCharacteristicNoteIndexSet(selectedKey, mode);
+
+    const spellingMap = showAll
+      ? null
+      : buildDiatonicSpellingMap(selectedKey as ChromaticNote, MODE_INTERVALS[mode]);
 
     for (let stringIndex = 0; stringIndex < tuning.strings.length; stringIndex++) {
       const openString = tuning.strings[stringIndex];
@@ -77,7 +84,9 @@ export function NoteMapView({
         result.push({
           string: stringIndex,
           fret,
-          note: getDisplayName(note, selectedKey, accidentalStyle),
+          note:
+            spellingMap?.get(getNoteIndex(note)) ??
+            getDisplayName(note, selectedKey, accidentalStyle),
           role,
           ...(isCharacteristic ? { isCharacteristic: true } : {}),
         });

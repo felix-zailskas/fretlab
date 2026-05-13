@@ -35,10 +35,34 @@ const FLAT_TO_SHARP: Record<string, string> = {
   Bb: "A#",
 };
 
+const LETTER_PITCH_CLASS: Record<string, number> = {
+  C: 0,
+  D: 2,
+  E: 4,
+  F: 5,
+  G: 7,
+  A: 9,
+  B: 11,
+};
+
+// Resolves any spelled note (chromatic, flat enharmonic, theoretical letter
+// names like E#/B#/Cb/Fb, double accidentals like F##/Bbb) to its pitch
+// class 0-11. Returns -1 only when the first character isn't a letter.
 export function getNoteIndex(note: string): number {
+  // Fast path: chromatic sharp-form or single-flat enharmonic.
   const sharpName = FLAT_TO_SHARP[note] ?? note;
-  const index = CHROMATIC_SCALE.indexOf(sharpName as (typeof CHROMATIC_SCALE)[number]);
-  return index;
+  const idx = CHROMATIC_SCALE.indexOf(sharpName as (typeof CHROMATIC_SCALE)[number]);
+  if (idx !== -1) return idx;
+
+  // Fallback: parse letter + accidental run for any other spelling.
+  const base = LETTER_PITCH_CLASS[note[0]];
+  if (base === undefined) return -1;
+  let pitch = base;
+  for (let i = 1; i < note.length; i++) {
+    if (note[i] === "#") pitch += 1;
+    else if (note[i] === "b") pitch -= 1;
+  }
+  return ((pitch % 12) + 12) % 12;
 }
 
 export function getNoteAtFret(openString: string, fret: number): ChromaticNote {
@@ -103,4 +127,60 @@ export function getDisplayName(
   }
 
   return sharpName;
+}
+
+const LETTERS = ["C", "D", "E", "F", "G", "A", "B"] as const;
+type Letter = (typeof LETTERS)[number];
+
+const LETTER_PITCH: Record<Letter, number> = {
+  C: 0,
+  D: 2,
+  E: 4,
+  F: 5,
+  G: 7,
+  A: 9,
+  B: 11,
+};
+
+/**
+ * Spell a diatonic scale using all 7 letter names, with accidentals
+ * (#, b, ##, bb) as needed. The root's letter anchors the cycle.
+ */
+export function spellScale(
+  root: ChromaticNote,
+  intervals: readonly number[],
+): string[] {
+  const rootLetter = root[0] as Letter;
+  const rootLetterIdx = LETTERS.indexOf(rootLetter);
+  const rootPitch = getNoteIndex(root);
+
+  return intervals.map((interval, i) => {
+    const letter = LETTERS[(rootLetterIdx + i) % 7];
+    const targetPitch = (rootPitch + interval) % 12;
+    const naturalPitch = LETTER_PITCH[letter];
+    let delta = (targetPitch - naturalPitch + 12) % 12;
+    if (delta > 6) delta -= 12;
+    const accidental =
+      delta === 0 ? "" : delta > 0 ? "#".repeat(delta) : "b".repeat(-delta);
+    return letter + accidental;
+  });
+}
+
+/**
+ * Returns a Map from pitch-class (0-11) to the diatonic spelling for that
+ * pitch in (root, intervals). Useful for fretboard pipelines that render
+ * in-scale notes — look up each marker's chromatic note-index and get the
+ * key-and-mode-correct letter+accidentals back.
+ */
+export function buildDiatonicSpellingMap(
+  root: ChromaticNote,
+  intervals: readonly number[],
+): ReadonlyMap<number, string> {
+  const rootPitch = getNoteIndex(root);
+  const spelled = spellScale(root, intervals);
+  const map = new Map<number, string>();
+  intervals.forEach((iv, i) => {
+    map.set((rootPitch + iv) % 12, spelled[i]);
+  });
+  return map;
 }

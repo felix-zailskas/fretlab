@@ -14,7 +14,6 @@ import {
   type StringSet,
   type VoicingSystem,
 } from "../theory/chordShapes";
-import type { AccidentalStyle } from "../theory/notes";
 import type { Tuning } from "../theory/tuning";
 import type { DiatonicTriad, DiatonicChord } from "../theory/scales";
 import { type Mode } from "../theory/modes";
@@ -26,7 +25,6 @@ import {
 type ChordShapesViewProps = {
   tuning: Tuning;
   selectedKey: string;
-  accidentalStyle: AccidentalStyle;
   startFret: number;
   endFret: number;
   selectedChord: DiatonicTriad | DiatonicChord | null;
@@ -86,7 +84,6 @@ const STRING_SET_BY_POSITION: Record<
 export function ChordShapesView({
   tuning,
   selectedKey,
-  accidentalStyle,
   startFret,
   endFret,
   selectedChord,
@@ -140,7 +137,6 @@ export function ChordShapesView({
         modalMode,
         chord: selectedChord as DiatonicTriad,
         key: selectedKey,
-        accidentalStyle,
         stringSets: Array.from(selectedStringSets),
         inversions: Array.from(selectedInversions),
         startFret,
@@ -154,7 +150,6 @@ export function ChordShapesView({
       voicingSystem: selectedVoicingSystem,
       chord: selectedChord as DiatonicChord,
       key: selectedKey,
-      accidentalStyle,
       stringSets: activeSeventhStringSets,
       inversions: Array.from(selectedSeventhInversions),
       startFret,
@@ -166,7 +161,6 @@ export function ChordShapesView({
     modalMode,
     selectedChord,
     selectedKey,
-    accidentalStyle,
     selectedStringSets,
     selectedInversions,
     selectedVoicingSystem,

@@ -5,9 +5,11 @@ import {
   getNoteAtFret,
   getDisplayName,
   naturalAccidentalForKey,
+  spellScale,
   type ChromaticNote,
 } from "./notes";
 import { TUNINGS, type TuningId } from "./tuning";
+import { MODE_INTERVALS } from "./modes";
 
 describe("getNoteIndex", () => {
   it("returns correct index for natural notes", () => {
@@ -31,6 +33,21 @@ describe("getNoteIndex", () => {
     expect(getNoteIndex("Gb")).toBe(6);
     expect(getNoteIndex("Ab")).toBe(8);
     expect(getNoteIndex("Bb")).toBe(10);
+  });
+
+  it("returns correct index for theoretical letter spellings (E#, B#, Cb, Fb)", () => {
+    expect(getNoteIndex("E#")).toBe(5);
+    expect(getNoteIndex("B#")).toBe(0);
+    expect(getNoteIndex("Cb")).toBe(11);
+    expect(getNoteIndex("Fb")).toBe(4);
+  });
+
+  it("returns correct index for double accidentals", () => {
+    expect(getNoteIndex("F##")).toBe(7);
+    expect(getNoteIndex("C##")).toBe(2);
+    expect(getNoteIndex("G##")).toBe(9);
+    expect(getNoteIndex("Bbb")).toBe(9);
+    expect(getNoteIndex("Abb")).toBe(7);
   });
 });
 
@@ -217,4 +234,68 @@ describe("fretboard computation — ground truth across all tunings", () => {
       }
     });
   }
+});
+
+describe("spellScale", () => {
+  it("spells C Ionian using natural letters", () => {
+    expect(spellScale("C", MODE_INTERVALS.ionian)).toEqual([
+      "C",
+      "D",
+      "E",
+      "F",
+      "G",
+      "A",
+      "B",
+    ]);
+  });
+
+  it("spells C# Ionian using single sharps including E# and B#", () => {
+    expect(spellScale("C#", MODE_INTERVALS.ionian)).toEqual([
+      "C#",
+      "D#",
+      "E#",
+      "F#",
+      "G#",
+      "A#",
+      "B#",
+    ]);
+  });
+
+  it("spells F# Lydian using single sharps including E#", () => {
+    expect(spellScale("F#", MODE_INTERVALS.lydian)).toEqual([
+      "F#",
+      "G#",
+      "A#",
+      "B#",
+      "C#",
+      "D#",
+      "E#",
+    ]);
+  });
+
+  it("spells G# Aeolian preserving natural letters where the interval lands on them", () => {
+    // G# Aeolian: G#, A#, B, C#, D#, E, F#
+    expect(spellScale("G#", MODE_INTERVALS.aeolian)).toEqual([
+      "G#",
+      "A#",
+      "B",
+      "C#",
+      "D#",
+      "E",
+      "F#",
+    ]);
+  });
+
+  it("emits double-sharps when the target pitch is two semitones above the natural", () => {
+    // A# Lydian: A#, B#, C##, D##, E#, F##, G##
+    expect(spellScale("A#", MODE_INTERVALS.lydian)).toEqual([
+      "A#",
+      "B#",
+      "C##",
+      "D##",
+      "E#",
+      "F##",
+      "G##",
+    ]);
+  });
 });
