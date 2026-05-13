@@ -104,3 +104,40 @@ export function getDisplayName(
 
   return sharpName;
 }
+
+const LETTERS = ["C", "D", "E", "F", "G", "A", "B"] as const;
+type Letter = (typeof LETTERS)[number];
+
+const LETTER_PITCH: Record<Letter, number> = {
+  C: 0,
+  D: 2,
+  E: 4,
+  F: 5,
+  G: 7,
+  A: 9,
+  B: 11,
+};
+
+/**
+ * Spell a diatonic scale using all 7 letter names, with accidentals
+ * (#, b, ##, bb) as needed. The root's letter anchors the cycle.
+ */
+export function spellScale(
+  root: ChromaticNote,
+  intervals: readonly number[],
+): string[] {
+  const rootLetter = root[0] as Letter;
+  const rootLetterIdx = LETTERS.indexOf(rootLetter);
+  const rootPitch = getNoteIndex(root);
+
+  return intervals.map((interval, i) => {
+    const letter = LETTERS[(rootLetterIdx + i) % 7];
+    const targetPitch = (rootPitch + interval) % 12;
+    const naturalPitch = LETTER_PITCH[letter];
+    let delta = (targetPitch - naturalPitch + 12) % 12;
+    if (delta > 6) delta -= 12;
+    const accidental =
+      delta === 0 ? "" : delta > 0 ? "#".repeat(delta) : "b".repeat(-delta);
+    return letter + accidental;
+  });
+}
