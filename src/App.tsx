@@ -53,6 +53,14 @@ function createCustomTuningId(): CustomTuningId {
   return `custom:${ts}-${rand}`;
 }
 
+function pickCopyName(base: string, customs: readonly CustomTuning[]): string {
+  const candidate = `${base} copy`;
+  if (!customs.some((c) => c.name === candidate)) return candidate;
+  let n = 2;
+  while (customs.some((c) => c.name === `${base} copy ${n}`)) n++;
+  return `${base} copy ${n}`;
+}
+
 function pickNextCustomName(customs: readonly CustomTuning[]): string {
   const usedNumbers = new Set<number>();
   for (const c of customs) {
@@ -456,7 +464,7 @@ function App() {
           onSaveCopy={(name, strings) => {
             const copy: CustomTuning = {
               id: createCustomTuningId(),
-              name: `${name} copy`,
+              name: pickCopyName(name, customs),
               strings,
               createdAt: Date.now(),
             };

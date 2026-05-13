@@ -53,9 +53,16 @@ export function CustomTuningModal({
   }, []);
 
   function updateString(i: number, value: ChromaticNote) {
-    const next = [...strings] as ChromaticNote[];
+    const next = [...strings] as [
+      ChromaticNote,
+      ChromaticNote,
+      ChromaticNote,
+      ChromaticNote,
+      ChromaticNote,
+      ChromaticNote,
+    ];
     next[i] = value;
-    setStrings(next as unknown as SixStrings);
+    setStrings(next);
   }
 
   function handleSubmit(e?: React.FormEvent) {
@@ -112,7 +119,6 @@ export function CustomTuningModal({
             value={name}
             onChange={(e) => setName(e.target.value)}
             className="w-full px-3 py-2 rounded bg-surface border border-line text-fg-emphasis"
-            aria-label="Name"
             autoFocus
           />
         </label>
@@ -127,6 +133,12 @@ export function CustomTuningModal({
                 key={i}
                 value={note}
                 onChange={(e) => updateString(i, e.target.value as ChromaticNote)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    handleSubmit();
+                  }
+                }}
                 aria-label={`String ${i + 1}`}
                 className="min-w-[3.5ch] px-2 py-2 rounded bg-surface border border-line text-fg-emphasis font-mono"
               >

@@ -202,6 +202,24 @@ describe("CustomTuningModal — keyboard and backdrop", () => {
     expect(onCancel).toHaveBeenCalledOnce();
   });
 
+  it("Enter on a string picker fires onSave", async () => {
+    const onSave = vi.fn();
+    render(
+      <CustomTuningModal
+        mode="create"
+        initialName="Custom 1"
+        initialStrings={["E", "A", "D", "G", "B", "E"]}
+        onSave={onSave}
+        onSaveCopy={() => {}}
+        onDelete={() => {}}
+        onCancel={() => {}}
+      />,
+    );
+    screen.getByLabelText("String 1").focus();
+    await userEvent.keyboard("{Enter}");
+    expect(onSave).toHaveBeenCalledOnce();
+  });
+
   it("Enter on the name field fires onSave", async () => {
     const onSave = vi.fn();
     render(
