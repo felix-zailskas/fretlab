@@ -120,10 +120,10 @@ function App() {
     if (selectedChordDegree === null || selectedKey === ALL_NOTES_KEY) return null;
     const chords =
       chordRowMode === "sevenths"
-        ? getModalDiatonicChords(selectedKey, mode, accidentalStyle)
-        : getModalDiatonicTriads(selectedKey, mode, accidentalStyle);
+        ? getModalDiatonicChords(selectedKey, mode)
+        : getModalDiatonicTriads(selectedKey, mode);
     return chords[selectedChordDegree - 1] ?? null;
-  }, [selectedChordDegree, chordRowMode, selectedKey, mode, accidentalStyle]);
+  }, [selectedChordDegree, chordRowMode, selectedKey, mode]);
 
   const handleChordSelect = useCallback((degree: number) => {
     setSelectedChordDegree((prev) => (prev === degree ? null : degree));
@@ -182,7 +182,6 @@ function App() {
             />
             <DiatonicChords
               selectedKey={selectedKey}
-              accidentalStyle={accidentalStyle}
               selectedDegree={selectedChordDegree}
               onSelectDegree={handleChordSelect}
               mode={chordRowMode}
@@ -209,7 +208,6 @@ function App() {
             />
             <DiatonicChords
               selectedKey={selectedKey}
-              accidentalStyle={accidentalStyle}
               selectedDegree={selectedChordDegree}
               onSelectDegree={handleChordSelect}
               mode={chordRowMode}
@@ -237,7 +235,6 @@ function App() {
             />
             <DiatonicChords
               selectedKey={selectedKey}
-              accidentalStyle={accidentalStyle}
               selectedDegree={selectedChordDegree}
               onSelectDegree={handleChordSelect}
               mode={chordRowMode}
@@ -354,7 +351,6 @@ function App() {
             ) : (
               <ScaleDisplay
                 selectedKey={selectedKey}
-                accidentalStyle={accidentalStyle}
                 selectedChord={selectedChord}
                 enabledRoles={enabledHighlights}
                 mode={mode}

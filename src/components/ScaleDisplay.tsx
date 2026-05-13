@@ -1,4 +1,3 @@
-import type { AccidentalStyle } from "../theory/notes";
 import { type DiatonicChord, type DiatonicTriad } from "../theory/scales";
 import {
   getModalScaleNotes,
@@ -31,7 +30,6 @@ const MODE_DISPLAY_NAME: Record<Mode, string> = {
 
 type ScaleDisplayProps = {
   selectedKey: string;
-  accidentalStyle: AccidentalStyle;
   selectedChord: DiatonicChord | DiatonicTriad | null;
   enabledRoles: Set<HighlightableRole>;
   // Optional — defaults to 'ionian', preserving today's "{key} major" header.
@@ -41,14 +39,13 @@ type ScaleDisplayProps = {
 
 export function ScaleDisplay({
   selectedKey,
-  accidentalStyle,
   selectedChord,
   enabledRoles,
   mode = "ionian",
 }: ScaleDisplayProps) {
   if (selectedKey === ALL_NOTES_KEY) return null;
 
-  const notes = getModalScaleNotes(selectedKey, mode, accidentalStyle);
+  const notes = getModalScaleNotes(selectedKey, mode);
   const labels = MODE_DEGREE_LABELS[mode];
   const steps = MODE_STEPS[mode].slice(0, notes.length - 1);
 
