@@ -30,7 +30,9 @@ export async function record(browser) {
   // Set strings to D A D G A D so the picker row is recognizable.
   const strings = ["D", "A", "D", "G", "A", "D"];
   for (let i = 0; i < strings.length; i++) {
-    await dialog.getByLabel(`String ${i + 1}`, { exact: true }).selectOption(strings[i]);
+    await dialog
+      .getByLabel(`String ${i + 1}`, { exact: true })
+      .selectOption(strings[i]);
   }
   await page.waitForTimeout(400);
 
