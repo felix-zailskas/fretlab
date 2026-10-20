@@ -22,6 +22,12 @@ export default defineConfig({
       ["src/components/**/*.test.ts", "jsdom"],
     ],
     setupFiles: ["./vitest.setup.ts"],
-    exclude: ["node_modules", "dist", "tests/e2e/**", ".worktrees/**"],
+    // Node >= 25 ships a global `localStorage` that is undefined unless
+    // --localstorage-file is set, and it shadows jsdom's implementation.
+    // Disabling Node's web storage lets jsdom's localStorage through.
+    poolOptions: {
+      forks: { execArgv: ["--no-experimental-webstorage"] },
+    },
+    exclude: ["node_modules", "dist", "tests/e2e/**", ".worktrees/**", ".claude/**"],
   },
 });
