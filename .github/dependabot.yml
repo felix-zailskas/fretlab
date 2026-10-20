@@ -16,3 +16,7 @@ updates:
         update-types:
           - minor
           - patch
+    ignore:
+      # Keep @types/node on the runtime major pinned in .nvmrc; bump both together.
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
