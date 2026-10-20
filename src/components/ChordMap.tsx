@@ -20,6 +20,8 @@ type ChordMapProps = {
   selectedRef: ChordRef | null;
   onSelect: (ref: ChordRef) => void;
   onAdd?: (ref: ChordRef) => void; // only while the progression panel is visible
+  progressionVisible?: boolean;
+  onToggleProgression?: () => void;
 };
 
 export function ChordMap({
@@ -30,6 +32,8 @@ export function ChordMap({
   selectedRef,
   onSelect,
   onAdd,
+  progressionVisible = false,
+  onToggleProgression,
 }: ChordMapProps) {
   if (selectedKey === ALL_NOTES_KEY) return null;
 
@@ -47,6 +51,20 @@ export function ChordMap({
     <section className="mt-4 md:mt-8" aria-label="Chord map">
       <div className="flex items-center justify-start gap-2 mb-3">
         <ChordRowModeToggle value={rowMode} onChange={onRowModeChange} />
+        {onToggleProgression && (
+          <button
+            type="button"
+            aria-pressed={progressionVisible}
+            onClick={onToggleProgression}
+            className={`px-2 py-1.5 md:px-3 md:py-2.5 pointer-coarse:py-3 rounded border border-line text-xs md:text-sm font-semibold cursor-pointer ${
+              progressionVisible
+                ? "bg-surface-active text-fg-emphasis"
+                : "text-fg-muted hover:text-fg-secondary"
+            }`}
+          >
+            Progression
+          </button>
+        )}
       </div>
       {/* The grid keeps 7 columns at every width so each chord stays in its
           degree's column; below min-w it scrolls instead of re-flowing. */}

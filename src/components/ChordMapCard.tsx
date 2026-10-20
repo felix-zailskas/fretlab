@@ -43,6 +43,9 @@ export function ChordMapCard({
   onAdd,
 }: ChordMapCardProps) {
   const { tier, degree } = chord.ref;
+  // While ＋ is shown, the top padding clears its 32px hit area so the
+  // numeral never sits under it.
+  const padY = onAdd ? "pt-8 pb-2 md:pb-4" : "py-2 md:py-4";
   return (
     <div className="relative flex flex-col items-stretch gap-1">
       <button
@@ -54,7 +57,7 @@ export function ChordMapCard({
         aria-label={`${chord.romanNumeral} ${chord.symbol}`}
         onClick={() => onSelect(chord.ref)}
         title={`${chord.romanNumeral} — ${chord.symbol} (${QUALITY_NAMES[chord.quality]}): ${chord.notes.join(", ")}`}
-        className={`flex flex-col items-center justify-center gap-1 md:gap-1.5 px-1 py-2 md:px-3 md:py-4 md:min-h-[6.5rem] rounded-xl border-2 shadow-sm cursor-pointer transition-colors active:scale-[0.98] ${
+        className={`flex flex-col items-center justify-center gap-1 md:gap-1.5 px-1 md:px-3 ${padY} md:min-h-[6.5rem] rounded-xl border-2 shadow-sm cursor-pointer transition-colors active:scale-[0.98] ${
           isSelected
             ? `${tier === "secondary" ? "border-dashed " : ""}border-line-selected bg-surface-active ring-2 ring-selection ring-inset`
             : `${idleClasses(tier, chord)} hover:border-line-hover`
@@ -75,9 +78,14 @@ export function ChordMapCard({
           type="button"
           aria-label={`Add ${chord.symbol} to progression`}
           onClick={() => onAdd(chord.ref)}
-          className="absolute top-1 right-1 w-6 h-6 rounded-full text-xs font-bold bg-surface-active text-fg-secondary hover:text-fg-emphasis cursor-pointer"
+          className="group absolute top-0 right-0 w-8 h-8 flex items-start justify-end p-1.5 rounded-tr-xl cursor-pointer"
         >
-          ＋
+          <span
+            aria-hidden="true"
+            className="w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold bg-surface-active text-fg-secondary group-hover:text-fg-emphasis"
+          >
+            ＋
+          </span>
         </button>
       )}
       {tier === "secondary" && (

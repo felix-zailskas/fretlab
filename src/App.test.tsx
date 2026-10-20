@@ -1,9 +1,11 @@
-import { describe, it, expect, beforeEach, beforeAll } from "vitest";
+import { describe, it, expect, beforeEach, beforeAll, afterEach, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import App from "./App";
 import type { CustomTuning } from "./theory/tuning";
 import { STORAGE_KEY } from "./theory/customTuningStorage";
+import { FakeAudioContext } from "./audio/testing";
+import { PROGRESSION_STORAGE_KEY } from "./theory/progressionStorage";
 
 // App uses window.innerWidth during initialisation (for default fret range).
 // jsdom defaults to 0 which is falsy but shouldn't throw; no mock needed.
@@ -244,5 +246,83 @@ describe("App — secondary dominants in triads mode", () => {
     expect(markers.length).toBeGreaterThan(0);
     expect(markers.some((m) => m.getAttribute("data-role") === "seventh")).toBe(false);
     expect(markers.some((m) => m.getAttribute("data-note") === "G")).toBe(false);
+  });
+});
+
+describe("App — progression player", () => {
+  beforeEach(() => {
+    localStorage.clear();
+    vi.stubGlobal("AudioContext", FakeAudioContext);
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  async function addF() {
+    await userEvent.click(screen.getByRole("button", { name: "Add F to progression" }));
+  }
+
+  function blurActive() {
+    (document.activeElement as HTMLElement | null)?.blur();
+  }
+
+  it("＋ on a chord card adds it to the progression", async () => {
+    render(<App />);
+    await addF();
+    expect(screen.getByRole("button", { name: "Select F" })).toBeInTheDocument();
+  });
+
+  it("clicking a slot selects its chord on the map", async () => {
+    const { container } = render(<App />);
+    await addF();
+    await userEvent.click(screen.getByRole("button", { name: "Select F" }));
+    expect(
+      container.querySelector(
+        '[data-testid="chord-card"][data-tier="diatonic"][data-degree="4"]',
+      ),
+    ).toHaveAttribute("aria-pressed", "true");
+  });
+
+  it("the Progression toggle hides the panel and the ＋ buttons", async () => {
+    render(<App />);
+    await userEvent.click(screen.getByRole("button", { name: "Progression" }));
+    expect([
+      screen.queryByRole("region", { name: "Progression" }),
+      screen.queryByRole("button", { name: "Add F to progression" }),
+    ]).toEqual([null, null]);
+  });
+
+  it("persists the hidden state", async () => {
+    render(<App />);
+    await userEvent.click(screen.getByRole("button", { name: "Progression" }));
+    const stored = JSON.parse(localStorage.getItem(PROGRESSION_STORAGE_KEY) ?? "{}");
+    expect(stored.visible).toBe(false);
+  });
+
+  it("Space toggles playback", async () => {
+    render(<App />);
+    await addF();
+    blurActive();
+    await userEvent.keyboard(" ");
+    expect(screen.getByRole("button", { name: "Stop" })).toBeInTheDocument();
+    await userEvent.keyboard(" ");
+    expect(screen.getByRole("button", { name: "Play" })).toBeInTheDocument();
+  });
+
+  it("Space on the focused Play button toggles exactly once", async () => {
+    render(<App />);
+    await addF();
+    screen.getByRole("button", { name: "Play" }).focus();
+    await userEvent.keyboard(" ");
+    expect(screen.getByRole("button", { name: "Stop" })).toBeInTheDocument();
+  });
+
+  it("Space in the BPM field does not toggle playback", async () => {
+    render(<App />);
+    await addF();
+    await userEvent.click(screen.getByRole("spinbutton", { name: "BPM" }));
+    await userEvent.keyboard(" ");
+    expect(screen.getByRole("button", { name: "Play" })).toBeInTheDocument();
   });
 });

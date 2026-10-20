@@ -141,3 +141,41 @@ describe("ChordMap", () => {
     expect(container).toBeEmptyDOMElement();
   });
 });
+
+describe("ChordMap — progression toggle", () => {
+  function renderMap(extra: Partial<Parameters<typeof ChordMap>[0]> = {}) {
+    render(
+      <ChordMap
+        selectedKey="C"
+        modalMode="ionian"
+        rowMode="triads"
+        onRowModeChange={() => {}}
+        selectedRef={null}
+        onSelect={() => {}}
+        {...extra}
+      />,
+    );
+  }
+
+  it("is absent without onToggleProgression", () => {
+    renderMap();
+    expect(
+      screen.queryByRole("button", { name: "Progression" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("reflects visibility with aria-pressed", () => {
+    renderMap({ progressionVisible: true, onToggleProgression: () => {} });
+    expect(screen.getByRole("button", { name: "Progression" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+  });
+
+  it("calls onToggleProgression", async () => {
+    const onToggle = vi.fn();
+    renderMap({ progressionVisible: false, onToggleProgression: onToggle });
+    await userEvent.click(screen.getByRole("button", { name: "Progression" }));
+    expect(onToggle).toHaveBeenCalledTimes(1);
+  });
+});
