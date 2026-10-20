@@ -50,11 +50,14 @@ visible fret range (default 0–15, user-configurable via the FretRangeControl p
 to fret 24). Root / 3rd / 5th / 7th appear in their interval colors; the rest of the
 scale (2nd / 4th / 6th) is muted.
 
-A row of diatonic chord cards (I through vii°) sits below the fretboard. Selecting a
-chord remaps the highlights so that chord's R / 3 / 5 / 7 light up against the muted
-scale background — useful for spotting chord tones across the entire neck at once.
-Clicking the currently-selected card again deselects it, clearing all chord-tone
-highlights so every in-key note renders as a plain scale tone.
+A **chord map** sits below the fretboard: the key's 7 diatonic chords, the **secondary
+dominants** that resolve to them (V/ii, V7/V, …, with an arrow to their target), and the
+**borrowed chords** from the parallel mode (Aeolian for major-third modes, Ionian for
+minor-third modes). Selecting any chord remaps the highlights so that chord's R / 3 / 5
+/ 7 light up against the muted scale background. Chord tones outside the key (the C♯ of
+A7 in C major) are shown with a dashed ring and spelled the chord's way, and the key
+note they replace (C) is hidden. Clicking the selected card again deselects it, clearing
+all chord-tone highlights.
 
 **Features**
 
@@ -66,7 +69,8 @@ highlights so every in-key note renders as a plain scale tone.
   always spelled diatonically — the toggle has no effect on them)
 - Configurable fret range (default 0–15, ceiling 24) via a header popover; the chosen
   range applies to every view
-- 7 diatonic chord cards with a triads / sevenths toggle (R/3/5 or R/3/5/7 highlighting)
+- Chord map with diatonic, secondary-dominant and borrowed chords, and a triads /
+  sevenths toggle (R/3/5 or R/3/5/7 highlighting)
 - Legend with R / 3 / 5 / 7 toggles to selectively show or hide chord-tone roles
 
 **During practice**
@@ -325,11 +329,11 @@ A few shortcuts speed up the most common practice flows. They're disabled while 
 in a text input, and modifier keys (⌘ / Ctrl / Alt) are ignored so they don't interfere
 with browser shortcuts.
 
-| Key     | Action                                                                         |
-| ------- | ------------------------------------------------------------------------------ |
-| `1`–`7` | Select diatonic chord degree I through vii° (press the active degree to clear) |
-| `t`     | Switch the chord row to **Triads**                                             |
-| `s`     | Switch the chord row to **Sevenths**                                           |
+| Key     | Action                                                                 |
+| ------- | ---------------------------------------------------------------------- |
+| `1`–`7` | Select diatonic chord I through vii° (press the active chord to clear) |
+| `t`     | Switch the chord map to **Triads**                                     |
+| `s`     | Switch the chord map to **Sevenths**                                   |
 
 ## Getting started
 
