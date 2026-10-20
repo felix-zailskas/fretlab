@@ -4,7 +4,7 @@ import {
   naturalAccidentalForKey,
   spellScale,
   type AccidentalStyle,
-  type ChromaticNote,
+  type SpelledNote,
 } from "./notes";
 import type {
   ChordQuality,
@@ -106,8 +106,8 @@ export const PARENT_MAJOR_OFFSET: Record<Mode, number> = {
   locrian: -11,
 };
 
-export function getModalScaleNotes(key: string, mode: Mode): string[] {
-  return spellScale(key as ChromaticNote, MODE_INTERVALS[mode]);
+export function getModalScaleNotes(key: string, mode: Mode): SpelledNote[] {
+  return spellScale(key as SpelledNote, MODE_INTERVALS[mode]);
 }
 
 // Returns the tonic of the parent major scale for (modal-tonic, mode).

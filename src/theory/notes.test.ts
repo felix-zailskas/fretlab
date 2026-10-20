@@ -5,6 +5,7 @@ import {
   getNoteAtFret,
   getDisplayName,
   naturalAccidentalForKey,
+  spellChord,
   spellScale,
   type ChromaticNote,
 } from "./notes";
@@ -297,5 +298,52 @@ describe("spellScale", () => {
       "F##",
       "G##",
     ]);
+  });
+});
+
+describe("spellChord", () => {
+  it("spells C7 as C E G Bb", () => {
+    expect(spellChord("C", [0, 4, 7, 10])).toEqual(["C", "E", "G", "Bb"]);
+  });
+
+  it("spells E#7 as E# G## B# D#", () => {
+    expect(spellChord("E#", [0, 4, 7, 10])).toEqual(["E#", "G##", "B#", "D#"]);
+  });
+
+  it("spells A7 with a C# rather than a Db", () => {
+    expect(spellChord("A", [0, 4, 7, 10])).toEqual(["A", "C#", "E", "G"]);
+  });
+
+  it("spells Ab major with flats", () => {
+    expect(spellChord("Ab", [0, 4, 7])).toEqual(["Ab", "C", "Eb"]);
+  });
+
+  it("keeps a double flat when the letter demands it (Gb minor's Bbb)", () => {
+    expect(spellChord("Gb", [0, 3, 7])).toEqual(["Gb", "Bbb", "Db"]);
+  });
+
+  it("stacks letters in thirds for every chromatic root", () => {
+    const letters = ["C", "D", "E", "F", "G", "A", "B"];
+    for (const root of CHROMATIC_SCALE) {
+      const spelled = spellChord(root, [0, 4, 7, 10]);
+      const rootIdx = letters.indexOf(root[0]);
+      expect(spelled.map((n) => n[0])).toEqual(
+        [0, 2, 4, 6].map((step) => letters[(rootIdx + step) % 7]),
+      );
+    }
+  });
+
+  it("lands every tone on its target pitch class for every chromatic root", () => {
+    for (const root of CHROMATIC_SCALE) {
+      const spelled = spellChord(root, [0, 4, 7, 10]);
+      expect(spelled.map(getNoteIndex)).toEqual(
+        [0, 4, 7, 10].map((iv) => (getNoteIndex(root) + iv) % 12),
+      );
+    }
+  });
+
+  it("throws when a tone needs more than a double accidental", () => {
+    // D## major's third would be F### (pitch class 8 on letter F).
+    expect(() => spellChord("D##", [0, 4, 7])).toThrow(/double accidental/);
   });
 });
