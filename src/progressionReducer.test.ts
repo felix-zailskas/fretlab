@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { progressionReducer } from "./progressionReducer";
+import { progressionReducer, type ProgressionAction } from "./progressionReducer";
 import {
   DEFAULT_PROGRESSION,
   type StoredProgression,
@@ -127,3 +127,39 @@ describe.each(TIME_SIGNATURE_PRESETS.map((p) => [timeSignatureLabel(p), p] as co
     });
   },
 );
+
+function deepFreeze<T>(o: T): T {
+  if (o && typeof o === "object" && !Object.isFrozen(o)) {
+    Object.freeze(o);
+    Object.values(o).forEach(deepFreeze);
+  }
+  return o;
+}
+
+const ACTIONS: ProgressionAction[] = [
+  { type: "add", id: "n", ref: { tier: "diatonic", degree: 1 } },
+  { type: "remove", id: "s1" },
+  { type: "move", from: 2, to: 0 },
+  { type: "set-bars", id: "s0", bars: 2 },
+  { type: "clear" },
+  { type: "set-bpm", bpm: 120 },
+  { type: "set-time-signature", sig: { beats: 3, unit: 4 } },
+  { type: "set-click", enabled: true },
+  { type: "set-loop", loop: false },
+  { type: "set-visible", visible: false },
+];
+
+describe.each([
+  ["a multi-slot state", () => withSlots([0.5, 1, 4])],
+  ["DEFAULT_PROGRESSION", () => DEFAULT_PROGRESSION],
+])("progressionReducer never mutates its input (%s)", (_name, make) => {
+  it.each(ACTIONS.map((a) => [a.type, a] as const))("%s", (_type, action) => {
+    const state = make();
+    const before = structuredClone(state);
+    // Freezing makes any in-place write throw; copy so the shared default stays unfrozen.
+    const input = deepFreeze(structuredClone(state));
+    progressionReducer(input, action);
+    expect(input).toEqual(before);
+    expect(state).toEqual(before);
+  });
+});
