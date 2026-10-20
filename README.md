@@ -51,11 +51,11 @@ to fret 24). Root / 3rd / 5th / 7th appear in their interval colors; the rest of
 scale (2nd / 4th / 6th) is muted.
 
 A **chord map** sits below the fretboard: the key's 7 diatonic chords, the **secondary
-dominants** that resolve to them (V/ii, V7/V, …, with an arrow to their target), and the
-**borrowed chords** from the parallel mode (Aeolian for major-third modes, Ionian for
-minor-third modes). Selecting any chord remaps the highlights so that chord's R / 3 / 5
-/ 7 light up against the muted scale background. Chord tones outside the key (the C♯ of
-A7 in C major) are shown with a dashed ring and spelled the chord's way, and the key
+dominants** that resolve to them (V7/ii, V7/V, …, with an arrow to their target), and
+the **borrowed chords** from the parallel mode (Aeolian for major-third modes, Ionian
+for minor-third modes). Selecting any chord remaps the highlights so that chord's R / 3
+/ 5 / 7 light up against the muted scale background. Chord tones outside the key (the C♯
+of A7 in C major) are shown with a dashed ring and spelled the chord's way, and the key
 note they replace (C) is hidden. Clicking the selected card again deselects it, clearing
 all chord-tone highlights.
 

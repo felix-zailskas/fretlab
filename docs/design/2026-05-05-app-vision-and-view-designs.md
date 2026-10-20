@@ -241,8 +241,8 @@ see
 
 ### Future: Chord map & progression player
 
-The diatonic chord row grows into a **chord map**: secondary dominants (V/x, V7/x) above
-the diatonic row and chords borrowed from the parallel mode below it, all driving the
+The diatonic chord row grows into a **chord map**: secondary dominants (V7/x) above the
+diatonic row and chords borrowed from the parallel mode below it, all driving the
 fretboard, including out-of-key tones (dashed ring). A **progression player** then lets
 the user queue map chords, give each a length in bars and play them back over a
 metronome while the fretboard follows.

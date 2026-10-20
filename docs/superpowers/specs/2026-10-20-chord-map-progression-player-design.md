@@ -109,8 +109,8 @@ export type ChordTier = "secondary" | "diatonic" | "borrowed";
 export type ChordRef = { tier: ChordTier; degree: number }; // 1–7; secondary: degree of its target
 export type MapChord = {
   ref: ChordRef;
-  romanNumeral: string; // "V7/ii", "V/ii", "♭VI", "iv"
-  symbol: string; // "A7", "A", "A♭", "Fm"
+  romanNumeral: string; // "V7/ii", "♭VI", "iv"
+  symbol: string; // "A7", "A♭", "Fm"
   quality: TriadQuality | ChordQuality;
   notes: readonly SpelledNote[];
 };
@@ -135,11 +135,9 @@ unchanged and adds `ref`.
   and diminished targets are `null`.
 - The root is a perfect fifth above the target root. Its letter is 4 letter-steps above
   the target's letter, and it is spelled with `spellChord`.
-- Triads mode gives a major triad `[0,4,7]`, numeral `V/x`, symbol `A`. Sevenths mode
-  gives a dominant 7th `[0,4,7,10]`, numeral `V7/x`, symbol `A7`. `x` is the target's
-  numeral without its quality suffix.
-- A secondary dominant that happens to equal a diatonic chord, such as V/IV = C in C
-  major triads, is still shown because its function is different.
+- Always a dominant 7th `[0,4,7,10]`, numeral `V7/x`, symbol `A7`, regardless of row
+  mode. `x` is the target's numeral without its quality suffix.
+- V7/IV (C7) is distinct from I thanks to its ♭7.
 
 **Borrowed tier.** Column `d` holds chord `d` of `borrowSourceMode(mode)` on the same
 tonic.
@@ -177,6 +175,8 @@ there and `chordShapes.ts` imports it, so there is one source of truth.
   deliberately not the gold `--color-characteristic` ring, which keeps its meaning of a
   modal characteristic note.
 - `data-outside-key` is added to `note-marker` elements for E2E.
+- In triads mode, the 7th highlight stays available when the selected chord has a 7th
+  (`showsSeventh`); Chord Shapes voices its triad (`triadOf`).
 
 ### 4. Chord map UI
 
@@ -403,7 +403,7 @@ a click track, only saves the scheduling loop.
   - Hand-checked examples:
     - C Ionian: V7/ii = A C♯ E G and ♭VI = A♭ C E♭
     - A Aeolian: borrowed IV = D F♯ A
-    - Triads mode: V/V = D F♯ A
+    - Triads mode: V7/V = D F♯ A C
 - `meter.test.ts`:
   - `accentPattern` for every preset
   - `allowedSlotLengths` for even and odd meters
@@ -457,19 +457,20 @@ Docs: a short entry in the "Future" section of
 
 ## Decisions log
 
-| Question            | Decision                                                                                                                 |
-| ------------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| Purpose             | Chord map (A) plus a progression builder and player (B). The existing chord-tone fretboard covers the improvisation aid. |
-| Map placement       | It replaces the diatonic chord row in every view.                                                                        |
-| Builder visibility  | Always available, can be hidden. The visibility is saved.                                                                |
-| Progression storage | Key-relative `ChordRef`, so it transposes with key and mode.                                                             |
-| Reordering          | Drag (dnd-kit; pointer, touch and keyboard).                                                                             |
-| Non-Ionian modes    | Borrow automatically from the parallel Aeolian (major-third modes) or Ionian (minor-third modes).                        |
-| Sound               | Optional metronome click with accents. No chord audio yet.                                                               |
-| Meter               | Time-signature presets. BPM counts the denominator unit.                                                                 |
-| Chord length        | Per-slot length in bars (default 1). ½ bar only when the bar splits evenly.                                              |
-| Persistence         | One current progression and its settings in localStorage.                                                                |
-| Function hints      | Only the secondary dominant → target arrows.                                                                             |
-| Timing engine       | Our own Web Audio look-ahead scheduler (not `setInterval`, not Tone.js).                                                 |
-| Note typing         | New `SpelledNote`. The unused `NoteName` is removed.                                                                     |
-| Out-of-key marker   | Dashed neutral ring. The gold ring stays reserved for modal characteristic notes.                                        |
+| Question                           | Decision                                                                                                                 |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| Purpose                            | Chord map (A) plus a progression builder and player (B). The existing chord-tone fretboard covers the improvisation aid. |
+| Map placement                      | It replaces the diatonic chord row in every view.                                                                        |
+| Builder visibility                 | Always available, can be hidden. The visibility is saved.                                                                |
+| Progression storage                | Key-relative `ChordRef`, so it transposes with key and mode.                                                             |
+| Reordering                         | Drag (dnd-kit; pointer, touch and keyboard).                                                                             |
+| Non-Ionian modes                   | Borrow automatically from the parallel Aeolian (major-third modes) or Ionian (minor-third modes).                        |
+| Sound                              | Optional metronome click with accents. No chord audio yet.                                                               |
+| Meter                              | Time-signature presets. BPM counts the denominator unit.                                                                 |
+| Chord length                       | Per-slot length in bars (default 1). ½ bar only when the bar splits evenly.                                              |
+| Persistence                        | One current progression and its settings in localStorage.                                                                |
+| Function hints                     | Only the secondary dominant → target arrows.                                                                             |
+| Timing engine                      | Our own Web Audio look-ahead scheduler (not `setInterval`, not Tone.js).                                                 |
+| Note typing                        | New `SpelledNote`. The unused `NoteName` is removed.                                                                     |
+| Secondary dominants in triads mode | Always V7 (user, 2026-10-20); Chord Shapes triads mode voices the triad                                                  |
+| Out-of-key marker                  | Dashed neutral ring. The gold ring stays reserved for modal characteristic notes.                                        |
