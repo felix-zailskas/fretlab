@@ -6,19 +6,14 @@ import {
   type ChromaticNote,
 } from "./notes";
 import type { Tuning } from "./tuning";
-import type {
-  TriadQuality,
-  ChordQuality,
-  DiatonicTriad,
-  DiatonicChord,
-} from "./scales";
+import type { TriadQuality, ChordQuality } from "./scales";
 import {
   getCharacteristicNoteIndexSet,
   MODE_INTERVALS,
   type Mode as ModalMode,
 } from "./modes";
 import type { NoteMarker } from "./types";
-import { QUALITY_INTERVALS } from "./harmony";
+import { QUALITY_INTERVALS, type ChordToneSource } from "./harmony";
 
 // String numbering follows standard guitar nomenclature: string 1 = high E,
 // string 6 = low E. The marker pipeline (buildChordShapeMarkers, see follow-up
@@ -608,7 +603,7 @@ export type BuildChordShapeMarkersInput =
       mode: "triads";
       tuning: Tuning;
       modalMode?: ModalMode;
-      chord: DiatonicTriad;
+      chord: ChordToneSource; // must hold 3 notes
       key: string;
       stringSets: ReadonlyArray<StringSet>;
       inversions: ReadonlyArray<Inversion>;
@@ -621,7 +616,7 @@ export type BuildChordShapeMarkersInput =
       tuning: Tuning;
       modalMode?: ModalMode;
       voicingSystem: VoicingSystem;
-      chord: DiatonicChord;
+      chord: ChordToneSource; // must hold 4 notes
       key: string;
       stringSets: ReadonlyArray<SeventhStringSet>;
       inversions: ReadonlyArray<SeventhInversion>;
@@ -668,7 +663,7 @@ function getRootFrets(
 // this with a non-CAGED tuning is undefined behavior; the view layer must
 // gate on tuningSupportsView.
 function placeChordOnCombo(
-  chord: { quality: string; notes: readonly string[] },
+  chord: ChordToneSource,
   shape: TriadShape | SeventhShape,
   tuning: Tuning,
   spellingMap: ReadonlyMap<number, string>,
@@ -680,6 +675,7 @@ function placeChordOnCombo(
   const anchorMarkerString = shapeStringToMarkerString(shape.rootString);
   const openAnchorNote = tuning.strings[anchorMarkerString];
   const candidates = getRootFrets(chord.notes[0], openAnchorNote, startFret, endFret);
+  const chordSpelling = new Map(chord.notes.map((n) => [getNoteIndex(n), n]));
   const result: NoteMarker[] = [];
 
   for (const candidate of candidates) {
@@ -694,14 +690,18 @@ function placeChordOnCombo(
       const markerString = shapeStringToMarkerString(p.string);
       const openNote = tuning.strings[markerString];
       const noteSharp = getNoteAtFret(openNote, absFret);
-      const isCharacteristic = characteristicSet.has(getNoteIndex(noteSharp));
+      const pc = getNoteIndex(noteSharp);
+      const isCharacteristic = characteristicSet.has(pc);
+      const isOutsideKey = !spellingMap.has(pc);
       const finalRole = enabledStrings.has(markerString) ? p.role : "muted";
       result.push({
         string: markerString,
         fret: absFret,
-        note: spellingMap.get(getNoteIndex(noteSharp)) ?? noteSharp,
+        // Chord spelling first (A7's C#), then the key's, then the sharp name.
+        note: chordSpelling.get(pc) ?? spellingMap.get(pc) ?? noteSharp,
         role: finalRole,
         ...(isCharacteristic ? { isCharacteristic: true } : {}),
+        ...(isOutsideKey ? { isOutsideKey: true } : {}),
       });
     }
   }
@@ -712,7 +712,7 @@ function placeChordOnCombo(
 // Canonical order ensures stable output regardless of input order of inversions.
 const INVERSION_ORDER: Inversion[] = ["root", "first", "second"];
 
-// Pure: given one diatonic chord and the view's sub-selector state, returns
+// Pure: given one map chord and the view's sub-selector state, returns
 // every NoteMarker the Fretboard should render. Returns [] for ALL_NOTES_KEY
 // or when the active sub-selector set is empty. Drops placements whose shape
 // doesn't fit inside [startFret, endFret].
@@ -730,6 +730,8 @@ export function buildChordShapeMarkers(
   );
 
   if (input.mode === "triads") {
+    if (input.chord.notes.length !== 3) return [];
+    if (input.stringSets.length === 0 || input.inversions.length === 0) return [];
     if (input.stringSets.length === 0 || input.inversions.length === 0) return [];
     const result: NoteMarker[] = [];
     for (const stringSet of input.stringSets) {
@@ -757,6 +759,7 @@ export function buildChordShapeMarkers(
   }
 
   // sevenths
+  if (input.chord.notes.length !== 4) return [];
   if (input.stringSets.length === 0 || input.inversions.length === 0) return [];
   const result: NoteMarker[] = [];
   const systemTable = SEVENTH_SHAPES[input.voicingSystem];

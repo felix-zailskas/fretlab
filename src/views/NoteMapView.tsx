@@ -1,25 +1,11 @@
 import { useMemo } from "react";
 import { Fretboard } from "../components/Fretboard/Fretboard";
-import { ALL_NOTES_KEY } from "../components/KeySelector";
 import { Legend, type HighlightableRole } from "../components/Legend";
-import { roleFromChordTone, HIGHLIGHTABLE } from "../theory/chordTones";
-import {
-  buildDiatonicSpellingMap,
-  getNoteAtFret,
-  getNoteIndex,
-  getDisplayName,
-  type AccidentalStyle,
-  type ChromaticNote,
-} from "../theory/notes";
+import { buildNoteMapMarkers } from "../theory/chordTones";
+import type { ChordToneSource } from "../theory/harmony";
+import type { AccidentalStyle } from "../theory/notes";
 import type { Tuning } from "../theory/tuning";
-import { type DiatonicChord, type DiatonicTriad } from "../theory/scales";
-import {
-  getCharacteristicNoteIndexSet,
-  getModalIntervalRole,
-  MODE_INTERVALS,
-  type Mode,
-} from "../theory/modes";
-import type { NoteMarker, NoteDisplayRole } from "../theory/types";
+import type { Mode } from "../theory/modes";
 
 type NoteMapViewProps = {
   tuning: Tuning;
@@ -28,7 +14,7 @@ type NoteMapViewProps = {
   enabledHighlights: Set<HighlightableRole>;
   onToggleRole: (role: HighlightableRole) => void;
   disabledRoles?: Set<HighlightableRole>;
-  selectedChord: DiatonicChord | DiatonicTriad | null;
+  selectedChord: ChordToneSource | null;
   startFret: number;
   endFret: number;
   enabledStrings: ReadonlySet<number>;
@@ -52,64 +38,31 @@ export function NoteMapView({
   onToggleString,
   mode = "ionian",
 }: NoteMapViewProps) {
-  const markers = useMemo(() => {
-    const result: NoteMarker[] = [];
-    const showAll = selectedKey === ALL_NOTES_KEY;
-
-    const characteristicSet = showAll
-      ? (new Set<number>() as ReadonlySet<number>)
-      : getCharacteristicNoteIndexSet(selectedKey, mode);
-
-    const spellingMap = showAll
-      ? null
-      : buildDiatonicSpellingMap(selectedKey as ChromaticNote, MODE_INTERVALS[mode]);
-
-    for (let stringIndex = 0; stringIndex < tuning.strings.length; stringIndex++) {
-      const openString = tuning.strings[stringIndex];
-      for (let fret = startFret; fret <= endFret; fret++) {
-        const note = getNoteAtFret(openString, fret);
-
-        let role: NoteDisplayRole;
-        if (showAll) {
-          role = "scale";
-        } else {
-          if (getModalIntervalRole(selectedKey, mode, note) === null) continue;
-          role = roleFromChordTone(note, selectedChord);
-          if (
-            HIGHLIGHTABLE.has(role) &&
-            !enabledHighlights.has(role as HighlightableRole)
-          ) {
-            role = "scale";
-          }
-        }
-
-        const isCharacteristic = characteristicSet.has(getNoteIndex(note));
-        const finalRole = enabledStrings.has(stringIndex) ? role : "muted";
-
-        result.push({
-          string: stringIndex,
-          fret,
-          note:
-            spellingMap?.get(getNoteIndex(note)) ??
-            getDisplayName(note, selectedKey, accidentalStyle),
-          role: finalRole,
-          ...(isCharacteristic ? { isCharacteristic: true } : {}),
-        });
-      }
-    }
-
-    return result;
-  }, [
-    tuning,
-    selectedKey,
-    accidentalStyle,
-    enabledHighlights,
-    selectedChord,
-    startFret,
-    endFret,
-    enabledStrings,
-    mode,
-  ]);
+  const markers = useMemo(
+    () =>
+      buildNoteMapMarkers({
+        tuning,
+        key: selectedKey,
+        mode,
+        accidentalStyle,
+        chord: selectedChord,
+        enabledHighlights,
+        enabledStrings,
+        startFret,
+        endFret,
+      }),
+    [
+      tuning,
+      selectedKey,
+      mode,
+      accidentalStyle,
+      selectedChord,
+      enabledHighlights,
+      enabledStrings,
+      startFret,
+      endFret,
+    ],
+  );
 
   return (
     <div className="space-y-2 md:space-y-4">

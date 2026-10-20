@@ -24,4 +24,7 @@ export type NoteMarker = {
   // characteristic-tone color. Set by marker pipelines for notes flagged
   // characteristic by getCharacteristicNotes(key, mode).
   isCharacteristic?: boolean;
+  // When true, the note is a chord tone outside the key/mode (e.g. the C#
+  // of A7 in C major). The renderer draws a dashed neutral ring.
+  isOutsideKey?: boolean;
 };
