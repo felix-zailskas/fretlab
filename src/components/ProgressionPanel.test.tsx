@@ -38,7 +38,7 @@ function Harness({ selectedKey = "C" }: { selectedKey?: string }) {
       <button type="button" onClick={() => player.add({ tier: "diatonic", degree: 4 })}>
         Add F
       </button>
-      <ProgressionPanel player={player} disabled={selectedKey === ALL_NOTES_KEY} />
+      <ProgressionPanel player={player} noKey={selectedKey === ALL_NOTES_KEY} />
     </>
   );
 }
@@ -116,11 +116,32 @@ describe.each(TIME_SIGNATURE_PRESETS.map((p) => [timeSignatureLabel(p), p] as co
 );
 
 describe("ProgressionPanel — transport and visibility", () => {
-  it("disables Play when nothing can be played", () => {
+  it("plays with an empty progression", async () => {
+    render(<Harness />);
+    await userEvent.click(screen.getByRole("button", { name: "Play" }));
+    expect([
+      screen.getByRole("button", { name: "Stop" }),
+      screen.getByText("Click ＋ on a chord below to start a progression"),
+    ]).toHaveLength(2);
+  });
+
+  it("plays when nothing on the strip resolves", async () => {
     prime({ slots: [{ id: "x", ref: { tier: "secondary", degree: 1 }, bars: 1 }] });
     render(<Harness />);
-    expect(screen.getByRole("button", { name: "Play" })).toBeDisabled();
+    await userEvent.click(screen.getByRole("button", { name: "Play" }));
+    expect(screen.getByRole("button", { name: "Stop" })).toBeInTheDocument();
   });
+
+  it.each(TIME_SIGNATURE_PRESETS.map((p) => [timeSignatureLabel(p), p] as const))(
+    "shows %s beat dots while playing",
+    async (_label, preset) => {
+      prime({ timeSignature: preset });
+      render(<Harness />);
+      expect(screen.queryAllByTestId("beat-dot")).toHaveLength(0);
+      await userEvent.click(screen.getByRole("button", { name: "Play" }));
+      expect(screen.getAllByTestId("beat-dot")).toHaveLength(preset.beats);
+    },
+  );
 
   it("plays with a stubbed AudioContext", async () => {
     render(<Harness />);
@@ -137,31 +158,33 @@ describe("ProgressionPanel — transport and visibility", () => {
     ).not.toBeInTheDocument();
   });
 
-  it("shows a hint under the All key", () => {
+  it("under the All key, only the strip shows a hint", () => {
     prime({ slots: [{ id: "f", ref: { tier: "diatonic", degree: 4 }, bars: 1 }] });
     render(<Harness selectedKey={ALL_NOTES_KEY} />);
-    expect(
-      screen.getByText("Pick a key to build and play a progression."),
-    ).toBeInTheDocument();
+    expect([
+      screen.queryByText("Pick a key to build and play a progression.") !== null,
+      screen.queryByTestId("progression-slot"),
+      (screen.getByRole("button", { name: "Play" }) as HTMLButtonElement).disabled,
+      (screen.getByRole("spinbutton", { name: "BPM" }) as HTMLInputElement).disabled,
+    ]).toEqual([true, null, false, false]);
   });
 
-  it("disables Play under the All key", () => {
-    prime({ slots: [{ id: "f", ref: { tier: "diatonic", degree: 4 }, bars: 1 }] });
+  it("plays the metronome under the All key", async () => {
     render(<Harness selectedKey={ALL_NOTES_KEY} />);
-    expect(screen.getByRole("button", { name: "Play" })).toBeDisabled();
+    await userEvent.click(screen.getByRole("button", { name: "Play" }));
+    expect(screen.getByRole("button", { name: "Stop" })).toBeInTheDocument();
   });
 });
 
-describe("ProgressionPanel — disabled while playing", () => {
-  it("never leaves Stop disabled: switching to the All key stops playback", async () => {
+describe("ProgressionPanel — switching to All while playing", () => {
+  it("keeps playing and Stop still works", async () => {
     prime({ slots: [{ id: "f", ref: { tier: "diatonic", degree: 4 }, bars: 1 }] });
     const { rerender } = render(<Harness />);
     await userEvent.click(screen.getByRole("button", { name: "Play" }));
-    expect(screen.getByRole("button", { name: "Stop" })).toBeEnabled();
     await act(async () => {
       rerender(<Harness selectedKey={ALL_NOTES_KEY} />);
     });
-    expect(screen.queryByRole("button", { name: "Stop" })).not.toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Play" })).toBeDisabled();
+    await userEvent.click(screen.getByRole("button", { name: "Stop" }));
+    expect(screen.getByRole("button", { name: "Play" })).toBeInTheDocument();
   });
 });

@@ -9,8 +9,8 @@ function renderControls(
 ) {
   const props = {
     isPlaying: false,
-    canPlay: true,
-    disabled: false,
+    beatInBar: null,
+    metronomeOnly: false,
     hasSlots: true,
     bpm: 90,
     timeSignature: { beats: 4, unit: 4 } as const,
@@ -29,19 +29,14 @@ function renderControls(
 }
 
 describe("TransportControls — play", () => {
-  it("disables Play when nothing can be played", () => {
-    renderControls({ canPlay: false });
-    expect(screen.getByRole("button", { name: "Play" })).toBeDisabled();
+  it("enables Play even in metronome-only mode", () => {
+    renderControls({ metronomeOnly: true, hasSlots: false });
+    expect(screen.getByRole("button", { name: "Play" })).toBeEnabled();
   });
 
   it("shows Stop while playing", () => {
     renderControls({ isPlaying: true });
     expect(screen.getByRole("button", { name: "Stop" })).toBeEnabled();
-  });
-
-  it("disables everything when the panel is disabled", () => {
-    renderControls({ disabled: true });
-    expect(screen.getByRole("spinbutton", { name: "BPM" })).toBeDisabled();
   });
 
   it("calls onTogglePlay", async () => {
@@ -166,5 +161,48 @@ describe("TransportControls — toggles", () => {
   it("Clear is disabled without slots", () => {
     renderControls({ hasSlots: false });
     expect(screen.getByRole("button", { name: "Clear" })).toBeDisabled();
+  });
+});
+
+describe("TransportControls — beat dots", () => {
+  it("shows no dots while stopped", () => {
+    renderControls({ isPlaying: false, beatInBar: null });
+    expect(screen.queryAllByTestId("beat-dot")).toHaveLength(0);
+  });
+
+  it.each(TIME_SIGNATURE_PRESETS.map((p) => [timeSignatureLabel(p), p] as const))(
+    "shows one dot per beat of %s and fills the current one",
+    (_label, preset) => {
+      const current = preset.beats - 1;
+      renderControls({ isPlaying: true, beatInBar: current, timeSignature: preset });
+      const dots = screen.getAllByTestId("beat-dot");
+      expect([
+        dots.length,
+        dots.findIndex((d) => d.getAttribute("data-current") === "true"),
+      ]).toEqual([preset.beats, current]);
+    },
+  );
+});
+
+describe("TransportControls — metronome only", () => {
+  const TITLE = "Click always sounds when no chords are playing";
+
+  it("explains why Click has no effect", () => {
+    renderControls({ metronomeOnly: true });
+    expect(screen.getByRole("button", { name: "Click" })).toHaveAttribute(
+      "title",
+      TITLE,
+    );
+  });
+
+  it("keeps Click usable", async () => {
+    const props = renderControls({ metronomeOnly: true, click: false });
+    await userEvent.click(screen.getByRole("button", { name: "Click" }));
+    expect(props.onClickChange).toHaveBeenCalledWith(true);
+  });
+
+  it("has no Click title with chords", () => {
+    renderControls({ metronomeOnly: false });
+    expect(screen.getByRole("button", { name: "Click" })).not.toHaveAttribute("title");
   });
 });

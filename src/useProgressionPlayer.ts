@@ -9,7 +9,7 @@ import {
   type MapChord,
 } from "./theory/harmony";
 import {
-  buildTimeline,
+  playbackTimeline,
   snapSlotLength,
   type TimeSignature,
   type TimelinePosition,
@@ -37,7 +37,8 @@ export type UseProgressionPlayerOptions = {
 export type ProgressionPlayer = {
   state: StoredProgression;
   resolvedSlots: ResolvedSlot[];
-  canPlay: boolean;
+  /** No slot is playable, so Play runs a plain metronome: one looping bar, click on. */
+  metronomeOnly: boolean;
   isPlaying: boolean;
   currentSlot: number | null;
   nextSlot: number | null;
@@ -105,20 +106,25 @@ export function useProgressionPlayer({
     () => resolvedSlots.filter((r) => r.chord !== null).map((r) => r.slot),
     [resolvedSlots],
   );
+  const metronomeOnly = playable.length === 0;
+  // A metronome never ends, whatever the Loop setting, and is never silent.
+  const loop = state.loop || metronomeOnly;
+  const audibleClick = state.click || metronomeOnly;
   const timeline = useMemo(
     () =>
-      buildTimeline(
+      playbackTimeline(
         playable.map((s) => s.bars),
         state.timeSignature,
       ),
     [playable, state.timeSignature],
   );
 
-  // Read by the transport on every beat, so edits made mid-play take effect.
+  // Read by the transport on every beat, so edits made mid-play take effect
+  // (including switching to metronome-only when the last chord goes away).
   const live = useRef<LiveState>({
     timeline,
     sig: state.timeSignature,
-    loop: state.loop,
+    loop,
     playable,
     onChordChange,
   });
@@ -126,11 +132,14 @@ export function useProgressionPlayer({
     live.current = {
       timeline,
       sig: state.timeSignature,
-      loop: state.loop,
+      loop,
       playable,
       onChordChange,
     };
-  }, [timeline, state.timeSignature, state.loop, playable, onChordChange]);
+  }, [timeline, state.timeSignature, loop, playable, onChordChange]);
+  useEffect(() => {
+    transport.setClick(audibleClick);
+  }, [transport, audibleClick]);
   const lastAnnounced = useRef<string | null>(null);
 
   const stop = useCallback(() => {
@@ -139,36 +148,39 @@ export function useProgressionPlayer({
   }, [transport]);
 
   const startFrom = useCallback(
-    (slotId: string, sig: TimeSignature) => {
+    (slotId: string | null, sig: TimeSignature) => {
       const slots = playable.map((s) => ({ ...s, bars: snapSlotLength(s.bars, sig) }));
-      if (slots.length === 0) {
-        stop();
-        return;
-      }
+      const noChords = slots.length === 0;
       const startIndex = Math.max(
         0,
         slots.findIndex((s) => s.id === slotId),
       );
-      const nextTimeline = buildTimeline(
+      const nextTimeline = playbackTimeline(
         slots.map((s) => s.bars),
         sig,
       );
-      live.current = { ...live.current, timeline: nextTimeline, sig, playable: slots };
+      live.current = {
+        ...live.current,
+        timeline: nextTimeline,
+        sig,
+        loop: state.loop || noChords,
+        playable: slots,
+      };
       lastAnnounced.current = null;
       transport.start({
         bpm: state.bpm,
-        click: state.click,
+        click: state.click || noChords,
         startBeat: nextTimeline.starts[startIndex],
         snapshot: () => live.current,
         onPosition: (pos: TimelinePosition) => {
-          const slot = live.current.playable[pos.slotIndex];
-          if (!slot) return;
+          // Empty in metronome-only mode: count the bar, announce nothing.
+          const slot = live.current.playable[pos.slotIndex] ?? null;
           setPlayback({
             isPlaying: true,
-            currentSlotId: slot.id,
+            currentSlotId: slot?.id ?? null,
             beatInBar: pos.beatInBar,
           });
-          if (lastAnnounced.current !== slot.id) {
+          if (slot && lastAnnounced.current !== slot.id) {
             lastAnnounced.current = slot.id;
             live.current.onChordChange(slot.ref);
           }
@@ -177,17 +189,29 @@ export function useProgressionPlayer({
       });
       setPlayback({
         isPlaying: true,
-        currentSlotId: slots[startIndex].id,
+        currentSlotId: slots[startIndex]?.id ?? null,
         beatInBar: 0,
       });
     },
-    [playable, state.bpm, state.click, transport, stop],
+    [playable, state.bpm, state.click, state.loop, transport],
   );
 
   const play = useCallback(() => {
-    const first = playable[0];
-    if (first) startFrom(first.id, state.timeSignature);
+    startFrom(playable[0]?.id ?? null, state.timeSignature);
   }, [playable, startFrom, state.timeSignature]);
+
+  // Chords became playable while the metronome runs (one was added, or the key
+  // left "All"): restart on slot 0 right away. Done here, never from inside the
+  // transport's callbacks — restarting the transport from its own frame leaks
+  // a frame loop.
+  const wasMetronomeOnly = useRef(metronomeOnly);
+  useEffect(() => {
+    const was = wasMetronomeOnly.current;
+    wasMetronomeOnly.current = metronomeOnly;
+    if (was && !metronomeOnly && playback.isPlaying) {
+      startFrom(playable[0].id, state.timeSignature);
+    }
+  }, [metronomeOnly, playback.isPlaying, playable, startFrom, state.timeSignature]);
 
   const toggle = useCallback(() => {
     if (playback.isPlaying) stop();
@@ -208,8 +232,7 @@ export function useProgressionPlayer({
     (sig: TimeSignature) => {
       dispatch({ type: "set-time-signature", sig });
       if (!playback.isPlaying) return;
-      const from = playback.currentSlotId ?? playable[0]?.id;
-      if (from) startFrom(from, sig);
+      startFrom(playback.currentSlotId ?? playable[0]?.id ?? null, sig);
     },
     [playback.isPlaying, playback.currentSlotId, playable, startFrom],
   );
@@ -224,11 +247,8 @@ export function useProgressionPlayer({
   );
 
   const setClick = useCallback(
-    (enabled: boolean) => {
-      dispatch({ type: "set-click", enabled });
-      transport.setClick(enabled);
-    },
-    [transport],
+    (enabled: boolean) => dispatch({ type: "set-click", enabled }),
+    [],
   );
 
   const clear = useCallback(() => {
@@ -253,9 +273,13 @@ export function useProgressionPlayer({
     (loop: boolean) => dispatch({ type: "set-loop", loop }),
     [],
   );
+  // Hiding the panel stops playback: no playing without a visible Stop.
   const setVisible = useCallback(
-    (visible: boolean) => dispatch({ type: "set-visible", visible }),
-    [],
+    (visible: boolean) => {
+      if (!visible) stop();
+      dispatch({ type: "set-visible", visible });
+    },
+    [stop],
   );
 
   const currentIndex = playback.isPlaying
@@ -274,7 +298,7 @@ export function useProgressionPlayer({
   return {
     state,
     resolvedSlots,
-    canPlay: playable.length > 0,
+    metronomeOnly,
     isPlaying: playback.isPlaying,
     currentSlot: currentIndex === -1 ? null : currentIndex,
     nextSlot: nextIndex === -1 ? null : nextIndex,

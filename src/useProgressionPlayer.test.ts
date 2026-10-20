@@ -9,6 +9,7 @@ import {
   type StoredProgression,
 } from "./theory/progressionStorage";
 import type { ChordRef } from "./theory/harmony";
+import { TIME_SIGNATURE_PRESETS, timeSignatureLabel } from "./theory/meter";
 
 const F: ChordRef = { tier: "diatonic", degree: 4 };
 const G: ChordRef = { tier: "diatonic", degree: 5 };
@@ -75,19 +76,6 @@ describe("useProgressionPlayer — state", () => {
 });
 
 describe("useProgressionPlayer — playback", () => {
-  it("cannot play when no slot resolves", () => {
-    const { result, metronome } = setup();
-    act(() => result.current.add(NEVER));
-    act(() => result.current.play());
-    expect([result.current.canPlay, metronome.running]).toEqual([false, false]);
-  });
-
-  it("cannot play under the All key", () => {
-    const { result } = setup("all");
-    act(() => result.current.add(F));
-    expect(result.current.canPlay).toBe(false);
-  });
-
   it("announces the slot's chord when its first beat sounds", async () => {
     const { result, metronome, onChordChange } = setup();
     act(() => result.current.add(F));
@@ -155,5 +143,126 @@ describe("useProgressionPlayer — playback", () => {
     const afterFirst = result.current.isPlaying;
     act(() => result.current.toggle());
     expect([afterFirst, result.current.isPlaying]).toEqual([true, false]);
+  });
+});
+
+describe("useProgressionPlayer — metronome only", () => {
+  // Emits the next beat and waits for its frame to reach React state.
+  async function step(
+    metronome: ReturnType<typeof setup>["metronome"],
+    beat: number,
+    expected: () => void,
+  ) {
+    metronome.currentTime = beat + 1;
+    act(() => metronome.emit(beat, beat));
+    await waitFor(expected);
+  }
+
+  it("plays with zero slots", () => {
+    const { result, metronome } = setup();
+    act(() => result.current.play());
+    expect([
+      result.current.metronomeOnly,
+      result.current.isPlaying,
+      metronome.running,
+    ]).toEqual([true, true, true]);
+  });
+
+  it.each(TIME_SIGNATURE_PRESETS.map((p) => [timeSignatureLabel(p), p] as const))(
+    "beatInBar counts one bar of %s and wraps",
+    async (_label, preset) => {
+      prime({ timeSignature: preset });
+      const { result, metronome, onChordChange } = setup();
+      act(() => result.current.play());
+      for (let beat = 0; beat <= preset.beats; beat++) {
+        await step(metronome, beat, () =>
+          expect(result.current.beatInBar).toBe(beat % preset.beats),
+        );
+      }
+      expect([onChordChange.mock.calls.length, result.current.currentSlot]).toEqual([
+        0,
+        null,
+      ]);
+    },
+  );
+
+  it("forces the click on even when Click is off", () => {
+    const { result, metronome } = setup();
+    act(() => result.current.play());
+    act(() => result.current.setClick(false));
+    expect([result.current.state.click, metronome.click]).toEqual([false, true]);
+  });
+
+  it("keeps running past one bar with Loop off", async () => {
+    prime({ loop: false });
+    const { result, metronome } = setup();
+    act(() => result.current.play());
+    for (let beat = 0; beat < 9; beat++) {
+      await step(metronome, beat, () =>
+        expect(result.current.beatInBar).toBe(beat % 4),
+      );
+    }
+    expect([result.current.isPlaying, metronome.running]).toEqual([true, true]);
+  });
+
+  it("runs when every slot is unplayable", () => {
+    const { result, metronome } = setup();
+    act(() => result.current.add(NEVER));
+    act(() => result.current.play());
+    expect([result.current.metronomeOnly, metronome.running]).toEqual([true, true]);
+  });
+
+  it("runs under the All key without announcing chords", async () => {
+    prime({ slots: [{ id: "f", ref: F, bars: 1 }] });
+    const { result, metronome, onChordChange } = setup("all");
+    act(() => result.current.play());
+    await step(metronome, 0, () => expect(result.current.beatInBar).toBe(0));
+    await step(metronome, 1, () => expect(result.current.beatInBar).toBe(1));
+    expect([result.current.metronomeOnly, onChordChange.mock.calls.length]).toEqual([
+      true,
+      0,
+    ]);
+  });
+
+  it("adding a playable chord restarts from slot 0 and announces it", async () => {
+    const { result, metronome, onChordChange } = setup();
+    act(() => result.current.play());
+    act(() => result.current.add(F));
+    expect([metronome.starts, metronome.click]).toEqual([2, false]);
+    await step(metronome, 0, () => expect(onChordChange).toHaveBeenCalledWith(F));
+    expect(result.current.currentSlot).toBe(0);
+  });
+
+  it("removing the last playable slot keeps playing as a metronome", async () => {
+    const { result, metronome, onChordChange } = setup();
+    act(() => result.current.add(F));
+    act(() => result.current.play());
+    await step(metronome, 0, () => expect(onChordChange).toHaveBeenCalledWith(F));
+    act(() => result.current.remove(result.current.state.slots[0].id));
+    await step(metronome, 1, () => expect(result.current.beatInBar).toBe(1));
+    expect([
+      result.current.isPlaying,
+      result.current.metronomeOnly,
+      result.current.currentSlot,
+      metronome.starts,
+      metronome.click,
+    ]).toEqual([true, true, null, 1, true]);
+  });
+
+  it("changing the time signature restarts the metronome", () => {
+    const { result, metronome } = setup();
+    act(() => result.current.play());
+    act(() => result.current.setTimeSignature({ beats: 3, unit: 4 }));
+    expect([metronome.starts, result.current.isPlaying]).toEqual([2, true]);
+  });
+});
+
+describe("useProgressionPlayer — visibility", () => {
+  it("hiding the panel stops playback", () => {
+    const { result, metronome } = setup();
+    act(() => result.current.add(F));
+    act(() => result.current.play());
+    act(() => result.current.setVisible(false));
+    expect([result.current.isPlaying, metronome.running]).toEqual([false, false]);
   });
 });

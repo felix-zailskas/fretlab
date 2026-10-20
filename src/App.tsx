@@ -137,6 +137,7 @@ function App() {
     onChordChange: setSelectedChordRef,
   });
   const togglePlayback = player.toggle;
+  const progressionVisible = player.state.visible;
   const [showAbout, setShowAbout] = useState(false);
   const [startFret, setStartFret] = useState(0);
   const [endFret, setEndFret] = useState(() =>
@@ -193,10 +194,11 @@ function App() {
 
   // Space toggles the progression player. Ignored in form fields and on
   // buttons (a focused button already activates on Space, and dnd-kit's drag
-  // handle uses Space to pick up a card).
+  // handle uses Space to pick up a card), on key repeat (holding Space would
+  // flip playback on and off), and while the panel is hidden (no visible Stop).
   useEffect(() => {
     function handleSpace(e: KeyboardEvent) {
-      if (e.key !== " ") return;
+      if (e.key !== " " || e.repeat || !progressionVisible) return;
       if (e.metaKey || e.ctrlKey || e.altKey) return;
       const t = e.target;
       if (
@@ -212,7 +214,7 @@ function App() {
     }
     window.addEventListener("keydown", handleSpace);
     return () => window.removeEventListener("keydown", handleSpace);
-  }, [togglePlayback]);
+  }, [togglePlayback, progressionVisible]);
 
   const cycleTheme = useCallback(() => {
     setThemeMode((prev) =>
@@ -293,7 +295,7 @@ function App() {
   // the chord map, identically in every view.
   const chordArea = (
     <>
-      <ProgressionPanel player={player} disabled={isAllNotesKey} />
+      <ProgressionPanel player={player} noKey={isAllNotesKey} />
       <ChordMap
         selectedKey={selectedKey}
         modalMode={mode}

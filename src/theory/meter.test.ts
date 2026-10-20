@@ -7,6 +7,7 @@ import {
   beatsPerSlot,
   buildTimeline,
   locate,
+  playbackTimeline,
   secondsPerBeat,
   snapSlotLength,
   timeSignatureLabel,
@@ -108,6 +109,21 @@ describe("buildTimeline", () => {
 
   it("is empty for no slots", () => {
     expect(buildTimeline([], FOUR_FOUR)).toEqual({ starts: [], totalBeats: 0 });
+  });
+});
+
+describe("playbackTimeline", () => {
+  it("matches buildTimeline when there are slots", () => {
+    expect(playbackTimeline([1, 0.5, 2], FOUR_FOUR)).toEqual(
+      buildTimeline([1, 0.5, 2], FOUR_FOUR),
+    );
+  });
+
+  it.each(PRESET_CASES)("is one bar of %s when there are no slots", (_l, preset) => {
+    expect(playbackTimeline([], preset)).toEqual({
+      starts: [0],
+      totalBeats: preset.beats,
+    });
   });
 });
 

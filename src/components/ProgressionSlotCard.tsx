@@ -2,6 +2,7 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import type { MapChord } from "../theory/harmony";
 import type { ProgressionSlot } from "../theory/progressionStorage";
+import { BeatDots } from "./BeatDots";
 
 type ProgressionSlotCardProps = {
   slot: ProgressionSlot;
@@ -12,7 +13,6 @@ type ProgressionSlotCardProps = {
   isNext: boolean;
   beatInBar: number;
   beatsPerBar: number;
-  disabled: boolean;
   onSelect: (index: number) => void;
   onRemove: (id: string) => void;
   onSetBars: (id: string, bars: number) => void;
@@ -41,7 +41,6 @@ export function ProgressionSlotCard({
   isNext,
   beatInBar,
   beatsPerBar,
-  disabled,
   onSelect,
   onRemove,
   onSetBars,
@@ -54,7 +53,7 @@ export function ProgressionSlotCard({
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: slot.id, disabled });
+  } = useSortable({ id: slot.id });
   const playable = chord !== null;
   const label = chord?.symbol ?? "—";
   const lengthIndex = allowedLengths.indexOf(slot.bars);
@@ -94,7 +93,7 @@ export function ProgressionSlotCard({
       <button
         type="button"
         aria-label={`Select ${label}`}
-        disabled={!playable || disabled}
+        disabled={!playable}
         onClick={() => onSelect(index)}
         className="flex flex-col items-center gap-0.5 cursor-pointer disabled:cursor-not-allowed"
       >
@@ -124,16 +123,7 @@ export function ProgressionSlotCard({
           +
         </button>
       </div>
-      {isCurrent && (
-        <div className="flex justify-center gap-1" aria-hidden="true">
-          {Array.from({ length: beatsPerBar }, (_, i) => (
-            <span
-              key={i}
-              className={`size-1.5 rounded-full ${i === beatInBar ? "bg-fg-emphasis" : "bg-line-emphasis"}`}
-            />
-          ))}
-        </div>
-      )}
+      {isCurrent && <BeatDots beats={beatsPerBar} current={beatInBar} />}
     </li>
   );
 }

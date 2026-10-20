@@ -44,7 +44,8 @@ export function ChordMapCard({
 }: ChordMapCardProps) {
   const { tier, degree } = chord.ref;
   // While ＋ is shown, the top padding clears its 32px hit area so the
-  // numeral never sits under it.
+  // numeral never sits under it — at md widths too: at 900px, maj7 numerals
+  // in sevenths mode reach under the hit area with md:pt-4.
   const padY = onAdd ? "pt-8 pb-2 md:pb-4" : "py-2 md:py-4";
   return (
     <div className="relative flex flex-col items-stretch gap-1">
@@ -78,11 +79,11 @@ export function ChordMapCard({
           type="button"
           aria-label={`Add ${chord.symbol} to progression`}
           onClick={() => onAdd(chord.ref)}
-          className="group absolute top-0 right-0 w-8 h-8 flex items-start justify-end p-1.5 rounded-tr-xl cursor-pointer"
+          className="group absolute top-0 right-0 w-8 h-8 flex items-start justify-end p-1.5 rounded-tr-xl cursor-pointer focus-visible:outline-none"
         >
           <span
             aria-hidden="true"
-            className="w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold bg-surface-active text-fg-secondary group-hover:text-fg-emphasis"
+            className="w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold bg-surface-active text-fg-secondary group-hover:text-fg-emphasis group-focus-visible:ring-2 group-focus-visible:ring-selection group-focus-visible:text-fg-emphasis"
           >
             ＋
           </span>

@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, beforeAll, afterEach, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import App from "./App";
 import type { CustomTuning } from "./theory/tuning";
@@ -323,6 +323,47 @@ describe("App — progression player", () => {
     await addF();
     await userEvent.click(screen.getByRole("spinbutton", { name: "BPM" }));
     await userEvent.keyboard(" ");
+    expect(screen.getByRole("button", { name: "Play" })).toBeInTheDocument();
+  });
+
+  it("held Space (key repeat) does not toggle playback", async () => {
+    render(<App />);
+    blurActive();
+    fireEvent.keyDown(document.body, { key: " ", repeat: true });
+    expect(screen.getByRole("button", { name: "Play" })).toBeInTheDocument();
+  });
+
+  it.each(["metaKey", "ctrlKey", "altKey"] as const)(
+    "Space with %s held does not toggle playback",
+    async (modifier) => {
+      render(<App />);
+      blurActive();
+      fireEvent.keyDown(document.body, { key: " ", [modifier]: true });
+      expect(screen.getByRole("button", { name: "Play" })).toBeInTheDocument();
+    },
+  );
+
+  it("Space plays the metronome with an empty progression", async () => {
+    render(<App />);
+    blurActive();
+    await userEvent.keyboard(" ");
+    expect(screen.getByRole("button", { name: "Stop" })).toBeInTheDocument();
+  });
+
+  it("hiding the panel stops playback", async () => {
+    render(<App />);
+    await userEvent.click(screen.getByRole("button", { name: "Play" }));
+    await userEvent.click(screen.getByRole("button", { name: "Progression" }));
+    await userEvent.click(screen.getByRole("button", { name: "Progression" }));
+    expect(screen.getByRole("button", { name: "Play" })).toBeInTheDocument();
+  });
+
+  it("Space is ignored while the panel is hidden", async () => {
+    render(<App />);
+    await userEvent.click(screen.getByRole("button", { name: "Progression" }));
+    blurActive();
+    await userEvent.keyboard(" ");
+    await userEvent.click(screen.getByRole("button", { name: "Progression" }));
     expect(screen.getByRole("button", { name: "Play" })).toBeInTheDocument();
   });
 });

@@ -1,15 +1,18 @@
 import { useState } from "react";
 import {
   TIME_SIGNATURE_PRESETS,
+  accentPattern,
   timeSignatureLabel,
   type TimeSignature,
 } from "../theory/meter";
 import { BPM_MAX, BPM_MIN, clampBpm } from "../theory/progressionStorage";
+import { BeatDots } from "./BeatDots";
 
 type TransportControlsProps = {
   isPlaying: boolean;
-  canPlay: boolean;
-  disabled: boolean;
+  /** The beat of the current bar, or null while stopped. */
+  beatInBar: number | null;
+  metronomeOnly: boolean;
   hasSlots: boolean;
   bpm: number;
   timeSignature: TimeSignature;
@@ -27,7 +30,7 @@ const BUTTON =
   "px-3 py-1.5 pointer-coarse:py-3 rounded text-sm font-semibold cursor-pointer disabled:cursor-not-allowed disabled:opacity-40";
 const LABEL = "flex items-center gap-2 text-xs text-fg-muted uppercase tracking-wide";
 const FIELD =
-  "px-2 py-1 rounded border border-line bg-surface-raised text-fg-primary text-sm disabled:opacity-40";
+  "px-2 py-1 rounded border border-line bg-surface-raised text-fg-primary text-sm";
 
 function toggleClass(on: boolean): string {
   return `${BUTTON} ${on ? "bg-surface-active text-fg-emphasis" : "bg-surface-raised text-fg-muted hover:text-fg-secondary"}`;
@@ -35,11 +38,10 @@ function toggleClass(on: boolean): string {
 
 type BpmInputProps = {
   bpm: number;
-  disabled: boolean;
   onCommit: (bpm: number) => void;
 };
 
-function BpmInput({ bpm, disabled, onCommit }: BpmInputProps) {
+function BpmInput({ bpm, onCommit }: BpmInputProps) {
   const [draft, setDraft] = useState(String(bpm));
 
   function commit() {
@@ -61,7 +63,6 @@ function BpmInput({ bpm, disabled, onCommit }: BpmInputProps) {
         min={BPM_MIN}
         max={BPM_MAX}
         value={draft}
-        disabled={disabled}
         onChange={(e) => setDraft(e.target.value)}
         onBlur={commit}
         onKeyDown={(e) => {
@@ -74,26 +75,24 @@ function BpmInput({ bpm, disabled, onCommit }: BpmInputProps) {
 }
 
 export function TransportControls(props: TransportControlsProps) {
-  const { isPlaying, canPlay, disabled, hasSlots, bpm, timeSignature, click, loop } =
-    props;
+  const { isPlaying, beatInBar, metronomeOnly, hasSlots, bpm, timeSignature } = props;
+  const { click, loop } = props;
 
   return (
     <div className="flex flex-wrap items-center gap-2 md:gap-4">
       <button
         type="button"
         onClick={props.onTogglePlay}
-        disabled={disabled || (!isPlaying && !canPlay)}
         className={`${BUTTON} min-w-[4.5rem] bg-surface-active text-fg-emphasis hover:bg-surface-raised`}
       >
         {isPlaying ? "Stop" : "Play"}
       </button>
-      <BpmInput key={bpm} bpm={bpm} disabled={disabled} onCommit={props.onBpmChange} />
+      <BpmInput key={bpm} bpm={bpm} onCommit={props.onBpmChange} />
       <label className={LABEL}>
         Time
         <select
           aria-label="Time signature"
           value={timeSignatureLabel(timeSignature)}
-          disabled={disabled}
           onChange={(e) => {
             const sig = TIME_SIGNATURE_PRESETS.find(
               (p) => timeSignatureLabel(p) === e.target.value,
@@ -115,7 +114,9 @@ export function TransportControls(props: TransportControlsProps) {
       <button
         type="button"
         aria-pressed={click}
-        disabled={disabled}
+        title={
+          metronomeOnly ? "Click always sounds when no chords are playing" : undefined
+        }
         onClick={() => props.onClickChange(!click)}
         className={toggleClass(click)}
       >
@@ -124,7 +125,6 @@ export function TransportControls(props: TransportControlsProps) {
       <button
         type="button"
         aria-pressed={loop}
-        disabled={disabled}
         onClick={() => props.onLoopChange(!loop)}
         className={toggleClass(loop)}
       >
@@ -133,11 +133,18 @@ export function TransportControls(props: TransportControlsProps) {
       <button
         type="button"
         onClick={props.onClear}
-        disabled={disabled || !hasSlots}
+        disabled={!hasSlots}
         className={`${BUTTON} text-fg-muted hover:text-fg-secondary`}
       >
         Clear
       </button>
+      {isPlaying && beatInBar !== null && (
+        <BeatDots
+          beats={timeSignature.beats}
+          current={beatInBar}
+          accents={accentPattern(timeSignature)}
+        />
+      )}
     </div>
   );
 }

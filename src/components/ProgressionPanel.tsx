@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import {
   DndContext,
   KeyboardSensor,
@@ -19,22 +18,18 @@ import type { ProgressionPlayer } from "../useProgressionPlayer";
 import { ProgressionSlotCard } from "./ProgressionSlotCard";
 import { TransportControls } from "./TransportControls";
 
-type ProgressionPanelProps = { player: ProgressionPlayer; disabled: boolean };
+// noKey: the key is "All", so no slot resolves. The metronome still plays.
+type ProgressionPanelProps = { player: ProgressionPlayer; noKey: boolean };
 
 const HINT = "text-sm text-fg-muted";
 
-export function ProgressionPanel({ player, disabled }: ProgressionPanelProps) {
+export function ProgressionPanel({ player, noKey }: ProgressionPanelProps) {
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
     useSensor(TouchSensor, { activationConstraint: { delay: 150, tolerance: 5 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   );
   const { state, resolvedSlots } = player;
-  const { isPlaying, stop } = player;
-  // Disabled implies not playing, so Stop can never be locked out.
-  useEffect(() => {
-    if (disabled && isPlaying) stop();
-  }, [disabled, isPlaying, stop]);
   if (!state.visible) return null;
 
   function handleDragEnd({ active, over }: DragEndEvent) {
@@ -53,8 +48,8 @@ export function ProgressionPanel({ player, disabled }: ProgressionPanelProps) {
     >
       <TransportControls
         isPlaying={player.isPlaying}
-        canPlay={player.canPlay}
-        disabled={disabled && !player.isPlaying}
+        beatInBar={player.isPlaying ? player.beatInBar : null}
+        metronomeOnly={player.metronomeOnly}
         hasSlots={state.slots.length > 0}
         bpm={state.bpm}
         timeSignature={state.timeSignature}
@@ -67,7 +62,7 @@ export function ProgressionPanel({ player, disabled }: ProgressionPanelProps) {
         onLoopChange={player.setLoop}
         onClear={player.clear}
       />
-      {disabled ? (
+      {noKey ? (
         <p className={HINT}>Pick a key to build and play a progression.</p>
       ) : resolvedSlots.length === 0 ? (
         <p className={HINT}>Click ＋ on a chord below to start a progression</p>
@@ -93,7 +88,6 @@ export function ProgressionPanel({ player, disabled }: ProgressionPanelProps) {
                   isNext={player.nextSlot === index}
                   beatInBar={player.beatInBar}
                   beatsPerBar={state.timeSignature.beats}
-                  disabled={disabled}
                   onSelect={player.jumpTo}
                   onRemove={player.remove}
                   onSetBars={player.setBars}

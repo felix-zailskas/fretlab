@@ -75,6 +75,15 @@ export function buildTimeline(
   return { starts, totalBeats };
 }
 
+// The timeline the player runs: the slots, or one bar of plain metronome when
+// there is nothing to play (it loops forever, see useProgressionPlayer).
+export function playbackTimeline(
+  slotBars: readonly number[],
+  sig: TimeSignature,
+): Timeline {
+  return buildTimeline(slotBars.length > 0 ? slotBars : [1], sig);
+}
+
 export function locate(
   beat: number,
   timeline: Timeline,
