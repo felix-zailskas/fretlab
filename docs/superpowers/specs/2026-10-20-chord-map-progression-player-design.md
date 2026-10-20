@@ -327,9 +327,9 @@ export function saveProgression(state: StoredProgression): void;
 ### 8. Player hook: `src/useProgressionPlayer.ts`
 
 - It owns the `StoredProgression` state, saves it on change and holds a `Metronome`.
-- It exposes `isPlaying`, `currentSlot`, `beatInBar`, and the actions add, remove, move,
-  setBars, clear, play, stop, jumpTo, setBpm, setTimeSignature, setClick, setLoop and
-  setVisible.
+- It exposes `isPlaying`, `metronomeOnly`, `currentSlot`, `beatInBar`, and the actions
+  add, remove, move, setBars, clear, play, stop, jumpTo, setBpm, setTimeSignature,
+  setClick, setLoop and setVisible.
 - Playable slots are those whose ref resolves to a chord under the current key and mode.
   Other slots stay in the list but are skipped by the timeline.
 - Beats from `onBeat` go into a queue. A `requestAnimationFrame` loop moves the UI
@@ -340,6 +340,21 @@ export function saveProgression(state: StoredProgression): void;
 - **While playing, the current slot's ref becomes `selectedChordRef` in App**, so every
   view updates live. On Stop, the last chord stays selected.
 - Changing the time signature while playing restarts playback from the current slot.
+- **Metronome-only mode.** Play always works. While no slot is playable (no slots, none
+  resolves under the current key and mode, or the key is "All"), the player is a plain
+  metronome:
+  - the timeline is one bar of the time signature (`playbackTimeline` in `meter.ts`
+    returns `{ starts: [0], totalBeats: sig.beats }` for no slots);
+  - loop is forced on, so it never ends, whatever the Loop setting;
+  - the click is forced on (audible click = Click setting or metronome-only);
+  - `beatInBar` advances, `currentSlot` is null, and no chord is announced.
+- When chords become playable during metronome-only playback (one is added, or the key
+  leaves "All"), playback restarts on the first playable slot immediately. The restart
+  runs from the hook's effect that observes the change, never from inside the
+  transport's callbacks.
+- When the last playable slot goes away during playback, it carries on as metronome-only
+  without a restart: the transport reads the one-bar timeline on the next beat.
+- Hiding the panel stops playback, so playback never runs without a visible Stop.
 
 ### 9. Progression UI
 
@@ -364,16 +379,21 @@ contains:
     mode".
   - Clicking a card selects its chord. While playing, the click jumps playback to that
     slot.
-- An empty state reads "Click ＋ on a chord below to start a progression".
-- With key "All", the panel is disabled and shows a hint.
-- Play is disabled when no slot can be played.
+- While playing, the transport bar shows beat dots for the current bar (one per beat,
+  the current beat filled, accented beats slightly larger), in every playing mode.
+- An empty state reads "Click ＋ on a chord below to start a progression". Play works
+  next to it and runs the metronome.
+- With key "All", only the slot strip shows a "pick a key" hint. The transport stays
+  enabled and Play runs the metronome.
+- In metronome-only mode the Click toggle stays usable but has no effect, with the title
+  "Click always sounds when no chords are playing".
 
 Other controls and test hooks:
 
 - Visibility is toggled by the "Progression" button next to the Triads/Sevenths toggle,
   and is saved.
-- **Space** toggles Play/Stop. It is ignored in inputs, textareas and selects, and with
-  meta/ctrl/alt, the same rules as the existing handler.
+- **Space** toggles Play/Stop. It is ignored in inputs, textareas, selects and buttons,
+  with meta/ctrl/alt, on key repeat, and while the panel is hidden.
 - Slots have `data-testid="progression-slot"`, `data-index` and `data-current`.
 
 ### New dependency
@@ -428,7 +448,8 @@ a click track, only saves the scheduling loop.
   - the stepper respects allowed lengths
   - the empty state
   - unplayable slots are greyed out
-  - Play is disabled when nothing can be played
+  - Play works with an empty progression and under the "All" key (metronome-only)
+  - beat dots while playing, one per beat of each preset
   - visibility toggle
 
 ### Slow tier (`npm run test:e2e`, CI only)
@@ -474,3 +495,4 @@ Docs: a short entry in the "Future" section of
 | Note typing                        | New `SpelledNote`. The unused `NoteName` is removed.                                                                     |
 | Secondary dominants in triads mode | Always V7 (user, 2026-10-20); Chord Shapes triads mode voices the triad                                                  |
 | Out-of-key marker                  | Dashed neutral ring. The gold ring stays reserved for modal characteristic notes.                                        |
+| Play without chords                | Plain metronome: one bar looping, click always on (user, 2026-10-20)                                                     |
