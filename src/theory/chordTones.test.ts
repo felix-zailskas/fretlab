@@ -9,7 +9,7 @@ import { resolveChordRef, type ChordToneSource } from "./harmony";
 import { CAGED_POSITIONS } from "./positions";
 import { DEFAULT_END_FRET } from "./constants";
 import { getModalDiatonicChords, getModalDiatonicTriads } from "./modes";
-import type { HighlightableRole } from "../components/Legend";
+import type { HighlightableRole } from "./types";
 import { TUNINGS } from "./tuning";
 import type { Tuning } from "./tuning";
 import { ALL_NOTES_KEY, CHROMATIC_SCALE, getNoteAtFret, getNoteIndex } from "./notes";

@@ -1,7 +1,8 @@
 import { useMemo } from "react";
 import { Fretboard } from "../components/Fretboard/Fretboard";
 import { ALL_NOTES_KEY } from "../theory/notes";
-import { Legend, type HighlightableRole } from "../components/Legend";
+import { Legend } from "../components/Legend";
+import type { HighlightableRole } from "../theory/types";
 import { StringSetToggles } from "../components/StringSetToggles";
 import {
   buildChordShapeMarkers,
@@ -14,7 +15,7 @@ import {
   type VoicingSystem,
 } from "../theory/chordShapes";
 import type { Tuning } from "../theory/tuning";
-import type { ChordRowMode, ChordToneSource } from "../theory/harmony";
+import { triadOf, type ChordRowMode, type ChordToneSource } from "../theory/harmony";
 import { type Mode } from "../theory/modes";
 import {
   type ChordShapesControls,
@@ -138,7 +139,8 @@ export function ChordShapesView({
         mode: "triads",
         tuning,
         modalMode,
-        chord: selectedChord,
+        // Chord Shapes only voices triads; a secondary dominant drops its 7th.
+        chord: triadOf(selectedChord),
         key: selectedKey,
         stringSets: Array.from(selectedStringSets),
         inversions: Array.from(selectedInversions),

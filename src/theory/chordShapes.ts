@@ -1,5 +1,5 @@
-import { ALL_NOTES_KEY } from "./notes";
 import {
+  ALL_NOTES_KEY,
   buildDiatonicSpellingMap,
   getNoteAtFret,
   getNoteIndex,

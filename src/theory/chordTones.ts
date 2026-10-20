@@ -1,4 +1,3 @@
-import type { HighlightableRole } from "../components/Legend";
 import {
   buildDiatonicSpellingMap,
   getDisplayName,
@@ -17,7 +16,7 @@ import {
   parentMajorOf,
   type Mode,
 } from "./modes";
-import type { NoteDisplayRole, NoteMarker } from "./types";
+import type { HighlightableRole, NoteDisplayRole, NoteMarker } from "./types";
 
 // Roles the Legend can toggle off (demoted to 'scale' when their toggle is
 // disabled). Both NoteMapView and ScalePositionsView read from this single set.

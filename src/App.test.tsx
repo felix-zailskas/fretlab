@@ -156,7 +156,7 @@ describe("App — chord map selection", () => {
 
   it("number keys replace a secondary-tier selection with the diatonic chord", async () => {
     render(<App />);
-    await userEvent.click(screen.getByRole("button", { name: "V/V D" }));
+    await userEvent.click(screen.getByRole("button", { name: "V7/V D7" }));
     await userEvent.keyboard("5");
     expect(pressedCards()).toEqual(["V G"]);
   });
@@ -164,7 +164,7 @@ describe("App — chord map selection", () => {
   it("clears a selection whose cell empties after a mode change", async () => {
     render(<App />);
     await userEvent.click(screen.getByRole("radio", { name: "Mixolydian" }));
-    await userEvent.click(screen.getByRole("button", { name: "V/♭VII F" }));
+    await userEvent.click(screen.getByRole("button", { name: "V7/♭VII F7" }));
     await userEvent.click(screen.getByRole("radio", { name: "Ionian" }));
     await userEvent.click(screen.getByRole("radio", { name: "Mixolydian" }));
     expect(pressedCards()).toEqual([]);
@@ -172,18 +172,18 @@ describe("App — chord map selection", () => {
 
   it("keeps a selection that still resolves after a mode change", async () => {
     render(<App />);
-    await userEvent.click(screen.getByRole("button", { name: "V/V D" }));
+    await userEvent.click(screen.getByRole("button", { name: "V7/V D7" }));
     await userEvent.click(screen.getByRole("radio", { name: "Dorian" }));
     // Dorian's v is minor, so the numeral changes but the chord stays D.
-    expect(pressedCards()).toEqual(["V/v D"]);
+    expect(pressedCards()).toEqual(["V7/v D7"]);
   });
 
   it("keeps the selection through a detour via the All key", async () => {
     render(<App />);
-    await userEvent.click(screen.getByRole("button", { name: "V/V D" }));
+    await userEvent.click(screen.getByRole("button", { name: "V7/V D7" }));
     await userEvent.click(screen.getByRole("button", { name: "All" }));
     await userEvent.click(screen.getByRole("button", { name: "C" }));
-    expect(pressedCards()).toEqual(["V/V D"]);
+    expect(pressedCards()).toEqual(["V7/V D7"]);
   });
 
   it("clears a selection whose cell empties after a row-mode change", async () => {
@@ -202,5 +202,40 @@ describe("App — chord map selection", () => {
     // The cleared selection must not resurface when the cell comes back.
     await userEvent.keyboard("s");
     expect(pressedCards()).toEqual([]);
+  });
+});
+
+describe("App — secondary dominants in triads mode", () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  it("V7/ii shows its ♭7 as a seventh marker and keeps the 7th toggle enabled", async () => {
+    render(<App />);
+    await userEvent.click(screen.getByRole("button", { name: /^V7\/ii A7/ }));
+    const markers = screen.getAllByTestId("note-marker");
+    expect(
+      markers.some(
+        (m) =>
+          m.getAttribute("data-note") === "G" &&
+          m.getAttribute("data-role") === "seventh",
+      ),
+    ).toBe(true);
+    expect(screen.getByRole("button", { name: "7th" })).toBeEnabled();
+  });
+
+  it("disables the 7th toggle again for a triad selection in triads mode", async () => {
+    render(<App />);
+    expect(screen.getByRole("button", { name: "7th" })).toBeDisabled();
+  });
+
+  it("Chord Shapes voices the triad of V7/ii without a seventh", async () => {
+    render(<App />);
+    await userEvent.click(screen.getByRole("button", { name: /^V7\/ii A7/ }));
+    await userEvent.click(screen.getByRole("tab", { name: /Chord Shapes/ }));
+    const markers = screen.getAllByTestId("note-marker");
+    expect(markers.length).toBeGreaterThan(0);
+    expect(markers.some((m) => m.getAttribute("data-role") === "seventh")).toBe(false);
+    expect(markers.some((m) => m.getAttribute("data-note") === "G")).toBe(false);
   });
 });

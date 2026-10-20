@@ -6,7 +6,8 @@ import {
 } from "../components/Fretboard/Fretboard";
 import { PositionToggles } from "../components/PositionToggles";
 import { ALL_NOTES_KEY } from "../theory/notes";
-import { Legend, type HighlightableRole } from "../components/Legend";
+import { Legend } from "../components/Legend";
+import type { HighlightableRole } from "../theory/types";
 import { buildChordToneMarkers } from "../theory/chordTones";
 import type { Tuning } from "../theory/tuning";
 import {

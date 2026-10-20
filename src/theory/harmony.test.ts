@@ -6,7 +6,9 @@ import {
   QUALITY_INTERVALS,
   resolveChordRef,
   sameChordRef,
+  showsSeventh,
   toggleChordRef,
+  triadOf,
   type ChordRowMode,
   type MapChord,
 } from "./harmony";
@@ -83,6 +85,16 @@ describe("getChordMap — structure across every key × mode × row mode", () =>
             expect(missing).toEqual(expected);
           });
 
+          it("builds every secondary dominant as a 4-note dominant 7th", () => {
+            for (const chord of map.secondary) {
+              if (!chord) continue;
+              expect(chord.quality).toBe("7");
+              expect(chord.notes).toHaveLength(4);
+              expect(chord.romanNumeral).toMatch(/^V7\//);
+              expect(chord.symbol).toMatch(/7$/);
+            }
+          });
+
           it("roots each secondary dominant 7 semitones above its target", () => {
             map.secondary.forEach((chord, i) => {
               if (!chord) return;
@@ -140,18 +152,20 @@ describe("getChordMap — hand-checked chords", () => {
     expect(chord).toMatchObject({ romanNumeral: "IV", notes: ["D", "F#", "A"] });
   });
 
-  it("C Ionian triads: V/V is D = D F# A", () => {
+  it("C Ionian triads: V7/V is D7 = D F# A C", () => {
     const chord = getChordMap("C", "ionian", "triads").secondary[4];
     expect(chord).toMatchObject({
-      romanNumeral: "V/V",
-      symbol: "D",
-      quality: "maj",
-      notes: ["D", "F#", "A"],
+      romanNumeral: "V7/V",
+      symbol: "D7",
+      quality: "7",
+      notes: ["D", "F#", "A", "C"],
     });
   });
 
-  it("C Ionian triads: V/IV is still shown although it equals the I chord", () => {
-    expect(getChordMap("C", "ionian", "triads").secondary[3]?.symbol).toBe("C");
+  it("C Ionian triads: V7/IV is C7 = C E G Bb and differs from the diatonic I", () => {
+    const map = getChordMap("C", "ionian", "triads");
+    expect(map.secondary[3]?.notes).toEqual(["C", "E", "G", "Bb"]);
+    expect(map.secondary[3]?.notes).not.toEqual(map.diatonic[0]?.notes);
   });
 
   it("C Dorian triads: borrowed columns 2 and 4 are empty (Dm and F are shared)", () => {
@@ -229,5 +243,42 @@ describe("sameChordRef / toggleChordRef", () => {
     expect(
       toggleChordRef({ tier: "diatonic", degree: 2 }, { tier: "diatonic", degree: 2 }),
     ).toBeNull();
+  });
+});
+
+describe("triadOf", () => {
+  it("reduces C7 to the C major triad", () => {
+    expect(triadOf({ quality: "7", notes: ["C", "E", "G", "Bb"] })).toEqual({
+      quality: "maj",
+      notes: ["C", "E", "G"],
+    });
+  });
+
+  it("reduces a half-diminished seventh to a diminished triad", () => {
+    expect(triadOf({ quality: "m7b5", notes: ["D", "F", "Ab", "C"] })).toEqual({
+      quality: "dim",
+      notes: ["D", "F", "Ab"],
+    });
+  });
+
+  it("returns a triad unchanged", () => {
+    const triad = { quality: "min", notes: ["D", "F", "A"] } as const;
+    expect(triadOf(triad)).toBe(triad);
+  });
+});
+
+describe("showsSeventh", () => {
+  const seventh = { quality: "7", notes: ["A", "C#", "E", "G"] } as const;
+  const triad = { quality: "maj", notes: ["C", "E", "G"] } as const;
+
+  it("is true in sevenths mode regardless of the chord", () => {
+    expect(showsSeventh("sevenths", triad)).toBe(true);
+    expect(showsSeventh("sevenths", null)).toBe(true);
+  });
+
+  it("in triads mode is true only for a 4-note chord", () => {
+    expect(showsSeventh("triads", seventh)).toBe(true);
+    expect(showsSeventh("triads", triad)).toBe(false);
+    expect(showsSeventh("triads", null)).toBe(false);
   });
 });

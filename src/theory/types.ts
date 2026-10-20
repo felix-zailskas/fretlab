@@ -15,6 +15,11 @@ export type NoteDisplayRole =
   | "scale"
   | "muted";
 
+export type HighlightableRole = Extract<
+  NoteDisplayRole,
+  "root" | "third" | "fifth" | "seventh"
+>;
+
 export type NoteMarker = {
   string: number; // 0 = low E, 5 = high E
   fret: number; // 0 = open, up to 15

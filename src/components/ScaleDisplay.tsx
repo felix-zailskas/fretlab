@@ -7,7 +7,7 @@ import {
 } from "../theory/modes";
 import { HIGHLIGHTABLE, roleFromChordTone } from "../theory/chordTones";
 import { ALL_NOTES_KEY } from "../theory/notes";
-import type { HighlightableRole } from "./Legend";
+import type { HighlightableRole } from "../theory/types";
 
 const ROLE_PILL_CLASSES: Record<HighlightableRole, string> = {
   root: "bg-root/20 border-root/40 text-fg-primary",

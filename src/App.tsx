@@ -16,7 +16,7 @@ import { ViewSelector } from "./components/ViewSelector";
 import { TuningSelector } from "./components/TuningSelector";
 import { UnavailableInTuning } from "./components/UnavailableInTuning";
 import { CustomTuningModal } from "./components/CustomTuningModal";
-import { type HighlightableRole } from "./components/Legend";
+import type { HighlightableRole } from "./theory/types";
 import { ScaleDisplay } from "./components/ScaleDisplay";
 import { AboutModal } from "./components/AboutModal";
 import { ChordMap } from "./components/ChordMap";
@@ -45,6 +45,7 @@ import {
 } from "./theory/customTuningStorage";
 import {
   resolveChordRef,
+  showsSeventh,
   toggleChordRef,
   type ChordRef,
   type ChordRowMode,
@@ -234,18 +235,21 @@ function App() {
     });
   }, []);
 
+  // The 7th role is available in sevenths mode, and in triads mode while a
+  // secondary dominant (always a 7th chord) is selected.
+  const seventhShown = showsSeventh(chordRowMode, selectedChord);
+
   const effectiveHighlights = useMemo(
     () =>
-      chordRowMode === "triads"
-        ? new Set([...enabledHighlights].filter((r) => r !== "seventh"))
-        : enabledHighlights,
-    [enabledHighlights, chordRowMode],
+      seventhShown
+        ? enabledHighlights
+        : new Set([...enabledHighlights].filter((r) => r !== "seventh")),
+    [enabledHighlights, seventhShown],
   );
 
   const seventhDisabledRoles = useMemo(
-    () =>
-      chordRowMode === "triads" ? new Set<HighlightableRole>(["seventh"]) : undefined,
-    [chordRowMode],
+    () => (seventhShown ? undefined : new Set<HighlightableRole>(["seventh"])),
+    [seventhShown],
   );
 
   const isAllNotesKey = selectedKey === ALL_NOTES_KEY;

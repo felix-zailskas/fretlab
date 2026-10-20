@@ -274,7 +274,7 @@ function seventhQualityFromIntervals(
   );
 }
 
-const QUALITY_TO_TRIAD: Record<ChordQuality, TriadQuality> = {
+export const QUALITY_TO_TRIAD: Record<ChordQuality, TriadQuality> = {
   maj7: "maj",
   m7: "min",
   "7": "maj",

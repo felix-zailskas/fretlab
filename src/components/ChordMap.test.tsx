@@ -97,11 +97,11 @@ describe("ChordMap", () => {
   it("keeps a single card selected across tiers", async () => {
     render(<Harness />);
     await userEvent.click(screen.getByRole("button", { name: "V G" }));
-    await userEvent.click(screen.getByRole("button", { name: "V/V D" }));
+    await userEvent.click(screen.getByRole("button", { name: "V7/V D7" }));
     const pressed = screen
       .getAllByTestId("chord-card")
       .filter((c) => c.getAttribute("aria-pressed") === "true");
-    expect(pressed.map((c) => c.getAttribute("aria-label"))).toEqual(["V/V D"]);
+    expect(pressed.map((c) => c.getAttribute("aria-label"))).toEqual(["V7/V D7"]);
   });
 
   it("shows no ＋ buttons without onAdd", () => {

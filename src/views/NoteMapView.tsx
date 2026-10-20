@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { Fretboard } from "../components/Fretboard/Fretboard";
-import { Legend, type HighlightableRole } from "../components/Legend";
+import { Legend } from "../components/Legend";
+import type { HighlightableRole } from "../theory/types";
 import { buildNoteMapMarkers } from "../theory/chordTones";
 import type { ChordToneSource } from "../theory/harmony";
 import type { AccidentalStyle } from "../theory/notes";

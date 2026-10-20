@@ -2,6 +2,7 @@ import {
   getModalDiatonicChords,
   getModalDiatonicTriads,
   MODE_INTERVALS,
+  QUALITY_TO_TRIAD,
   type Mode,
 } from "./modes";
 import {
@@ -23,8 +24,8 @@ export type ChordRef = { tier: ChordTier; degree: number };
 
 export type MapChord = {
   ref: ChordRef;
-  romanNumeral: string; // "V7/ii", "V/ii", "♭VI", "iv"
-  symbol: string; // "A7", "A", "Ab", "Fm"
+  romanNumeral: string; // "V7/ii", "♭VI", "iv"
+  symbol: string; // "A7", "Ab", "Fm"
   quality: TriadQuality | ChordQuality;
   notes: readonly SpelledNote[];
 };
@@ -88,26 +89,21 @@ function fifthAbove(target: SpelledNote): SpelledNote {
   return spellChordOrEnharmonic(target, QUALITY_INTERVALS.maj)[2];
 }
 
-function buildSecondaryTier(
-  key: string,
-  mode: Mode,
-  rowMode: ChordRowMode,
-): (MapChord | null)[] {
+// Secondary dominants are always dominant 7ths, regardless of row mode: the
+// b7 is what separates V7/IV (C7 in C major) from the diatonic I.
+function buildSecondaryTier(key: string, mode: Mode): (MapChord | null)[] {
   const targets = getModalDiatonicTriads(key, mode);
   return targets.map((target) => {
     if (target.degree === 1 || target.quality === "dim") return null;
-    const quality = rowMode === "sevenths" ? "7" : "maj";
     const notes = spellChordOrEnharmonic(
       fifthAbove(target.notes[0]),
-      QUALITY_INTERVALS[quality],
+      QUALITY_INTERVALS["7"],
     );
-    // Triad numerals carry no quality suffix for maj/min targets.
-    const prefix = rowMode === "sevenths" ? "V7" : "V";
     return {
       ref: { tier: "secondary", degree: target.degree },
-      romanNumeral: `${prefix}/${target.romanNumeral}`,
-      symbol: rowMode === "sevenths" ? `${notes[0]}7` : notes[0],
-      quality,
+      romanNumeral: `V7/${target.romanNumeral}`,
+      symbol: `${notes[0]}7`,
+      quality: "7",
       notes,
     };
   });
@@ -138,7 +134,7 @@ export function getChordMap(key: string, mode: Mode, rowMode: ChordRowMode): Cho
   );
 
   return {
-    secondary: buildSecondaryTier(key, mode, rowMode),
+    secondary: buildSecondaryTier(key, mode),
     diatonic,
     borrowed,
   };
@@ -163,4 +159,23 @@ export function sameChordRef(a: ChordRef | null, b: ChordRef | null): boolean {
 // Click/keyboard selection rule: picking the selected chord again clears it.
 export function toggleChordRef(prev: ChordRef | null, next: ChordRef): ChordRef | null {
   return sameChordRef(prev, next) ? null : next;
+}
+
+// Reduces a seventh chord to its triad (first three notes); a triad is
+// returned unchanged.
+export function triadOf(chord: ChordToneSource): ChordToneSource {
+  if (chord.notes.length < 4) return chord;
+  return {
+    quality: QUALITY_TO_TRIAD[chord.quality as ChordQuality],
+    notes: chord.notes.slice(0, 3),
+  };
+}
+
+// Whether the 7th role is meaningful: always in sevenths mode, and in triads
+// mode only when the selected chord has a 7th (a secondary dominant).
+export function showsSeventh(
+  rowMode: ChordRowMode,
+  chord: ChordToneSource | null,
+): boolean {
+  return rowMode === "sevenths" || (chord?.notes.length ?? 0) === 4;
 }

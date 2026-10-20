@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Legend } from "./Legend";
-import type { HighlightableRole } from "./Legend";
+import type { HighlightableRole } from "../theory/types";
 
 const ALL_ROLES = new Set<HighlightableRole>(["root", "third", "fifth", "seventh"]);
 const noop = () => {};
