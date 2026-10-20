@@ -3,6 +3,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Fretboard } from "./Fretboard";
 import { TUNINGS } from "../../theory/tuning";
+import type { NoteMarker } from "../../theory/types";
 
 describe("Fretboard — string toggle column", () => {
   it("renders 6 string-toggle buttons", () => {
@@ -99,5 +100,45 @@ describe("Fretboard — string toggle column", () => {
     if (!two) throw new Error("toggle not found");
     await userEvent.click(two);
     expect(onToggleString).toHaveBeenCalledWith(2);
+  });
+});
+
+describe("Fretboard — out-of-key markers", () => {
+  const renderMarkers = (markers: NoteMarker[]) =>
+    render(
+      <Fretboard
+        markers={markers}
+        startFret={0}
+        endFret={12}
+        tuning={TUNINGS.standard}
+        enabledStrings={new Set([0, 1, 2, 3, 4, 5])}
+        onToggleString={() => {}}
+      />,
+    );
+
+  it("sets data-outside-key on an isOutsideKey marker", () => {
+    renderMarkers([
+      { string: 1, fret: 4, note: "C#", role: "third", isOutsideKey: true },
+    ]);
+    expect(screen.getByTestId("note-marker")).toHaveAttribute(
+      "data-outside-key",
+      "true",
+    );
+  });
+
+  it("draws the dashed ring for an isOutsideKey marker", () => {
+    renderMarkers([
+      { string: 1, fret: 4, note: "C#", role: "third", isOutsideKey: true },
+    ]);
+    expect(screen.getByTestId("outside-key-ring")).toHaveAttribute(
+      "stroke-dasharray",
+      "3 2",
+    );
+  });
+
+  it("omits data-outside-key and the ring for an in-key marker", () => {
+    renderMarkers([{ string: 1, fret: 3, note: "C", role: "root" }]);
+    expect(screen.getByTestId("note-marker")).not.toHaveAttribute("data-outside-key");
+    expect(screen.queryByTestId("outside-key-ring")).not.toBeInTheDocument();
   });
 });
