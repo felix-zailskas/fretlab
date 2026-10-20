@@ -44,6 +44,17 @@ export const MODES: readonly Mode[] = [
   "locrian",
 ] as const;
 
+// Display names, e.g. for "Borrowed (C Aeolian)" labels.
+export const MODE_NAMES: Record<Mode, string> = {
+  ionian: "Ionian",
+  dorian: "Dorian",
+  phrygian: "Phrygian",
+  lydian: "Lydian",
+  mixolydian: "Mixolydian",
+  aeolian: "Aeolian",
+  locrian: "Locrian",
+};
+
 // Each mode's interval-from-tonic in semitones (7 entries, ascending).
 export const MODE_INTERVALS: Record<
   Mode,
