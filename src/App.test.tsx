@@ -124,3 +124,65 @@ describe("App — string-toggle state is global across views", () => {
     expect(noteMapToggle5).toHaveAttribute("data-enabled", "false");
   });
 });
+
+describe("App — chord map selection", () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  function pressedCards(): string[] {
+    return screen
+      .getAllByTestId("chord-card")
+      .filter((c) => c.getAttribute("aria-pressed") === "true")
+      .map((c) => c.getAttribute("aria-label") ?? "");
+  }
+
+  it("selects the diatonic I chord by default", () => {
+    render(<App />);
+    expect(pressedCards()).toEqual(["I C"]);
+  });
+
+  it("number keys select diatonic chords", async () => {
+    render(<App />);
+    await userEvent.keyboard("5");
+    expect(pressedCards()).toEqual(["V G"]);
+  });
+
+  it("pressing the selected diatonic number again clears the selection", async () => {
+    render(<App />);
+    await userEvent.keyboard("1");
+    expect(pressedCards()).toEqual([]);
+  });
+
+  it("number keys replace a secondary-tier selection with the diatonic chord", async () => {
+    render(<App />);
+    await userEvent.click(screen.getByRole("button", { name: "V/V D" }));
+    await userEvent.keyboard("5");
+    expect(pressedCards()).toEqual(["V G"]);
+  });
+
+  it("clears a selection whose cell empties after a mode change", async () => {
+    render(<App />);
+    await userEvent.click(screen.getByRole("radio", { name: "Mixolydian" }));
+    await userEvent.click(screen.getByRole("button", { name: "V/♭VII F" }));
+    await userEvent.click(screen.getByRole("radio", { name: "Ionian" }));
+    await userEvent.click(screen.getByRole("radio", { name: "Mixolydian" }));
+    expect(pressedCards()).toEqual([]);
+  });
+
+  it("keeps a selection that still resolves after a mode change", async () => {
+    render(<App />);
+    await userEvent.click(screen.getByRole("button", { name: "V/V D" }));
+    await userEvent.click(screen.getByRole("radio", { name: "Dorian" }));
+    // Dorian's v is minor, so the numeral changes but the chord stays D.
+    expect(pressedCards()).toEqual(["V/v D"]);
+  });
+
+  it("keeps the selection through a detour via the All key", async () => {
+    render(<App />);
+    await userEvent.click(screen.getByRole("button", { name: "V/V D" }));
+    await userEvent.click(screen.getByRole("button", { name: "All" }));
+    await userEvent.click(screen.getByRole("button", { name: "C" }));
+    expect(pressedCards()).toEqual(["V/V D"]);
+  });
+});

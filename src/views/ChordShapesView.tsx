@@ -3,7 +3,6 @@ import { Fretboard } from "../components/Fretboard/Fretboard";
 import { ALL_NOTES_KEY } from "../components/KeySelector";
 import { Legend, type HighlightableRole } from "../components/Legend";
 import { StringSetToggles } from "../components/StringSetToggles";
-import { type ChordRowMode } from "../components/DiatonicChords";
 import {
   buildChordShapeMarkers,
   VOICING_SYSTEM_ORDER,
@@ -15,7 +14,7 @@ import {
   type VoicingSystem,
 } from "../theory/chordShapes";
 import type { Tuning } from "../theory/tuning";
-import type { DiatonicTriad, DiatonicChord } from "../theory/scales";
+import type { ChordRowMode, ChordToneSource } from "../theory/harmony";
 import { type Mode } from "../theory/modes";
 import {
   type ChordShapesControls,
@@ -27,7 +26,7 @@ type ChordShapesViewProps = {
   selectedKey: string;
   startFret: number;
   endFret: number;
-  selectedChord: DiatonicTriad | DiatonicChord | null;
+  selectedChord: ChordToneSource | null;
   chordRowMode: ChordRowMode;
   enabledHighlights: Set<HighlightableRole>;
   onToggleRole: (role: HighlightableRole) => void;
@@ -139,7 +138,7 @@ export function ChordShapesView({
         mode: "triads",
         tuning,
         modalMode,
-        chord: selectedChord as DiatonicTriad,
+        chord: selectedChord,
         key: selectedKey,
         stringSets: Array.from(selectedStringSets),
         inversions: Array.from(selectedInversions),
@@ -153,7 +152,7 @@ export function ChordShapesView({
       tuning,
       modalMode,
       voicingSystem: selectedVoicingSystem,
-      chord: selectedChord as DiatonicChord,
+      chord: selectedChord,
       key: selectedKey,
       stringSets: activeSeventhStringSets,
       inversions: Array.from(selectedSeventhInversions),
