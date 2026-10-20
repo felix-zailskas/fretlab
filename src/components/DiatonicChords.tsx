@@ -5,8 +5,9 @@ import {
   type Mode,
 } from "../theory/modes";
 import { ALL_NOTES_KEY } from "./KeySelector";
+import type { ChordRowMode } from "../theory/harmony";
 
-export type ChordRowMode = "triads" | "sevenths";
+export type { ChordRowMode };
 
 type DiatonicChordsProps = {
   selectedKey: string;

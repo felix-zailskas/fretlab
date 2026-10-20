@@ -18,6 +18,7 @@ import {
   type Mode as ModalMode,
 } from "./modes";
 import type { NoteMarker } from "./types";
+import { QUALITY_INTERVALS } from "./harmony";
 
 // String numbering follows standard guitar nomenclature: string 1 = high E,
 // string 6 = low E. The marker pipeline (buildChordShapeMarkers, see follow-up
@@ -414,13 +415,6 @@ export const TRIAD_SHAPES: Record<
 // Spot-checked combinations include the standard E-shape and A-shape barres
 // (drop-2 root pos on 3-4-5-6 and 2-3-4-5), close-position root on 1-2-3-4
 // (4-fret stairstep), drop-3 root on 6-4-3-2 (string-skipped 8-9-9-8 Cmaj7).
-const QUALITY_INTERVALS: Record<ChordQuality, [number, number, number]> = {
-  maj7: [4, 7, 11],
-  m7: [3, 7, 10],
-  "7": [4, 7, 10],
-  m7b5: [3, 6, 10],
-};
-
 // String list (low-pitch → high-pitch, 1=high E … 6=low E) plus cumulative
 // semitone offsets from the lowest string. The +4 step on the 3→2 transition
 // is the B-string oddity; every other adjacent pair is +5.
@@ -526,7 +520,7 @@ function makeSeventhShape(
   inv: SeventhInversion,
   quality: ChordQuality,
 ): SeventhShape {
-  const [p3, p5, p7] = QUALITY_INTERVALS[quality];
+  const [, p3, p5, p7] = QUALITY_INTERVALS[quality];
   const closeInv = CLOSE_INV_BY_INVERSION[system][inv];
   const close = closeVoicingWithRoles(closeInv, p3, p5, p7);
 
