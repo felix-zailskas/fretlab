@@ -165,8 +165,12 @@ export function toggleChordRef(prev: ChordRef | null, next: ChordRef): ChordRef 
 // returned unchanged.
 export function triadOf(chord: ChordToneSource): ChordToneSource {
   if (chord.notes.length < 4) return chord;
+  const quality =
+    chord.quality in QUALITY_TO_TRIAD
+      ? QUALITY_TO_TRIAD[chord.quality as keyof typeof QUALITY_TO_TRIAD]
+      : chord.quality;
   return {
-    quality: QUALITY_TO_TRIAD[chord.quality as ChordQuality],
+    quality,
     notes: chord.notes.slice(0, 3),
   };
 }

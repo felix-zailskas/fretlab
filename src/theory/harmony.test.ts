@@ -261,6 +261,13 @@ describe("triadOf", () => {
     });
   });
 
+  it("truncates a 4-note chord that already has a triad quality", () => {
+    expect(triadOf({ quality: "maj", notes: ["C", "E", "G", "A"] })).toEqual({
+      quality: "maj",
+      notes: ["C", "E", "G"],
+    });
+  });
+
   it("returns a triad unchanged", () => {
     const triad = { quality: "min", notes: ["D", "F", "A"] } as const;
     expect(triadOf(triad)).toBe(triad);

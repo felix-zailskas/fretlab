@@ -229,6 +229,13 @@ describe("App — secondary dominants in triads mode", () => {
     expect(screen.getByRole("button", { name: "7th" })).toBeDisabled();
   });
 
+  it("disables the 7th toggle in Chord Shapes with V7/ii selected", async () => {
+    render(<App />);
+    await userEvent.click(screen.getByRole("button", { name: /^V7\/ii A7/ }));
+    await userEvent.click(screen.getByRole("tab", { name: /Chord Shapes/ }));
+    expect(screen.getByRole("button", { name: "7th" })).toBeDisabled();
+  });
+
   it("Chord Shapes voices the triad of V7/ii without a seventh", async () => {
     render(<App />);
     await userEvent.click(screen.getByRole("button", { name: /^V7\/ii A7/ }));

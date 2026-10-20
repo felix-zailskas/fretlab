@@ -54,6 +54,9 @@ import { tonalReducer } from "./tonalReducer";
 
 const DEFAULT_HIGHLIGHTS: HighlightableRole[] = ["root", "third", "fifth", "seventh"];
 
+// Chord Shapes voices only triads in triads mode, so its 7th role is inert.
+const TRIADS_DISABLED_ROLES = new Set<HighlightableRole>(["seventh"]);
+
 function createCustomTuningId(): CustomTuningId {
   const ts = Date.now();
   const rand = Math.random().toString(36).slice(2, 8);
@@ -202,7 +205,7 @@ function App() {
   );
 
   // When a key / mode / row-mode change leaves the ref pointing at an empty
-  // cell (e.g. V/♭VII after switching Mixolydian → Ionian), clear it so the
+  // cell (e.g. V7/♭VII after switching Mixolydian → Ionian), clear it so the
   // selection doesn't silently reappear later. Adjusting state during render
   // (instead of in an effect) avoids a frame with a stale selection. The All
   // key is skipped: it resolves nothing but shouldn't wipe the selection.
@@ -331,7 +334,9 @@ function App() {
               onToggleRole={toggleHighlight}
               controls={chordShapesControls}
               modalMode={mode}
-              disabledRoles={seventhDisabledRoles}
+              disabledRoles={
+                chordRowMode === "triads" ? TRIADS_DISABLED_ROLES : seventhDisabledRoles
+              }
               enabledStrings={enabledStrings}
               onToggleString={toggleString}
             />
