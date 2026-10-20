@@ -1,4 +1,3 @@
-import { ALL_NOTES_KEY } from "../components/KeySelector";
 import type { HighlightableRole } from "../components/Legend";
 import {
   buildDiatonicSpellingMap,
@@ -7,6 +6,7 @@ import {
   getNoteIndex,
   type AccidentalStyle,
   type SpelledNote,
+  ALL_NOTES_KEY,
 } from "./notes";
 import type { Tuning } from "./tuning";
 import { isInPositionWindow, type PositionId } from "./positions";

@@ -6,7 +6,7 @@ import {
   type Mode,
 } from "../theory/modes";
 import { HIGHLIGHTABLE, roleFromChordTone } from "../theory/chordTones";
-import { ALL_NOTES_KEY } from "./KeySelector";
+import { ALL_NOTES_KEY } from "../theory/notes";
 import type { HighlightableRole } from "./Legend";
 
 const ROLE_PILL_CLASSES: Record<HighlightableRole, string> = {

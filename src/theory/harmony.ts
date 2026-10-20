@@ -1,11 +1,16 @@
-import { ALL_NOTES_KEY } from "../components/KeySelector";
 import {
   getModalDiatonicChords,
   getModalDiatonicTriads,
   MODE_INTERVALS,
   type Mode,
 } from "./modes";
-import { CHROMATIC_SCALE, getNoteIndex, spellChord, type SpelledNote } from "./notes";
+import {
+  ALL_NOTES_KEY,
+  CHROMATIC_SCALE,
+  getNoteIndex,
+  spellChord,
+  type SpelledNote,
+} from "./notes";
 import type { ChordQuality, TriadQuality } from "./scales";
 
 export type ChordRowMode = "triads" | "sevenths";
@@ -77,7 +82,8 @@ function spellChordOrEnharmonic(
 }
 
 // Root a perfect fifth above `target`, on the letter 4 steps up when that
-// spelling stays within double accidentals.
+// spelling stays within double accidentals; otherwise falls back to
+// respelling from the enharmonic root.
 function fifthAbove(target: SpelledNote): SpelledNote {
   return spellChordOrEnharmonic(target, QUALITY_INTERVALS.maj)[2];
 }

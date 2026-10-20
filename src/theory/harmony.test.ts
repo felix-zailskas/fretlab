@@ -11,8 +11,7 @@ import {
   type MapChord,
 } from "./harmony";
 import { getModalDiatonicTriads, MODE_INTERVALS, MODES } from "./modes";
-import { CHROMATIC_SCALE, FLAT_KEYS, getNoteIndex } from "./notes";
-import { ALL_NOTES_KEY } from "../components/KeySelector";
+import { ALL_NOTES_KEY, CHROMATIC_SCALE, FLAT_KEYS, getNoteIndex } from "./notes";
 
 // Every key KeySelector can produce: the sharp-style list is CHROMATIC_SCALE,
 // the flat-style list adds the FLAT_KEYS spellings (F is shared).

@@ -1,6 +1,4 @@
-import type { AccidentalStyle } from "../theory/notes";
-
-export const ALL_NOTES_KEY = "all";
+import { ALL_NOTES_KEY, type AccidentalStyle } from "../theory/notes";
 
 // Note keys only — All is rendered separately so it reads as a meta-toggle
 // (clear key) rather than yet another key choice in the row.

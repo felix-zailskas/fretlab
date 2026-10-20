@@ -211,3 +211,5 @@ export function buildDiatonicSpellingMap(
   });
   return map;
 }
+
+export const ALL_NOTES_KEY = "all";

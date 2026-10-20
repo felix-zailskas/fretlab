@@ -10,10 +10,9 @@ import { CAGED_POSITIONS } from "./positions";
 import { DEFAULT_END_FRET } from "./constants";
 import { getModalDiatonicChords, getModalDiatonicTriads } from "./modes";
 import type { HighlightableRole } from "../components/Legend";
-import { ALL_NOTES_KEY } from "../components/KeySelector";
 import { TUNINGS } from "./tuning";
 import type { Tuning } from "./tuning";
-import { CHROMATIC_SCALE, getNoteAtFret, getNoteIndex } from "./notes";
+import { ALL_NOTES_KEY, CHROMATIC_SCALE, getNoteAtFret, getNoteIndex } from "./notes";
 
 describe("roleFromChordTone", () => {
   it('returns "scale" for any in-key note when no chord is given', () => {

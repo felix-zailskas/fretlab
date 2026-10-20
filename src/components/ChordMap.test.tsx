@@ -3,7 +3,7 @@ import { useState } from "react";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { ChordMap } from "./ChordMap";
-import { ALL_NOTES_KEY } from "./KeySelector";
+import { ALL_NOTES_KEY } from "../theory/notes";
 import { toggleChordRef, type ChordRef, type ChordRowMode } from "../theory/harmony";
 import type { Mode } from "../theory/modes";
 

@@ -317,8 +317,7 @@ import { buildChordShapeMarkers } from "./chordShapes";
 import { TUNINGS } from "./tuning";
 import type { Tuning } from "./tuning";
 import { getModalDiatonicChords, getModalDiatonicTriads } from "./modes";
-import { CHROMATIC_SCALE, getNoteAtFret, getNoteIndex } from "./notes";
-import { ALL_NOTES_KEY } from "../components/KeySelector";
+import { ALL_NOTES_KEY, CHROMATIC_SCALE, getNoteAtFret, getNoteIndex } from "./notes";
 import { DEFAULT_END_FRET } from "./constants";
 import { resolveChordRef, type ChordToneSource } from "./harmony";
 

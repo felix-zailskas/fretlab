@@ -5,7 +5,7 @@ import {
   type PositionWindow,
 } from "../components/Fretboard/Fretboard";
 import { PositionToggles } from "../components/PositionToggles";
-import { ALL_NOTES_KEY } from "../components/KeySelector";
+import { ALL_NOTES_KEY } from "../theory/notes";
 import { Legend, type HighlightableRole } from "../components/Legend";
 import { buildChordToneMarkers } from "../theory/chordTones";
 import type { Tuning } from "../theory/tuning";

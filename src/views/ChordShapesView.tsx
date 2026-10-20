@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { Fretboard } from "../components/Fretboard/Fretboard";
-import { ALL_NOTES_KEY } from "../components/KeySelector";
+import { ALL_NOTES_KEY } from "../theory/notes";
 import { Legend, type HighlightableRole } from "../components/Legend";
 import { StringSetToggles } from "../components/StringSetToggles";
 import {

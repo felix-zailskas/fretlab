@@ -9,7 +9,8 @@ import {
 import { AccidentalToggle } from "./components/AccidentalToggle";
 import { ThemeToggle } from "./components/ThemeToggle";
 import { FretRangeControl } from "./components/FretRangeControl";
-import { KeySelector, ALL_NOTES_KEY } from "./components/KeySelector";
+import { KeySelector } from "./components/KeySelector";
+import { ALL_NOTES_KEY } from "./theory/notes";
 import { ModeSelector } from "./components/ModeSelector";
 import { ViewSelector } from "./components/ViewSelector";
 import { TuningSelector } from "./components/TuningSelector";

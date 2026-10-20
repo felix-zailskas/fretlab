@@ -10,7 +10,7 @@ import {
 import { MODE_NAMES, type Mode } from "../theory/modes";
 import { ChordMapCard } from "./ChordMapCard";
 import { ChordRowModeToggle } from "./ChordRowModeToggle";
-import { ALL_NOTES_KEY } from "./KeySelector";
+import { ALL_NOTES_KEY } from "../theory/notes";
 
 type ChordMapProps = {
   selectedKey: string;

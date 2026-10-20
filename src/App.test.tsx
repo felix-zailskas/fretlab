@@ -185,4 +185,22 @@ describe("App — chord map selection", () => {
     await userEvent.click(screen.getByRole("button", { name: "C" }));
     expect(pressedCards()).toEqual(["V/V D"]);
   });
+
+  it("clears a selection whose cell empties after a row-mode change", async () => {
+    render(<App />);
+    await userEvent.click(screen.getByRole("radio", { name: "Dorian" }));
+    await userEvent.keyboard("s");
+    const borrowedIV = document.querySelector(
+      '[data-testid="chord-card"][data-tier="borrowed"][data-degree="4"]',
+    ) as HTMLElement;
+    await userEvent.click(borrowedIV);
+    expect(pressedCards()).toHaveLength(1);
+    // Dorian IV is F7 in sevenths but equals the diatonic F in triads, so the
+    // borrowed cell empties.
+    await userEvent.keyboard("t");
+    expect(pressedCards()).toEqual([]);
+    // The cleared selection must not resurface when the cell comes back.
+    await userEvent.keyboard("s");
+    expect(pressedCards()).toEqual([]);
+  });
 });

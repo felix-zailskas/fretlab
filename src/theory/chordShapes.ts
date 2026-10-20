@@ -1,4 +1,4 @@
-import { ALL_NOTES_KEY } from "../components/KeySelector";
+import { ALL_NOTES_KEY } from "./notes";
 import {
   buildDiatonicSpellingMap,
   getNoteAtFret,
@@ -731,7 +731,6 @@ export function buildChordShapeMarkers(
 
   if (input.mode === "triads") {
     if (input.chord.notes.length !== 3) return [];
-    if (input.stringSets.length === 0 || input.inversions.length === 0) return [];
     if (input.stringSets.length === 0 || input.inversions.length === 0) return [];
     const result: NoteMarker[] = [];
     for (const stringSet of input.stringSets) {
