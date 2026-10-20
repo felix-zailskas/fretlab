@@ -202,7 +202,7 @@ Layout:
 SECONDARY DOMINANTS   ·   [A7]  [B7]  [C7]  [D7]  [E7]   ·      dashed border
                              ↓     ↓     ↓     ↓     ↓
 DIATONIC (C IONIAN)  [C]  [Dm]  [Em]  [F]   [G]   [Am]  [B°]    as today
-BORROWED (C AEOLIAN) [Cm]  ·   [E♭]  [Fm]  [Gm]  [A♭]  [B♭]     border tinted --color-mode
+BORROWED (C AEOLIAN) [Cm]  [D°]  [E♭]  [Fm]  [Gm]  [A♭]  [B♭]     border tinted --color-mode
 ```
 
 - There are three tiers on one 7-column grid, so every chord sits in its degree's
