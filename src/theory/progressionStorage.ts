@@ -30,6 +30,7 @@ export const DEFAULT_PROGRESSION: StoredProgression = {
 const TIERS: readonly string[] = ["secondary", "diatonic", "borrowed"];
 
 export function clampBpm(bpm: number): number {
+  if (!Number.isFinite(bpm)) return DEFAULT_PROGRESSION.bpm;
   return Math.min(BPM_MAX, Math.max(BPM_MIN, Math.round(bpm)));
 }
 

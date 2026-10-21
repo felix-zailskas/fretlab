@@ -339,6 +339,9 @@ export function saveProgression(state: StoredProgression): void;
   loop off, it stops on the last chord.
 - **While playing, the current slot's ref becomes `selectedChordRef` in App**, so every
   view updates live. On Stop, the last chord stays selected.
+- Clear stops playback; removing slots one by one keeps playback running and falls back
+  to metronome-only when none remain. With Loop off, a final downbeat click may sound
+  after the last bar, because the metronome schedules up to 100 ms ahead.
 - Changing the time signature while playing restarts playback from the current slot.
 - **Metronome-only mode.** Play always works. While no slot is playable (no slots, none
   resolves under the current key and mode, or the key is "All"), the player is a plain

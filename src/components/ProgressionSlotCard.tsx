@@ -55,14 +55,14 @@ export function ProgressionSlotCard({
     isDragging,
   } = useSortable({ id: slot.id });
   const playable = chord !== null;
-  const label = chord?.symbol ?? "—";
+  const label = chord?.symbol ?? `slot ${index + 1}`;
   const lengthIndex = allowedLengths.indexOf(slot.bars);
 
   return (
     <li
       ref={setNodeRef}
       // Accepted inline-style exception: dnd-kit computes the drag transform at
-      // runtime (same precedent as the ChordMap mode-toggle indicator).
+      // runtime (same precedent as the inline transforms in AccidentalToggle and ViewSelector).
       style={{ transform: CSS.Transform.toString(transform), transition }}
       data-testid="progression-slot"
       data-index={index}

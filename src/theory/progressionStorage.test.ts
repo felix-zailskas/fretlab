@@ -153,6 +153,14 @@ describe.each(TIME_SIGNATURE_PRESETS.map((p) => [timeSignatureLabel(p), p] as co
 );
 
 describe("clampBpm", () => {
+  it.each([NaN, Infinity, -Infinity])(
+    "non-finite %d falls back to the default",
+    (input) => {
+      expect(clampBpm(input)).toBe(DEFAULT_PROGRESSION.bpm);
+      expect(DEFAULT_PROGRESSION.bpm).toBe(90);
+    },
+  );
+
   it.each([
     [5, 30],
     [30, 30],

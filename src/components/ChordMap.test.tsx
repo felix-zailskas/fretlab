@@ -136,9 +136,11 @@ describe("ChordMap", () => {
     );
   });
 
-  it("renders nothing for the All key", () => {
-    const { container } = render(<Harness selectedKey={ALL_NOTES_KEY} />);
-    expect(container).toBeEmptyDOMElement();
+  it("renders no chord tiers for the All key", () => {
+    render(<Harness selectedKey={ALL_NOTES_KEY} />);
+    expect(screen.queryAllByTestId("chord-card")).toHaveLength(0);
+    expect(screen.queryAllByTestId("chord-cell-empty")).toHaveLength(0);
+    expect(screen.queryByRole("heading", { level: 3 })).not.toBeInTheDocument();
   });
 });
 
@@ -175,6 +177,18 @@ describe("ChordMap — progression toggle", () => {
   it("calls onToggleProgression", async () => {
     const onToggle = vi.fn();
     renderMap({ progressionVisible: false, onToggleProgression: onToggle });
+    await userEvent.click(screen.getByRole("button", { name: "Progression" }));
+    expect(onToggle).toHaveBeenCalledTimes(1);
+  });
+
+  it("keeps the toggle available under the All key", async () => {
+    const onToggle = vi.fn();
+    renderMap({
+      selectedKey: ALL_NOTES_KEY,
+      progressionVisible: false,
+      onToggleProgression: onToggle,
+    });
+    expect(screen.queryAllByTestId("chord-card")).toHaveLength(0);
     await userEvent.click(screen.getByRole("button", { name: "Progression" }));
     expect(onToggle).toHaveBeenCalledTimes(1);
   });

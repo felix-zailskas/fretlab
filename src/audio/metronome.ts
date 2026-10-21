@@ -1,6 +1,7 @@
 // Web Audio look-ahead scheduler ("A Tale of Two Clocks"): a coarse
 // setTimeout loop schedules beats a little ahead on the precise audio clock.
 // Not theory and not React — the timing core (beatsInWindow) lives in meter.ts.
+import { BPM_MAX, BPM_MIN } from "../theory/progressionStorage";
 import { beatsInWindow, secondsPerBeat, type Accent } from "../theory/meter";
 
 export type Metronome = {
@@ -18,14 +19,12 @@ const SCHEDULE_AHEAD_S = 0.1;
 const START_DELAY_S = 0.05;
 const CLICK_LENGTH_S = 0.03;
 const CLICK_GAIN = 0.5;
-const MIN_BPM = 30;
-const MAX_BPM = 300;
 
 // beatsInWindow never terminates for bpm <= 0 (or NaN), so every tempo that
 // reaches the scheduler goes through here. Non-finite input keeps `fallback`.
 function sanitizeBpm(value: number, fallback: number): number {
   if (!Number.isFinite(value)) return fallback;
-  return Math.min(MAX_BPM, Math.max(MIN_BPM, value));
+  return Math.min(BPM_MAX, Math.max(BPM_MIN, value));
 }
 
 export const CLICK_FREQUENCIES: Record<Accent, number> = {

@@ -83,6 +83,22 @@ describe("ProgressionPanel — slots", () => {
       "Not available in this mode",
     );
   });
+
+  it("gives unplayable slots distinct accessible names", () => {
+    prime({
+      slots: [
+        { id: "x", ref: { tier: "secondary", degree: 1 }, bars: 1 },
+        { id: "y", ref: { tier: "secondary", degree: 1 }, bars: 1 },
+      ],
+    });
+    render(<Harness />);
+    expect(
+      screen.getByRole("button", { name: "Remove slot 1 from progression" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Remove slot 2 from progression" }),
+    ).toBeInTheDocument();
+  });
 });
 
 describe.each(TIME_SIGNATURE_PRESETS.map((p) => [timeSignatureLabel(p), p] as const))(
