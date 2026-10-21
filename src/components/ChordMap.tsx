@@ -35,8 +35,8 @@ export function ChordMap({
   progressionVisible = false,
   onToggleProgression,
 }: ChordMapProps) {
-  // Under All there are no chords, but the toolbar (and so the Progression
-  // toggle, i.e. the way to reach the metronome) must stay available.
+  // Under All there are no chords, but the toolbar must stay: its
+  // Progression/Metronome toggle is the way to reach the metronome.
   const showTiers = selectedKey !== ALL_NOTES_KEY;
   const map = showTiers ? getChordMap(selectedKey, modalMode, rowMode) : null;
   const tiers: { tier: ChordTier; label: string }[] = [
@@ -50,12 +50,13 @@ export function ChordMap({
 
   return (
     <section className="mt-4 md:mt-8" aria-label="Chord map">
-      <div className="flex items-center justify-start gap-2 mb-3">
+      <div className="flex flex-wrap items-center justify-start gap-2 mb-3">
         <ChordRowModeToggle value={rowMode} onChange={onRowModeChange} />
         {onToggleProgression && (
           <button
             type="button"
-            aria-pressed={progressionVisible}
+            aria-expanded={progressionVisible}
+            aria-controls="progression-panel"
             onClick={onToggleProgression}
             className={`px-2 py-1.5 md:px-3 md:py-2.5 pointer-coarse:py-3 rounded border border-line text-xs md:text-sm font-semibold cursor-pointer ${
               progressionVisible
@@ -63,7 +64,7 @@ export function ChordMap({
                 : "text-fg-muted hover:text-fg-secondary"
             }`}
           >
-            Progression
+            {progressionVisible ? "Hide" : "Show"} Progression/Metronome
           </button>
         )}
       </div>

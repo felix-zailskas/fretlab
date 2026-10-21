@@ -159,25 +159,33 @@ describe("ChordMap — progression toggle", () => {
     );
   }
 
+  const PROGRESSION_TOGGLE = /^(Show|Hide) Progression\/Metronome$/;
+
   it("is absent without onToggleProgression", () => {
     renderMap();
     expect(
-      screen.queryByRole("button", { name: "Progression" }),
+      screen.queryByRole("button", { name: PROGRESSION_TOGGLE }),
     ).not.toBeInTheDocument();
   });
 
-  it("reflects visibility with aria-pressed", () => {
-    renderMap({ progressionVisible: true, onToggleProgression: () => {} });
-    expect(screen.getByRole("button", { name: "Progression" })).toHaveAttribute(
-      "aria-pressed",
-      "true",
-    );
-  });
+  it.each([
+    [true, "Hide Progression/Metronome", "true"],
+    [false, "Show Progression/Metronome", "false"],
+  ] as const)(
+    "labels the toggle by visibility (visible=%s)",
+    (progressionVisible, label, expanded) => {
+      renderMap({ progressionVisible, onToggleProgression: () => {} });
+      const toggle = screen.getByRole("button", { name: label });
+      expect(toggle).toHaveAttribute("aria-expanded", expanded);
+      expect(toggle).toHaveAttribute("aria-controls", "progression-panel");
+      expect(toggle).not.toHaveAttribute("aria-pressed");
+    },
+  );
 
   it("calls onToggleProgression", async () => {
     const onToggle = vi.fn();
     renderMap({ progressionVisible: false, onToggleProgression: onToggle });
-    await userEvent.click(screen.getByRole("button", { name: "Progression" }));
+    await userEvent.click(screen.getByRole("button", { name: PROGRESSION_TOGGLE }));
     expect(onToggle).toHaveBeenCalledTimes(1);
   });
 
@@ -189,7 +197,7 @@ describe("ChordMap — progression toggle", () => {
       onToggleProgression: onToggle,
     });
     expect(screen.queryAllByTestId("chord-card")).toHaveLength(0);
-    await userEvent.click(screen.getByRole("button", { name: "Progression" }));
+    await userEvent.click(screen.getByRole("button", { name: PROGRESSION_TOGGLE }));
     expect(onToggle).toHaveBeenCalledTimes(1);
   });
 });

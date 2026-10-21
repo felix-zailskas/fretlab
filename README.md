@@ -336,8 +336,8 @@ is 120 eighth notes per minute), time-signature presets (2/4 to 12/8), an option
 accented metronome **Click**, and **Loop**. Progressions are stored by scale degree, so
 they transpose with the key and adapt to the mode; a chord that doesn't exist in the
 current mode is greyed out and skipped. The progression, its settings and whether the
-panel is shown (the **Progression** button next to Triads/Sevenths) are saved in your
-browser.
+panel is shown (the **Show/Hide Progression/Metronome** button next to Triads/Sevenths)
+are saved in your browser.
 
 Play also works as a plain metronome: with an empty progression (or with the key set to
 All, or when no chord is playable) it loops one bar, the click always sounds, and beat

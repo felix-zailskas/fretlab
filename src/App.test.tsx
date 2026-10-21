@@ -29,6 +29,8 @@ beforeAll(() => {
   }
 });
 
+const PROGRESSION_TOGGLE = /^(Show|Hide) Progression\/Metronome$/;
+
 const CAGED_CUSTOM: CustomTuning = {
   id: "custom:1715600000-aaa",
   name: "Standard clone",
@@ -284,9 +286,9 @@ describe("App — progression player", () => {
     ).toHaveAttribute("aria-pressed", "true");
   });
 
-  it("the Progression toggle hides the panel and the ＋ buttons", async () => {
+  it("the Progression/Metronome toggle hides the panel and the ＋ buttons", async () => {
     render(<App />);
-    await userEvent.click(screen.getByRole("button", { name: "Progression" }));
+    await userEvent.click(screen.getByRole("button", { name: PROGRESSION_TOGGLE }));
     expect([
       screen.queryByRole("region", { name: "Progression" }),
       screen.queryByRole("button", { name: "Add F to progression" }),
@@ -295,7 +297,7 @@ describe("App — progression player", () => {
 
   it("persists the hidden state", async () => {
     render(<App />);
-    await userEvent.click(screen.getByRole("button", { name: "Progression" }));
+    await userEvent.click(screen.getByRole("button", { name: PROGRESSION_TOGGLE }));
     const stored = JSON.parse(localStorage.getItem(PROGRESSION_STORAGE_KEY) ?? "{}");
     expect(stored.visible).toBe(false);
   });
@@ -353,17 +355,17 @@ describe("App — progression player", () => {
   it("hiding the panel stops playback", async () => {
     render(<App />);
     await userEvent.click(screen.getByRole("button", { name: "Play" }));
-    await userEvent.click(screen.getByRole("button", { name: "Progression" }));
-    await userEvent.click(screen.getByRole("button", { name: "Progression" }));
+    await userEvent.click(screen.getByRole("button", { name: PROGRESSION_TOGGLE }));
+    await userEvent.click(screen.getByRole("button", { name: PROGRESSION_TOGGLE }));
     expect(screen.getByRole("button", { name: "Play" })).toBeInTheDocument();
   });
 
   it("Space is ignored while the panel is hidden", async () => {
     render(<App />);
-    await userEvent.click(screen.getByRole("button", { name: "Progression" }));
+    await userEvent.click(screen.getByRole("button", { name: PROGRESSION_TOGGLE }));
     blurActive();
     await userEvent.keyboard(" ");
-    await userEvent.click(screen.getByRole("button", { name: "Progression" }));
+    await userEvent.click(screen.getByRole("button", { name: PROGRESSION_TOGGLE }));
     expect(screen.getByRole("button", { name: "Play" })).toBeInTheDocument();
   });
 });
