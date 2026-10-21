@@ -162,7 +162,7 @@ describe("ProgressionPanel — transport and visibility", () => {
     prime({ slots: [{ id: "f", ref: { tier: "diatonic", degree: 4 }, bars: 1 }] });
     render(<Harness selectedKey={ALL_NOTES_KEY} />);
     expect([
-      screen.queryByText("Pick a key to build and play a progression.") !== null,
+      screen.queryByText("Pick a key to build a progression.") !== null,
       screen.queryByTestId("progression-slot"),
       (screen.getByRole("button", { name: "Play" }) as HTMLButtonElement).disabled,
       (screen.getByRole("spinbutton", { name: "BPM" }) as HTMLInputElement).disabled,

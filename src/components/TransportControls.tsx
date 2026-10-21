@@ -140,6 +140,7 @@ export function TransportControls(props: TransportControlsProps) {
       </button>
       {isPlaying && beatInBar !== null && (
         <BeatDots
+          source="transport"
           beats={timeSignature.beats}
           current={beatInBar}
           accents={accentPattern(timeSignature)}

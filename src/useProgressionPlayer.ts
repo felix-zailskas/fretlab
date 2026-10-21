@@ -150,6 +150,8 @@ export function useProgressionPlayer({
   const startFrom = useCallback(
     (slotId: string | null, sig: TimeSignature) => {
       const slots = playable.map((s) => ({ ...s, bars: snapSlotLength(s.bars, sig) }));
+      // Derived from the snapped slots, not `metronomeOnly`: that flag can lag a render
+      // behind the playable list this callback closes over.
       const noChords = slots.length === 0;
       const startIndex = Math.max(
         0,

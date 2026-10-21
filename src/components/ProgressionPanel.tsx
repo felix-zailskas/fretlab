@@ -63,7 +63,7 @@ export function ProgressionPanel({ player, noKey }: ProgressionPanelProps) {
         onClear={player.clear}
       />
       {noKey ? (
-        <p className={HINT}>Pick a key to build and play a progression.</p>
+        <p className={HINT}>Pick a key to build a progression.</p>
       ) : resolvedSlots.length === 0 ? (
         <p className={HINT}>Click ＋ on a chord below to start a progression</p>
       ) : (

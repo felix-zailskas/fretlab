@@ -249,6 +249,28 @@ describe("useProgressionPlayer — metronome only", () => {
     ]).toEqual([true, true, null, 1, true]);
   });
 
+  it("moving from the All key to a real key restarts once and announces the chord", async () => {
+    prime({ slots: [{ id: "f", ref: F, bars: 1 }] });
+    const metronome = createFakeMetronome();
+    const onChordChange = vi.fn();
+    const { result, rerender } = renderHook(
+      ({ selectedKey }) =>
+        useProgressionPlayer({
+          selectedKey,
+          mode: "ionian",
+          rowMode: "triads",
+          onChordChange,
+          metronomeFactory: () => metronome,
+        }),
+      { initialProps: { selectedKey: "all" } },
+    );
+    act(() => result.current.play());
+    expect(result.current.metronomeOnly).toBe(true);
+    rerender({ selectedKey: "C" });
+    expect(metronome.starts).toBe(2);
+    await step(metronome, 0, () => expect(onChordChange).toHaveBeenCalledWith(F));
+  });
+
   it("changing the time signature restarts the metronome", () => {
     const { result, metronome } = setup();
     act(() => result.current.play());

@@ -123,7 +123,7 @@ export function ProgressionSlotCard({
           +
         </button>
       </div>
-      {isCurrent && <BeatDots beats={beatsPerBar} current={beatInBar} />}
+      {isCurrent && <BeatDots beats={beatsPerBar} current={beatInBar} source="slot" />}
     </li>
   );
 }
