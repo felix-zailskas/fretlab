@@ -247,8 +247,10 @@ fretboard, including out-of-key tones (dashed ring). A **progression player** th
 the user queue map chords, give each a length in bars and play them back over a
 metronome while the fretboard follows.
 
-Status: chord map implemented (PR 1); progression player planned (PR 2). Spec:
+Status: implemented (chord map in PR 1, progression player in PR 2). Spec:
 [`docs/superpowers/specs/2026-10-20-chord-map-progression-player-design.md`](../superpowers/specs/2026-10-20-chord-map-progression-player-design.md).
+Progression-player implementation plan:
+[`docs/superpowers/plans/2026-10-20-progression-player.md`](../superpowers/plans/2026-10-20-progression-player.md).
 
 ### Future: Reference tab
 

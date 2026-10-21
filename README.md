@@ -323,17 +323,38 @@ all six strings enabled on every reload.
 - _Single-string scale runs_ — mute everything except one string for horizontal-scale
   practice up the neck.
 
+## Progression player
+
+Build a chord progression straight from the chord map and play it back in time. Click
+the small ＋ on any chord card (diatonic, secondary dominant or borrowed) to append it,
+drag cards by their ⠿ handle to reorder, and use −/+ to set each chord's length in bars
+(½ bar is offered when the bar splits evenly). Press **Play** and the fretboard follows
+the current chord in every view; the next chord is outlined in the strip.
+
+The transport has a BPM field (30–300, counting the time signature's unit, so 6/8 at 120
+is 120 eighth notes per minute), time-signature presets (2/4 to 12/8), an optional
+accented metronome **Click**, and **Loop**. Progressions are stored by scale degree, so
+they transpose with the key and adapt to the mode; a chord that doesn't exist in the
+current mode is greyed out and skipped. The progression, its settings and whether the
+panel is shown (the **Progression** button next to Triads/Sevenths) are saved in your
+browser.
+
+Play also works as a plain metronome: with an empty progression (or with the key set to
+All, or when no chord is playable) it loops one bar, the click always sounds, and beat
+dots in the transport bar show the count.
+
 ## Keyboard shortcuts
 
 A few shortcuts speed up the most common practice flows. They're disabled while focus is
 in a text input, and modifier keys (⌘ / Ctrl / Alt) are ignored so they don't interfere
 with browser shortcuts.
 
-| Key     | Action                                                                 |
-| ------- | ---------------------------------------------------------------------- |
-| `1`–`7` | Select diatonic chord I through vii° (press the active chord to clear) |
-| `t`     | Switch the chord map to **Triads**                                     |
-| `s`     | Switch the chord map to **Sevenths**                                   |
+| Key     | Action                                                                        |
+| ------- | ----------------------------------------------------------------------------- |
+| `1`–`7` | Select diatonic chord I through vii° (press the active chord to clear)        |
+| `t`     | Switch the chord map to **Triads**                                            |
+| `s`     | Switch the chord map to **Sevenths**                                          |
+| `Space` | Play / stop the progression (ignored while a button or form field is focused) |
 
 ## Getting started
 
