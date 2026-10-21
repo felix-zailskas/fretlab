@@ -159,7 +159,7 @@ describe("ChordMap — progression toggle", () => {
     );
   }
 
-  const PROGRESSION_TOGGLE = /^(Show|Hide) Progression\/Metronome$/;
+  const PROGRESSION_TOGGLE = "Progression/Metronome";
 
   it("is absent without onToggleProgression", () => {
     renderMap();
@@ -168,19 +168,13 @@ describe("ChordMap — progression toggle", () => {
     ).not.toBeInTheDocument();
   });
 
-  it.each([
-    [true, "Hide Progression/Metronome", "true"],
-    [false, "Show Progression/Metronome", "false"],
-  ] as const)(
-    "labels the toggle by visibility (visible=%s)",
-    (progressionVisible, label, expanded) => {
-      renderMap({ progressionVisible, onToggleProgression: () => {} });
-      const toggle = screen.getByRole("button", { name: label });
-      expect(toggle).toHaveAttribute("aria-expanded", expanded);
-      expect(toggle).toHaveAttribute("aria-controls", "progression-panel");
-      expect(toggle).not.toHaveAttribute("aria-pressed");
-    },
-  );
+  it("reflects visibility with aria-pressed", () => {
+    renderMap({ progressionVisible: true, onToggleProgression: () => {} });
+    expect(screen.getByRole("button", { name: PROGRESSION_TOGGLE })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+  });
 
   it("calls onToggleProgression", async () => {
     const onToggle = vi.fn();

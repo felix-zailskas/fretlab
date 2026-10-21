@@ -55,8 +55,7 @@ export function ChordMap({
         {onToggleProgression && (
           <button
             type="button"
-            aria-expanded={progressionVisible}
-            aria-controls="progression-panel"
+            aria-pressed={progressionVisible}
             onClick={onToggleProgression}
             className={`px-2 py-1.5 md:px-3 md:py-2.5 pointer-coarse:py-3 rounded border border-line text-xs md:text-sm font-semibold cursor-pointer ${
               progressionVisible
@@ -64,7 +63,7 @@ export function ChordMap({
                 : "text-fg-muted hover:text-fg-secondary"
             }`}
           >
-            {progressionVisible ? "Hide" : "Show"} Progression/Metronome
+            Progression/Metronome
           </button>
         )}
       </div>

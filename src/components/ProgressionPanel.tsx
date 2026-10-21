@@ -43,7 +43,6 @@ export function ProgressionPanel({ player, noKey }: ProgressionPanelProps) {
 
   return (
     <section
-      id="progression-panel"
       aria-label="Progression"
       className="mt-4 md:mt-8 p-3 rounded-xl border border-line space-y-3"
     >

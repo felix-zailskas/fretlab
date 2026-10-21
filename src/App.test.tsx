@@ -29,7 +29,7 @@ beforeAll(() => {
   }
 });
 
-const PROGRESSION_TOGGLE = /^(Show|Hide) Progression\/Metronome$/;
+const PROGRESSION_TOGGLE = "Progression/Metronome";
 
 const CAGED_CUSTOM: CustomTuning = {
   id: "custom:1715600000-aaa",
