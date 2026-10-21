@@ -20,6 +20,8 @@ import type { HighlightableRole } from "./theory/types";
 import { ScaleDisplay } from "./components/ScaleDisplay";
 import { AboutModal } from "./components/AboutModal";
 import { ChordMap } from "./components/ChordMap";
+import { ProgressionPanel } from "./components/ProgressionPanel";
+import { useProgressionPlayer } from "./useProgressionPlayer";
 import { ChordShapesView } from "./views/ChordShapesView";
 import { NoteMapView } from "./views/NoteMapView";
 import { ScalePositionsView } from "./views/ScalePositionsView";
@@ -128,6 +130,14 @@ function App() {
     degree: 1,
   });
   const [chordRowMode, setChordRowMode] = useState<ChordRowMode>("triads");
+  const player = useProgressionPlayer({
+    selectedKey,
+    mode,
+    rowMode: chordRowMode,
+    onChordChange: setSelectedChordRef,
+  });
+  const togglePlayback = player.toggle;
+  const progressionVisible = player.state.visible;
   const [showAbout, setShowAbout] = useState(false);
   const [startFret, setStartFret] = useState(0);
   const [endFret, setEndFret] = useState(() =>
@@ -181,6 +191,30 @@ function App() {
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
   }, []);
+
+  // Space toggles the progression player. Ignored in form fields and on
+  // buttons (a focused button already activates on Space, and dnd-kit's drag
+  // handle uses Space to pick up a card), on key repeat (holding Space would
+  // flip playback on and off), and while the panel is hidden (no visible Stop).
+  useEffect(() => {
+    function handleSpace(e: KeyboardEvent) {
+      if (e.key !== " " || e.repeat || !progressionVisible) return;
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      const t = e.target;
+      if (
+        t instanceof HTMLInputElement ||
+        t instanceof HTMLTextAreaElement ||
+        t instanceof HTMLSelectElement ||
+        t instanceof HTMLButtonElement
+      ) {
+        return;
+      }
+      e.preventDefault();
+      togglePlayback();
+    }
+    window.addEventListener("keydown", handleSpace);
+    return () => window.removeEventListener("keydown", handleSpace);
+  }, [togglePlayback, progressionVisible]);
 
   const cycleTheme = useCallback(() => {
     setThemeMode((prev) =>
@@ -257,15 +291,23 @@ function App() {
 
   const isAllNotesKey = selectedKey === ALL_NOTES_KEY;
 
-  const chordMap = (
-    <ChordMap
-      selectedKey={selectedKey}
-      modalMode={mode}
-      rowMode={chordRowMode}
-      onRowModeChange={setChordRowMode}
-      selectedRef={selectedChordRef}
-      onSelect={handleChordSelect}
-    />
+  // Progression panel sits between the view (which ends with its Legend) and
+  // the chord map, identically in every view.
+  const chordArea = (
+    <>
+      <ProgressionPanel player={player} noKey={isAllNotesKey} />
+      <ChordMap
+        selectedKey={selectedKey}
+        modalMode={mode}
+        rowMode={chordRowMode}
+        onRowModeChange={setChordRowMode}
+        selectedRef={selectedChordRef}
+        onSelect={handleChordSelect}
+        onAdd={player.state.visible ? player.add : undefined}
+        progressionVisible={player.state.visible}
+        onToggleProgression={() => player.setVisible(!player.state.visible)}
+      />
+    </>
   );
 
   function renderView(): ReactNode {
@@ -297,7 +339,7 @@ function App() {
               enabledStrings={enabledStrings}
               onToggleString={toggleString}
             />
-            {chordMap}
+            {chordArea}
           </>
         );
       case "scale-positions":
@@ -317,7 +359,7 @@ function App() {
               enabledStrings={enabledStrings}
               onToggleString={toggleString}
             />
-            {chordMap}
+            {chordArea}
           </>
         );
       case "chord-shapes":
@@ -340,7 +382,7 @@ function App() {
               enabledStrings={enabledStrings}
               onToggleString={toggleString}
             />
-            {chordMap}
+            {chordArea}
           </>
         );
       default: {
