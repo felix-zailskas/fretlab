@@ -1,4 +1,4 @@
-import { type DiatonicChord, type DiatonicTriad } from "../theory/scales";
+import type { ChordToneSource } from "../theory/harmony";
 import {
   getModalScaleNotes,
   MODE_DEGREE_LABELS,
@@ -6,8 +6,8 @@ import {
   type Mode,
 } from "../theory/modes";
 import { HIGHLIGHTABLE, roleFromChordTone } from "../theory/chordTones";
-import { ALL_NOTES_KEY } from "./KeySelector";
-import type { HighlightableRole } from "./Legend";
+import { ALL_NOTES_KEY } from "../theory/notes";
+import type { HighlightableRole } from "../theory/types";
 
 const ROLE_PILL_CLASSES: Record<HighlightableRole, string> = {
   root: "bg-root/20 border-root/40 text-fg-primary",
@@ -30,7 +30,7 @@ const MODE_DISPLAY_NAME: Record<Mode, string> = {
 
 type ScaleDisplayProps = {
   selectedKey: string;
-  selectedChord: DiatonicChord | DiatonicTriad | null;
+  selectedChord: ChordToneSource | null;
   enabledRoles: Set<HighlightableRole>;
   // Optional — defaults to 'ionian', preserving today's "{key} major" header.
   // Phase D wires App.tsx to pass this explicitly from global state.

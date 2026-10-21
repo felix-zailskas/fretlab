@@ -1,9 +1,4 @@
-import type { NoteDisplayRole } from "../theory/types";
-
-export type HighlightableRole = Extract<
-  NoteDisplayRole,
-  "root" | "third" | "fifth" | "seventh"
->;
+import type { HighlightableRole } from "../theory/types";
 
 const LEGEND_ITEMS: {
   label: string;

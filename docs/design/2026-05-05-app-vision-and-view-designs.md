@@ -239,6 +239,17 @@ For follow-up V2 work — extending to harmonic minor and melodic minor parent s
 see
 [`docs/design/2026-05-07-modal-parent-scales-extension.md`](2026-05-07-modal-parent-scales-extension.md).
 
+### Future: Chord map & progression player
+
+The diatonic chord row grows into a **chord map**: secondary dominants (V7/x) above the
+diatonic row and chords borrowed from the parallel mode below it, all driving the
+fretboard, including out-of-key tones (dashed ring). A **progression player** then lets
+the user queue map chords, give each a length in bars and play them back over a
+metronome while the fretboard follows.
+
+Status: chord map implemented (PR 1); progression player planned (PR 2). Spec:
+[`docs/superpowers/specs/2026-10-20-chord-map-progression-player-design.md`](../superpowers/specs/2026-10-20-chord-map-progression-player-design.md).
+
 ### Future: Reference tab
 
 A theoretical-lookup tab — a distinct cognitive job from the existing practice-flow tabs

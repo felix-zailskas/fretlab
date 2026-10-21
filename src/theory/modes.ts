@@ -4,7 +4,7 @@ import {
   naturalAccidentalForKey,
   spellScale,
   type AccidentalStyle,
-  type ChromaticNote,
+  type SpelledNote,
 } from "./notes";
 import type {
   ChordQuality,
@@ -43,6 +43,17 @@ export const MODES: readonly Mode[] = [
   "aeolian",
   "locrian",
 ] as const;
+
+// Display names, e.g. for "Borrowed (C Aeolian)" labels.
+export const MODE_NAMES: Record<Mode, string> = {
+  ionian: "Ionian",
+  dorian: "Dorian",
+  phrygian: "Phrygian",
+  lydian: "Lydian",
+  mixolydian: "Mixolydian",
+  aeolian: "Aeolian",
+  locrian: "Locrian",
+};
 
 // Each mode's interval-from-tonic in semitones (7 entries, ascending).
 export const MODE_INTERVALS: Record<
@@ -106,8 +117,8 @@ export const PARENT_MAJOR_OFFSET: Record<Mode, number> = {
   locrian: -11,
 };
 
-export function getModalScaleNotes(key: string, mode: Mode): string[] {
-  return spellScale(key as ChromaticNote, MODE_INTERVALS[mode]);
+export function getModalScaleNotes(key: string, mode: Mode): SpelledNote[] {
+  return spellScale(key as SpelledNote, MODE_INTERVALS[mode]);
 }
 
 // Returns the tonic of the parent major scale for (modal-tonic, mode).
@@ -263,7 +274,7 @@ function seventhQualityFromIntervals(
   );
 }
 
-const QUALITY_TO_TRIAD: Record<ChordQuality, TriadQuality> = {
+export const QUALITY_TO_TRIAD: Record<ChordQuality, TriadQuality> = {
   maj7: "maj",
   m7: "min",
   "7": "maj",

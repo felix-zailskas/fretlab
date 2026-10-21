@@ -124,3 +124,125 @@ describe("App — string-toggle state is global across views", () => {
     expect(noteMapToggle5).toHaveAttribute("data-enabled", "false");
   });
 });
+
+describe("App — chord map selection", () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  function pressedCards(): string[] {
+    return screen
+      .getAllByTestId("chord-card")
+      .filter((c) => c.getAttribute("aria-pressed") === "true")
+      .map((c) => c.getAttribute("aria-label") ?? "");
+  }
+
+  it("selects the diatonic I chord by default", () => {
+    render(<App />);
+    expect(pressedCards()).toEqual(["I C"]);
+  });
+
+  it("number keys select diatonic chords", async () => {
+    render(<App />);
+    await userEvent.keyboard("5");
+    expect(pressedCards()).toEqual(["V G"]);
+  });
+
+  it("pressing the selected diatonic number again clears the selection", async () => {
+    render(<App />);
+    await userEvent.keyboard("1");
+    expect(pressedCards()).toEqual([]);
+  });
+
+  it("number keys replace a secondary-tier selection with the diatonic chord", async () => {
+    render(<App />);
+    await userEvent.click(screen.getByRole("button", { name: "V7/V D7" }));
+    await userEvent.keyboard("5");
+    expect(pressedCards()).toEqual(["V G"]);
+  });
+
+  it("clears a selection whose cell empties after a mode change", async () => {
+    render(<App />);
+    await userEvent.click(screen.getByRole("radio", { name: "Mixolydian" }));
+    await userEvent.click(screen.getByRole("button", { name: "V7/♭VII F7" }));
+    await userEvent.click(screen.getByRole("radio", { name: "Ionian" }));
+    await userEvent.click(screen.getByRole("radio", { name: "Mixolydian" }));
+    expect(pressedCards()).toEqual([]);
+  });
+
+  it("keeps a selection that still resolves after a mode change", async () => {
+    render(<App />);
+    await userEvent.click(screen.getByRole("button", { name: "V7/V D7" }));
+    await userEvent.click(screen.getByRole("radio", { name: "Dorian" }));
+    // Dorian's v is minor, so the numeral changes but the chord stays D.
+    expect(pressedCards()).toEqual(["V7/v D7"]);
+  });
+
+  it("keeps the selection through a detour via the All key", async () => {
+    render(<App />);
+    await userEvent.click(screen.getByRole("button", { name: "V7/V D7" }));
+    await userEvent.click(screen.getByRole("button", { name: "All" }));
+    await userEvent.click(screen.getByRole("button", { name: "C" }));
+    expect(pressedCards()).toEqual(["V7/V D7"]);
+  });
+
+  it("clears a selection whose cell empties after a row-mode change", async () => {
+    render(<App />);
+    await userEvent.click(screen.getByRole("radio", { name: "Dorian" }));
+    await userEvent.keyboard("s");
+    const borrowedIV = document.querySelector(
+      '[data-testid="chord-card"][data-tier="borrowed"][data-degree="4"]',
+    ) as HTMLElement;
+    await userEvent.click(borrowedIV);
+    expect(pressedCards()).toHaveLength(1);
+    // Dorian IV is F7 in sevenths but equals the diatonic F in triads, so the
+    // borrowed cell empties.
+    await userEvent.keyboard("t");
+    expect(pressedCards()).toEqual([]);
+    // The cleared selection must not resurface when the cell comes back.
+    await userEvent.keyboard("s");
+    expect(pressedCards()).toEqual([]);
+  });
+});
+
+describe("App — secondary dominants in triads mode", () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  it("V7/ii shows its ♭7 as a seventh marker and keeps the 7th toggle enabled", async () => {
+    render(<App />);
+    await userEvent.click(screen.getByRole("button", { name: /^V7\/ii A7/ }));
+    const markers = screen.getAllByTestId("note-marker");
+    expect(
+      markers.some(
+        (m) =>
+          m.getAttribute("data-note") === "G" &&
+          m.getAttribute("data-role") === "seventh",
+      ),
+    ).toBe(true);
+    expect(screen.getByRole("button", { name: "7th" })).toBeEnabled();
+  });
+
+  it("disables the 7th toggle again for a triad selection in triads mode", async () => {
+    render(<App />);
+    expect(screen.getByRole("button", { name: "7th" })).toBeDisabled();
+  });
+
+  it("disables the 7th toggle in Chord Shapes with V7/ii selected", async () => {
+    render(<App />);
+    await userEvent.click(screen.getByRole("button", { name: /^V7\/ii A7/ }));
+    await userEvent.click(screen.getByRole("tab", { name: /Chord Shapes/ }));
+    expect(screen.getByRole("button", { name: "7th" })).toBeDisabled();
+  });
+
+  it("Chord Shapes voices the triad of V7/ii without a seventh", async () => {
+    render(<App />);
+    await userEvent.click(screen.getByRole("button", { name: /^V7\/ii A7/ }));
+    await userEvent.click(screen.getByRole("tab", { name: /Chord Shapes/ }));
+    const markers = screen.getAllByTestId("note-marker");
+    expect(markers.length).toBeGreaterThan(0);
+    expect(markers.some((m) => m.getAttribute("data-role") === "seventh")).toBe(false);
+    expect(markers.some((m) => m.getAttribute("data-note") === "G")).toBe(false);
+  });
+});

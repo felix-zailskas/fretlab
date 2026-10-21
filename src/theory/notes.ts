@@ -131,6 +131,11 @@ export function getDisplayName(
 
 const LETTERS = ["C", "D", "E", "F", "G", "A", "B"] as const;
 type Letter = (typeof LETTERS)[number];
+type Accidental = "" | "#" | "##" | "b" | "bb";
+
+// A letter-correct note name: one of 7 letters plus at most a double
+// accidental (35 values). Every scale and chord speller returns this type.
+export type SpelledNote = `${Letter}${Accidental}`;
 
 const LETTER_PITCH: Record<Letter, number> = {
   C: 0,
@@ -142,28 +147,50 @@ const LETTER_PITCH: Record<Letter, number> = {
   B: 11,
 };
 
+// Spells `targetPitch` (0-11) on `letter`, adding the accidentals needed.
+// Throws when that would take more than a double sharp or double flat.
+function spellOnLetter(letter: Letter, targetPitch: number): SpelledNote {
+  let delta = (targetPitch - LETTER_PITCH[letter] + 12) % 12;
+  if (delta > 6) delta -= 12;
+  if (Math.abs(delta) > 2) {
+    throw new Error(
+      `spellOnLetter: pitch class ${targetPitch} needs more than a double accidental on ${letter}`,
+    );
+  }
+  const accidental = delta >= 0 ? "#".repeat(delta) : "b".repeat(-delta);
+  return `${letter}${accidental}` as SpelledNote;
+}
+
 /**
  * Spell a diatonic scale using all 7 letter names, with accidentals
  * (#, b, ##, bb) as needed. The root's letter anchors the cycle.
  */
 export function spellScale(
-  root: ChromaticNote,
+  root: SpelledNote,
   intervals: readonly number[],
-): string[] {
-  const rootLetter = root[0] as Letter;
-  const rootLetterIdx = LETTERS.indexOf(rootLetter);
+): SpelledNote[] {
+  const rootLetterIdx = LETTERS.indexOf(root[0] as Letter);
   const rootPitch = getNoteIndex(root);
+  return intervals.map((interval, i) =>
+    spellOnLetter(LETTERS[(rootLetterIdx + i) % 7], (rootPitch + interval) % 12),
+  );
+}
 
-  return intervals.map((interval, i) => {
-    const letter = LETTERS[(rootLetterIdx + i) % 7];
-    const targetPitch = (rootPitch + interval) % 12;
-    const naturalPitch = LETTER_PITCH[letter];
-    let delta = (targetPitch - naturalPitch + 12) % 12;
-    if (delta > 6) delta -= 12;
-    const accidental =
-      delta === 0 ? "" : delta > 0 ? "#".repeat(delta) : "b".repeat(-delta);
-    return letter + accidental;
-  });
+/**
+ * Spell a chord stacked in thirds: chord tone i sits on the letter 2·i steps
+ * above the root's letter, with accidentals added until it reaches
+ * root + intervals[i]. Throws when a tone would need more than a double
+ * accidental.
+ */
+export function spellChord(
+  root: SpelledNote,
+  intervals: readonly number[],
+): SpelledNote[] {
+  const rootLetterIdx = LETTERS.indexOf(root[0] as Letter);
+  const rootPitch = getNoteIndex(root);
+  return intervals.map((interval, i) =>
+    spellOnLetter(LETTERS[(rootLetterIdx + 2 * i) % 7], (rootPitch + interval) % 12),
+  );
 }
 
 /**
@@ -173,14 +200,16 @@ export function spellScale(
  * key-and-mode-correct letter+accidentals back.
  */
 export function buildDiatonicSpellingMap(
-  root: ChromaticNote,
+  root: SpelledNote,
   intervals: readonly number[],
-): ReadonlyMap<number, string> {
+): ReadonlyMap<number, SpelledNote> {
   const rootPitch = getNoteIndex(root);
   const spelled = spellScale(root, intervals);
-  const map = new Map<number, string>();
+  const map = new Map<number, SpelledNote>();
   intervals.forEach((iv, i) => {
     map.set((rootPitch + iv) % 12, spelled[i]);
   });
   return map;
 }
+
+export const ALL_NOTES_KEY = "all";

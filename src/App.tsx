@@ -9,16 +9,17 @@ import {
 import { AccidentalToggle } from "./components/AccidentalToggle";
 import { ThemeToggle } from "./components/ThemeToggle";
 import { FretRangeControl } from "./components/FretRangeControl";
-import { KeySelector, ALL_NOTES_KEY } from "./components/KeySelector";
+import { KeySelector } from "./components/KeySelector";
+import { ALL_NOTES_KEY } from "./theory/notes";
 import { ModeSelector } from "./components/ModeSelector";
 import { ViewSelector } from "./components/ViewSelector";
 import { TuningSelector } from "./components/TuningSelector";
 import { UnavailableInTuning } from "./components/UnavailableInTuning";
 import { CustomTuningModal } from "./components/CustomTuningModal";
-import { type HighlightableRole } from "./components/Legend";
+import type { HighlightableRole } from "./theory/types";
 import { ScaleDisplay } from "./components/ScaleDisplay";
 import { AboutModal } from "./components/AboutModal";
-import { DiatonicChords, type ChordRowMode } from "./components/DiatonicChords";
+import { ChordMap } from "./components/ChordMap";
 import { ChordShapesView } from "./views/ChordShapesView";
 import { NoteMapView } from "./views/NoteMapView";
 import { ScalePositionsView } from "./views/ScalePositionsView";
@@ -42,10 +43,19 @@ import {
   saveCustomTunings,
   type StoredState,
 } from "./theory/customTuningStorage";
-import { getModalDiatonicChords, getModalDiatonicTriads } from "./theory/modes";
+import {
+  resolveChordRef,
+  showsSeventh,
+  toggleChordRef,
+  type ChordRef,
+  type ChordRowMode,
+} from "./theory/harmony";
 import { tonalReducer } from "./tonalReducer";
 
 const DEFAULT_HIGHLIGHTS: HighlightableRole[] = ["root", "third", "fifth", "seventh"];
+
+// Chord Shapes voices only triads in triads mode, so its 7th role is inert.
+const TRIADS_DISABLED_ROLES = new Set<HighlightableRole>(["seventh"]);
 
 function createCustomTuningId(): CustomTuningId {
   const ts = Date.now();
@@ -113,7 +123,10 @@ function App() {
       return next;
     });
   }, []);
-  const [selectedChordDegree, setSelectedChordDegree] = useState<number | null>(1);
+  const [selectedChordRef, setSelectedChordRef] = useState<ChordRef | null>({
+    tier: "diatonic",
+    degree: 1,
+  });
   const [chordRowMode, setChordRowMode] = useState<ChordRowMode>("triads");
   const [showAbout, setShowAbout] = useState(false);
   const [startFret, setStartFret] = useState(0);
@@ -135,7 +148,7 @@ function App() {
     }
   }, [themeMode]);
 
-  // Keyboard shortcuts: 1-7 select chord degree, t/s toggle chord row mode.
+  // Keyboard shortcuts: 1-7 select a diatonic chord, t/s toggle chord row mode.
   // Skipped if focus is in an input/textarea so we don't hijack typing.
   useEffect(() => {
     function handleKey(e: KeyboardEvent) {
@@ -149,7 +162,9 @@ function App() {
 
       if (e.key >= "1" && e.key <= "7") {
         const degree = parseInt(e.key, 10);
-        setSelectedChordDegree((prev) => (prev === degree ? null : degree));
+        setSelectedChordRef((prev) =>
+          toggleChordRef(prev, { tier: "diatonic", degree }),
+        );
         return;
       }
 
@@ -178,21 +193,40 @@ function App() {
     setEndFret(end);
   }, []);
 
-  // Selected chord is computed against the (key, mode) pair so the chord
-  // row's chord set reflects the modal scale's harmony. selectedChordDegree
-  // persists across mode changes — the user's "I'm focused on the IV chord"
-  // intent stays anchored to degree 4 even when the chord's symbol changes.
-  const selectedChord = useMemo(() => {
-    if (selectedChordDegree === null || selectedKey === ALL_NOTES_KEY) return null;
-    const chords =
-      chordRowMode === "sevenths"
-        ? getModalDiatonicChords(selectedKey, mode)
-        : getModalDiatonicTriads(selectedKey, mode);
-    return chords[selectedChordDegree - 1] ?? null;
-  }, [selectedChordDegree, chordRowMode, selectedKey, mode]);
+  // The selection is a key-relative ChordRef, so "I'm focused on the IV
+  // chord" stays anchored to degree 4 across key and mode changes even when
+  // the chord's symbol changes.
+  const selectedChord = useMemo(
+    () =>
+      selectedChordRef === null
+        ? null
+        : resolveChordRef(selectedChordRef, selectedKey, mode, chordRowMode),
+    [selectedChordRef, chordRowMode, selectedKey, mode],
+  );
 
-  const handleChordSelect = useCallback((degree: number) => {
-    setSelectedChordDegree((prev) => (prev === degree ? null : degree));
+  // When a key / mode / row-mode change leaves the ref pointing at an empty
+  // cell (e.g. V7/♭VII after switching Mixolydian → Ionian), clear it so the
+  // selection doesn't silently reappear later. Adjusting state during render
+  // (instead of in an effect) avoids a frame with a stale selection. The All
+  // key is skipped: it resolves nothing but shouldn't wipe the selection.
+  const [resolvedFor, setResolvedFor] = useState({
+    key: selectedKey,
+    mode,
+    rowMode: chordRowMode,
+  });
+  if (
+    resolvedFor.key !== selectedKey ||
+    resolvedFor.mode !== mode ||
+    resolvedFor.rowMode !== chordRowMode
+  ) {
+    setResolvedFor({ key: selectedKey, mode, rowMode: chordRowMode });
+    if (selectedKey !== ALL_NOTES_KEY && selectedChordRef !== null && !selectedChord) {
+      setSelectedChordRef(null);
+    }
+  }
+
+  const handleChordSelect = useCallback((ref: ChordRef) => {
+    setSelectedChordRef((prev) => toggleChordRef(prev, ref));
   }, []);
 
   const toggleHighlight = useCallback((role: HighlightableRole) => {
@@ -204,21 +238,35 @@ function App() {
     });
   }, []);
 
+  // The 7th role is available in sevenths mode, and in triads mode while a
+  // secondary dominant (always a 7th chord) is selected.
+  const seventhShown = showsSeventh(chordRowMode, selectedChord);
+
   const effectiveHighlights = useMemo(
     () =>
-      chordRowMode === "triads"
-        ? new Set([...enabledHighlights].filter((r) => r !== "seventh"))
-        : enabledHighlights,
-    [enabledHighlights, chordRowMode],
+      seventhShown
+        ? enabledHighlights
+        : new Set([...enabledHighlights].filter((r) => r !== "seventh")),
+    [enabledHighlights, seventhShown],
   );
 
   const seventhDisabledRoles = useMemo(
-    () =>
-      chordRowMode === "triads" ? new Set<HighlightableRole>(["seventh"]) : undefined,
-    [chordRowMode],
+    () => (seventhShown ? undefined : new Set<HighlightableRole>(["seventh"])),
+    [seventhShown],
   );
 
   const isAllNotesKey = selectedKey === ALL_NOTES_KEY;
+
+  const chordMap = (
+    <ChordMap
+      selectedKey={selectedKey}
+      modalMode={mode}
+      rowMode={chordRowMode}
+      onRowModeChange={setChordRowMode}
+      selectedRef={selectedChordRef}
+      onSelect={handleChordSelect}
+    />
+  );
 
   function renderView(): ReactNode {
     if (!tuningSupportsView(tuning, selectedView)) {
@@ -249,14 +297,7 @@ function App() {
               enabledStrings={enabledStrings}
               onToggleString={toggleString}
             />
-            <DiatonicChords
-              selectedKey={selectedKey}
-              selectedDegree={selectedChordDegree}
-              onSelectDegree={handleChordSelect}
-              mode={chordRowMode}
-              onModeChange={setChordRowMode}
-              modalMode={mode}
-            />
+            {chordMap}
           </>
         );
       case "scale-positions":
@@ -276,14 +317,7 @@ function App() {
               enabledStrings={enabledStrings}
               onToggleString={toggleString}
             />
-            <DiatonicChords
-              selectedKey={selectedKey}
-              selectedDegree={selectedChordDegree}
-              onSelectDegree={handleChordSelect}
-              mode={chordRowMode}
-              onModeChange={setChordRowMode}
-              modalMode={mode}
-            />
+            {chordMap}
           </>
         );
       case "chord-shapes":
@@ -300,18 +334,13 @@ function App() {
               onToggleRole={toggleHighlight}
               controls={chordShapesControls}
               modalMode={mode}
-              disabledRoles={seventhDisabledRoles}
+              disabledRoles={
+                chordRowMode === "triads" ? TRIADS_DISABLED_ROLES : seventhDisabledRoles
+              }
               enabledStrings={enabledStrings}
               onToggleString={toggleString}
             />
-            <DiatonicChords
-              selectedKey={selectedKey}
-              selectedDegree={selectedChordDegree}
-              onSelectDegree={handleChordSelect}
-              mode={chordRowMode}
-              onModeChange={setChordRowMode}
-              modalMode={mode}
-            />
+            {chordMap}
           </>
         );
       default: {
@@ -322,15 +351,17 @@ function App() {
   }
 
   // Hidden announcement for screen readers — narrates the active tonal
-  // context whenever key, mode, or chord-degree changes.
+  // context whenever key, mode, or the selected chord changes.
   const announcement = useMemo(() => {
     if (selectedKey === ALL_NOTES_KEY) return "Showing all notes";
     const modeName =
       mode === "ionian" ? "major" : mode.charAt(0).toUpperCase() + mode.slice(1);
     const chordPart =
-      selectedChordDegree !== null ? `, chord degree ${selectedChordDegree}` : "";
+      selectedChord !== null
+        ? `, chord ${selectedChord.romanNumeral} ${selectedChord.symbol}`
+        : "";
     return `${selectedKey} ${modeName}${chordPart}`;
-  }, [selectedKey, mode, selectedChordDegree]);
+  }, [selectedKey, mode, selectedChord]);
 
   return (
     <div className="min-h-screen bg-surface text-fg-primary">

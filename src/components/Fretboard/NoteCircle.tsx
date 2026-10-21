@@ -15,6 +15,7 @@ type NoteCircleProps = {
   note: string;
   role: NoteDisplayRole;
   isCharacteristic?: boolean;
+  isOutsideKey?: boolean;
   // String/fret coordinates exposed as data-* attributes for E2E tests; not
   // used for rendering. Optional so existing callers don't have to pass them.
   string?: number;
@@ -27,6 +28,7 @@ export function NoteCircle({
   note,
   role,
   isCharacteristic,
+  isOutsideKey,
   string,
   fret,
 }: NoteCircleProps) {
@@ -46,6 +48,7 @@ export function NoteCircle({
       data-fret={fret}
       data-note={note}
       data-role={role}
+      data-outside-key={isOutsideKey ? "true" : undefined}
     >
       {isCharacteristic && (
         <circle
@@ -55,6 +58,20 @@ export function NoteCircle({
           fill="none"
           stroke="var(--color-characteristic)"
           strokeWidth={2}
+        />
+      )}
+      {/* Dashed neutral ring for chord tones outside the key. Deliberately not
+          the gold characteristic ring, which keeps its modal meaning. */}
+      {isOutsideKey && (
+        <circle
+          data-testid="outside-key-ring"
+          cx={cx}
+          cy={cy}
+          r={ringRadius}
+          fill="none"
+          stroke="var(--color-fg-primary)"
+          strokeWidth={1.5}
+          strokeDasharray="3 2"
         />
       )}
       <circle cx={cx} cy={cy} r={radius} fill={color} />

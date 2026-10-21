@@ -317,9 +317,9 @@ import { buildChordShapeMarkers } from "./chordShapes";
 import { TUNINGS } from "./tuning";
 import type { Tuning } from "./tuning";
 import { getModalDiatonicChords, getModalDiatonicTriads } from "./modes";
-import { CHROMATIC_SCALE, getNoteAtFret, getNoteIndex } from "./notes";
-import { ALL_NOTES_KEY } from "../components/KeySelector";
+import { ALL_NOTES_KEY, CHROMATIC_SCALE, getNoteAtFret, getNoteIndex } from "./notes";
 import { DEFAULT_END_FRET } from "./constants";
+import { resolveChordRef, type ChordToneSource } from "./harmony";
 
 describe("buildChordShapeMarkers — chord-centric", () => {
   it("returns [] when key is ALL_NOTES_KEY (triads)", () => {
@@ -841,5 +841,67 @@ describe("buildChordShapeMarkers — enabledStrings", () => {
     const markers = buildChordShapeMarkers(input);
     const stringFive = markers.filter((m) => m.string === 5);
     expect(stringFive).toHaveLength(0);
+  });
+});
+
+describe("buildChordShapeMarkers — map chords outside the key", () => {
+  const a7 = () =>
+    resolveChordRef({ tier: "secondary", degree: 2 }, "C", "ionian", "sevenths")!;
+  const abMajor = () =>
+    resolveChordRef({ tier: "borrowed", degree: 6 }, "C", "ionian", "triads")!;
+
+  const seventhMarkers = (chord: ChordToneSource) =>
+    buildChordShapeMarkers({
+      tuning: TUNINGS.standard,
+      mode: "sevenths",
+      voicingSystem: "drop2",
+      chord,
+      key: "C",
+      stringSets: ["2-3-4-5"],
+      inversions: ["root", "first", "second", "third"],
+      startFret: 0,
+      endFret: DEFAULT_END_FRET,
+    });
+
+  const triadMarkers = (chord: ChordToneSource) =>
+    buildChordShapeMarkers({
+      tuning: TUNINGS.standard,
+      mode: "triads",
+      chord,
+      key: "C",
+      stringSets: ["1-2-3", "2-3-4", "3-4-5", "4-5-6"],
+      inversions: ["root", "first", "second"],
+      startFret: 0,
+      endFret: DEFAULT_END_FRET,
+    });
+
+  it("labels A7's third C# and flags it isOutsideKey", () => {
+    const thirds = seventhMarkers(a7()).filter((m) => m.role === "third");
+    expect(thirds.length).toBeGreaterThan(0);
+    for (const m of thirds) expect(m).toMatchObject({ note: "C#", isOutsideKey: true });
+  });
+
+  it("does not flag A7's in-key tones", () => {
+    const inKey = seventhMarkers(a7()).filter((m) => m.role !== "third");
+    expect(inKey.some((m) => m.isOutsideKey)).toBe(false);
+  });
+
+  it("spells a borrowed Ab triad with flats from the chord, not G# / D#", () => {
+    const notes = new Set(triadMarkers(abMajor()).map((m) => m.note));
+    expect([...notes].sort()).toEqual(["Ab", "C", "Eb"]);
+  });
+
+  it("never flags a diatonic chord's tones", () => {
+    for (const chord of getModalDiatonicTriads("C", "ionian")) {
+      expect(triadMarkers(chord).some((m) => m.isOutsideKey)).toBe(false);
+    }
+  });
+
+  it("returns [] for a 4-note chord in triads mode", () => {
+    expect(triadMarkers(a7())).toEqual([]);
+  });
+
+  it("returns [] for a 3-note chord in sevenths mode", () => {
+    expect(seventhMarkers(abMajor())).toEqual([]);
   });
 });

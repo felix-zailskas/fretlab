@@ -1,22 +1,3 @@
-export type NoteName =
-  | "C"
-  | "C#"
-  | "Db"
-  | "D"
-  | "D#"
-  | "Eb"
-  | "E"
-  | "F"
-  | "F#"
-  | "Gb"
-  | "G"
-  | "G#"
-  | "Ab"
-  | "A"
-  | "A#"
-  | "Bb"
-  | "B";
-
 export type IntervalRole =
   | "root"
   | "second"
@@ -34,6 +15,11 @@ export type NoteDisplayRole =
   | "scale"
   | "muted";
 
+export type HighlightableRole = Extract<
+  NoteDisplayRole,
+  "root" | "third" | "fifth" | "seventh"
+>;
+
 export type NoteMarker = {
   string: number; // 0 = low E, 5 = high E
   fret: number; // 0 = open, up to 15
@@ -43,4 +29,7 @@ export type NoteMarker = {
   // characteristic-tone color. Set by marker pipelines for notes flagged
   // characteristic by getCharacteristicNotes(key, mode).
   isCharacteristic?: boolean;
+  // When true, the note is a chord tone outside the key/mode (e.g. the C#
+  // of A7 in C major). The renderer draws a dashed neutral ring.
+  isOutsideKey?: boolean;
 };

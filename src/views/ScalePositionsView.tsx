@@ -5,8 +5,9 @@ import {
   type PositionWindow,
 } from "../components/Fretboard/Fretboard";
 import { PositionToggles } from "../components/PositionToggles";
-import { ALL_NOTES_KEY } from "../components/KeySelector";
-import { Legend, type HighlightableRole } from "../components/Legend";
+import { ALL_NOTES_KEY } from "../theory/notes";
+import { Legend } from "../components/Legend";
+import type { HighlightableRole } from "../theory/types";
 import { buildChordToneMarkers } from "../theory/chordTones";
 import type { Tuning } from "../theory/tuning";
 import {
@@ -14,7 +15,7 @@ import {
   computeOverlapZones,
   getPositionWindows,
 } from "../theory/positions";
-import type { DiatonicChord, DiatonicTriad } from "../theory/scales";
+import type { ChordToneSource } from "../theory/harmony";
 import { parentMajorOf, type Mode } from "../theory/modes";
 import { type ScalePositionsControls } from "./useScalePositionsState";
 
@@ -24,7 +25,7 @@ type ScalePositionsViewProps = {
   enabledHighlights: Set<HighlightableRole>;
   onToggleRole: (role: HighlightableRole) => void;
   disabledRoles?: Set<HighlightableRole>;
-  selectedChord: DiatonicChord | DiatonicTriad | null;
+  selectedChord: ChordToneSource | null;
   startFret: number;
   endFret: number;
   controls: ScalePositionsControls;

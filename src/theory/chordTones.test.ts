@@ -1,12 +1,18 @@
 import { describe, it, expect } from "vitest";
-import { roleFromChordTone, HIGHLIGHTABLE, buildChordToneMarkers } from "./chordTones";
+import {
+  roleFromChordTone,
+  HIGHLIGHTABLE,
+  buildChordToneMarkers,
+  buildNoteMapMarkers,
+} from "./chordTones";
+import { resolveChordRef, type ChordToneSource } from "./harmony";
+import { CAGED_POSITIONS } from "./positions";
 import { DEFAULT_END_FRET } from "./constants";
 import { getModalDiatonicChords, getModalDiatonicTriads } from "./modes";
-import type { HighlightableRole } from "../components/Legend";
-import { ALL_NOTES_KEY } from "../components/KeySelector";
+import type { HighlightableRole } from "./types";
 import { TUNINGS } from "./tuning";
 import type { Tuning } from "./tuning";
-import { CHROMATIC_SCALE, getNoteAtFret, getNoteIndex } from "./notes";
+import { ALL_NOTES_KEY, CHROMATIC_SCALE, getNoteAtFret, getNoteIndex } from "./notes";
 
 describe("roleFromChordTone", () => {
   it('returns "scale" for any in-key note when no chord is given', () => {
@@ -596,5 +602,136 @@ describe("buildChordToneMarkers — tuning-agnostic invariant", () => {
         expect(getNoteIndex(m.note)).toBe(getNoteIndex(expectedAtFret));
       }
     }
+  });
+});
+
+describe("out-of-key chord tones", () => {
+  const allRoles = new Set<HighlightableRole>(["root", "third", "fifth", "seventh"]);
+  const allStrings = new Set([0, 1, 2, 3, 4, 5]);
+  const allPositions = CAGED_POSITIONS.map((p) => p.id);
+  // V7/ii in C major: A C# E G — C# is outside the key.
+  const a7 = () =>
+    resolveChordRef({ tier: "secondary", degree: 2 }, "C", "ionian", "sevenths")!;
+
+  const chordToneMarkers = (chord: ChordToneSource | null) =>
+    buildChordToneMarkers({
+      tuning: TUNINGS.standard,
+      key: "C",
+      chord,
+      positions: allPositions,
+      showContext: true,
+      enabledHighlights: allRoles,
+      enabledStrings: allStrings,
+      startFret: 0,
+      endFret: DEFAULT_END_FRET,
+    });
+
+  const noteMapMarkers = (
+    chord: ChordToneSource | null,
+    overrides: Partial<Parameters<typeof buildNoteMapMarkers>[0]> = {},
+  ) =>
+    buildNoteMapMarkers({
+      tuning: TUNINGS.standard,
+      key: "C",
+      mode: "ionian",
+      accidentalStyle: "sharp",
+      chord,
+      enabledHighlights: allRoles,
+      enabledStrings: allStrings,
+      startFret: 0,
+      endFret: DEFAULT_END_FRET,
+      ...overrides,
+    });
+
+  describe("buildChordToneMarkers", () => {
+    it("emits the out-of-key third of A7, spelled C#", () => {
+      const cSharp = chordToneMarkers(a7()).filter((m) => getNoteIndex(m.note) === 1);
+      expect(cSharp.length).toBeGreaterThan(0);
+      for (const m of cSharp)
+        expect(m).toMatchObject({ note: "C#", isOutsideKey: true });
+    });
+
+    it("gives the out-of-key tone its chord role", () => {
+      const cSharp = chordToneMarkers(a7()).filter(
+        (m) => m.note === "C#" && m.role !== "muted",
+      );
+      for (const m of cSharp) expect(m.role).toBe("third");
+    });
+
+    it("hides the key's C, which shares a letter with C#", () => {
+      expect(chordToneMarkers(a7()).some((m) => m.note === "C")).toBe(false);
+    });
+
+    it("does not flag in-key chord tones", () => {
+      const inKey = chordToneMarkers(a7()).filter((m) => m.note !== "C#");
+      expect(inKey.some((m) => m.isOutsideKey)).toBe(false);
+    });
+
+    it("never flags a diatonic chord's tones", () => {
+      for (const chord of getModalDiatonicChords("C", "ionian")) {
+        expect(chordToneMarkers(chord).some((m) => m.isOutsideKey)).toBe(false);
+      }
+    });
+  });
+
+  describe("buildNoteMapMarkers", () => {
+    it("renders every fret as a plain scale note with the All key", () => {
+      const markers = noteMapMarkers(null, { key: ALL_NOTES_KEY });
+      expect(markers).toHaveLength(6 * (DEFAULT_END_FRET + 1));
+    });
+
+    it("spells the All key by accidental style", () => {
+      const markers = noteMapMarkers(null, {
+        key: ALL_NOTES_KEY,
+        accidentalStyle: "flat",
+      });
+      expect(markers.some((m) => m.note === "Db")).toBe(true);
+    });
+
+    it("renders only the 7 key pitch classes without a chord", () => {
+      const pcs = new Set(noteMapMarkers(null).map((m) => getNoteIndex(m.note)));
+      expect([...pcs].sort((a, b) => a - b)).toEqual([0, 2, 4, 5, 7, 9, 11]);
+    });
+
+    it("emits A7's C# flagged isOutsideKey", () => {
+      const cSharp = noteMapMarkers(a7()).filter((m) => m.note === "C#");
+      expect(cSharp.length).toBeGreaterThan(0);
+      for (const m of cSharp) expect(m.isOutsideKey).toBe(true);
+    });
+
+    it("hides the key's C when A7 is selected", () => {
+      expect(noteMapMarkers(a7()).some((m) => m.note === "C")).toBe(false);
+    });
+
+    it("keeps the out-of-key tone muted on a disabled string", () => {
+      const markers = noteMapMarkers(a7(), {
+        enabledStrings: new Set([1, 2, 3, 4, 5]),
+      });
+      const lowString = markers.filter((m) => m.string === 0 && m.note === "C#");
+      expect(lowString.length).toBeGreaterThan(0);
+      for (const m of lowString)
+        expect(m).toMatchObject({ role: "muted", isOutsideKey: true });
+    });
+
+    it("demotes the out-of-key tone to scale when its role is toggled off", () => {
+      const markers = noteMapMarkers(a7(), {
+        enabledHighlights: new Set<HighlightableRole>(["root", "fifth", "seventh"]),
+      });
+      for (const m of markers.filter((m) => m.note === "C#")) {
+        expect(m).toMatchObject({ role: "scale", isOutsideKey: true });
+      }
+    });
+
+    it("hides the key's B when the borrowed Bb chord is selected", () => {
+      const bFlat = resolveChordRef(
+        { tier: "borrowed", degree: 7 },
+        "C",
+        "ionian",
+        "triads",
+      )!;
+      const notes = new Set(noteMapMarkers(bFlat).map((m) => m.note));
+      expect(notes.has("Bb")).toBe(true);
+      expect(notes.has("B")).toBe(false);
+    });
   });
 });
