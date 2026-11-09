@@ -390,8 +390,13 @@ function App() {
               onToggleRole={toggleHighlight}
               controls={chordShapesControls}
               modalMode={mode}
+              // Triad shapes have no room for a 7th; CAGED voices a secondary
+              // dominant as its full dom7 grip, so the 7th stays available.
               disabledRoles={
-                chordRowMode === "triads" ? TRIADS_DISABLED_ROLES : seventhDisabledRoles
+                chordRowMode === "triads" &&
+                chordShapesControls.voicingStyle !== "caged"
+                  ? TRIADS_DISABLED_ROLES
+                  : seventhDisabledRoles
               }
               enabledStrings={enabledStrings}
               onToggleString={toggleString}

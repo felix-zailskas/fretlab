@@ -44,14 +44,15 @@ export const MODES: readonly Mode[] = [
   "locrian",
 ] as const;
 
-// Display names, e.g. for "Borrowed (C Aeolian)" labels.
+// Display names (single source of truth for all UI labels). Ionian/Aeolian carry
+// their beginner-friendly Major/Minor names, e.g. "Borrowed (C Aeolian (Minor))".
 export const MODE_NAMES: Record<Mode, string> = {
-  ionian: "Ionian",
+  ionian: "Ionian (Major)",
   dorian: "Dorian",
   phrygian: "Phrygian",
   lydian: "Lydian",
   mixolydian: "Mixolydian",
-  aeolian: "Aeolian",
+  aeolian: "Aeolian (Minor)",
   locrian: "Locrian",
 };
 

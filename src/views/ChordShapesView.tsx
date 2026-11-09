@@ -4,6 +4,13 @@ import { ALL_NOTES_KEY } from "../theory/notes";
 import { Legend } from "../components/Legend";
 import type { HighlightableRole } from "../theory/types";
 import { StringSetToggles } from "../components/StringSetToggles";
+import { SegmentedRadio } from "../components/SegmentedRadio";
+import {
+  buildCagedPlacements,
+  CAGED_SHAPE_ORDER,
+  dedupeMarkers,
+} from "../theory/cagedShapes";
+import type { CagedShape } from "../theory/positions";
 import {
   buildChordShapeMarkers,
   VOICING_SYSTEM_ORDER,
@@ -20,6 +27,7 @@ import { type Mode } from "../theory/modes";
 import {
   type ChordShapesControls,
   type SeventhStringPosition,
+  type VoicingStyle,
 } from "./useChordShapesState";
 
 type ChordShapesViewProps = {
@@ -68,6 +76,19 @@ const VOICING_SYSTEM_LABELS: Record<VoicingSystem, string> = {
   "drop2-4": "Drop 2&4",
 };
 
+const VOICING_SYSTEM_OPTIONS = VOICING_SYSTEM_ORDER.map((system) => ({
+  id: system,
+  label: VOICING_SYSTEM_LABELS[system],
+}));
+
+const VOICING_STYLE_OPTIONS: ReadonlyArray<{ id: VoicingStyle; label: string }> = [
+  { id: "inversions", label: "Inversions" },
+  { id: "caged", label: "CAGED" },
+];
+
+const CAGED_SHAPE_OPTIONS: ReadonlyArray<{ id: CagedShape; label: string }> =
+  CAGED_SHAPE_ORDER.map((shape) => ({ id: shape, label: shape }));
+
 const POSITION_ORDER: SeventhStringPosition[] = ["low", "mid", "high"];
 
 // Each system's mapping from position → its concrete string-set id. drop-3 and
@@ -109,7 +130,12 @@ export function ChordShapesView({
     toggleSeventhPosition,
     selectedSeventhInversions,
     toggleSeventhInversion,
+    voicingStyle,
+    setVoicingStyle,
+    selectedCagedShapes,
+    toggleCagedShape,
   } = controls;
+  const isCaged = voicingStyle === "caged";
 
   const mode: ChordShapesMode = chordRowMode;
 
@@ -132,8 +158,35 @@ export function ChordShapesView({
       .filter((s): s is SeventhStringSet => s !== undefined);
   }, [selectedSeventhPositions, selectedVoicingSystem]);
 
+  // CAGED always voices the chord as selected: a secondary dominant keeps its
+  // 7th even in triads mode (its resolution hinges on that 7th).
+  const cagedPlacements = useMemo(() => {
+    if (!isCaged || !selectedChord) return [];
+    return buildCagedPlacements({
+      tuning,
+      modalMode,
+      chord: selectedChord,
+      key: selectedKey,
+      shapes: Array.from(selectedCagedShapes),
+      enabledStrings,
+      startFret,
+      endFret,
+    });
+  }, [
+    isCaged,
+    selectedChord,
+    tuning,
+    modalMode,
+    selectedKey,
+    selectedCagedShapes,
+    enabledStrings,
+    startFret,
+    endFret,
+  ]);
+
   const markers = useMemo(() => {
     if (!selectedChord) return [];
+    if (isCaged) return dedupeMarkers(cagedPlacements);
     if (mode === "triads") {
       return buildChordShapeMarkers({
         mode: "triads",
@@ -163,6 +216,8 @@ export function ChordShapesView({
       endFret,
     });
   }, [
+    isCaged,
+    cagedPlacements,
     mode,
     tuning,
     modalMode,
@@ -201,9 +256,11 @@ export function ChordShapesView({
   // page layout doesn't shift when the user toggles between a real key and
   // All. The empty-state surfaces via emptyMessage instead.
   const activeSubSelectorEmpty = selectedChord
-    ? mode === "triads"
-      ? selectedStringSets.size === 0 || selectedInversions.size === 0
-      : activeSeventhStringSets.length === 0 || selectedSeventhInversions.size === 0
+    ? isCaged
+      ? selectedCagedShapes.size === 0
+      : mode === "triads"
+        ? selectedStringSets.size === 0 || selectedInversions.size === 0
+        : activeSeventhStringSets.length === 0 || selectedSeventhInversions.size === 0
     : false;
 
   const fretboardMessage =
@@ -212,8 +269,34 @@ export function ChordShapesView({
       : !selectedChord
         ? "Select a chord to view shapes."
         : activeSubSelectorEmpty
-          ? "Select a string set to begin."
-          : undefined;
+          ? isCaged
+            ? "Toggle a shape to begin."
+            : "Select a string set to begin."
+          : isCaged && cagedPlacements.length === 0
+            ? "No CAGED shapes for this chord."
+            : undefined;
+
+  const cagedOverlays = useMemo(
+    () => ({
+      positionWindows: cagedPlacements.map((p) => ({
+        id: p.id,
+        low: p.low,
+        high: p.high,
+        label: `${p.shape}-shape`,
+      })),
+      barres: cagedPlacements.flatMap((p) =>
+        p.barre ? [{ id: p.id, ...p.barre }] : [],
+      ),
+      unplayedStrings: cagedPlacements.flatMap((p) =>
+        p.unplayedStrings.map((string) => ({
+          id: `${p.id}-${string}`,
+          string,
+          fret: p.low,
+        })),
+      ),
+    }),
+    [cagedPlacements],
+  );
 
   return (
     <div className="space-y-2 md:space-y-4">
@@ -222,6 +305,7 @@ export function ChordShapesView({
         startFret={startFret}
         endFret={endFret}
         emptyMessage={fretboardMessage}
+        {...(isCaged ? cagedOverlays : {})}
         tuning={tuning}
         enabledStrings={enabledStrings}
         onToggleString={onToggleString}
@@ -233,57 +317,44 @@ export function ChordShapesView({
           disabledRoles={disabledRoles}
         />
         <span aria-hidden="true" className="w-px h-6 bg-line self-center" />
-        {mode === "sevenths" ? (
-          <VoicingSystemSelector
-            selected={selectedVoicingSystem}
-            onChange={setSelectedVoicingSystem}
-          />
-        ) : null}
-        <SubSelectorRow
-          mode={mode}
-          selectedStringSets={selectedStringSets}
-          selectedSeventhPositions={selectedSeventhPositions}
-          selectedInversions={selectedInversions}
-          selectedSeventhInversions={selectedSeventhInversions}
-          seventhPositionOptions={seventhPositionOptions}
-          onToggleStringSet={toggleStringSet}
-          onToggleSeventhPosition={toggleSeventhPosition}
-          onToggleInversion={toggleInversion}
-          onToggleSeventhInversion={toggleSeventhInversion}
+        <SegmentedRadio
+          options={VOICING_STYLE_OPTIONS}
+          selected={voicingStyle}
+          onChange={setVoicingStyle}
+          ariaLabel="Voicing style"
         />
+        {isCaged ? (
+          <StringSetToggles
+            options={CAGED_SHAPE_OPTIONS}
+            selected={selectedCagedShapes}
+            onToggle={toggleCagedShape}
+            ariaLabel="CAGED shapes"
+          />
+        ) : (
+          <>
+            {mode === "sevenths" ? (
+              <SegmentedRadio
+                options={VOICING_SYSTEM_OPTIONS}
+                selected={selectedVoicingSystem}
+                onChange={setSelectedVoicingSystem}
+                ariaLabel="Voicing system"
+              />
+            ) : null}
+            <SubSelectorRow
+              mode={mode}
+              selectedStringSets={selectedStringSets}
+              selectedSeventhPositions={selectedSeventhPositions}
+              selectedInversions={selectedInversions}
+              selectedSeventhInversions={selectedSeventhInversions}
+              seventhPositionOptions={seventhPositionOptions}
+              onToggleStringSet={toggleStringSet}
+              onToggleSeventhPosition={toggleSeventhPosition}
+              onToggleInversion={toggleInversion}
+              onToggleSeventhInversion={toggleSeventhInversion}
+            />
+          </>
+        )}
       </div>
-    </div>
-  );
-}
-
-type VoicingSystemSelectorProps = {
-  selected: VoicingSystem;
-  onChange: (system: VoicingSystem) => void;
-};
-
-function VoicingSystemSelector({ selected, onChange }: VoicingSystemSelectorProps) {
-  return (
-    <div
-      className="inline-flex rounded overflow-hidden border border-line"
-      role="radiogroup"
-      aria-label="Voicing system"
-    >
-      {VOICING_SYSTEM_ORDER.map((system) => (
-        <button
-          key={system}
-          type="button"
-          role="radio"
-          aria-checked={selected === system}
-          onClick={() => onChange(system)}
-          className={`px-3 py-1.5 text-sm font-semibold transition-colors cursor-pointer ${
-            selected === system
-              ? "bg-surface-active text-fg-emphasis"
-              : "bg-surface text-fg-muted hover:bg-surface-raised"
-          }`}
-        >
-          {VOICING_SYSTEM_LABELS[system]}
-        </button>
-      ))}
     </div>
   );
 }

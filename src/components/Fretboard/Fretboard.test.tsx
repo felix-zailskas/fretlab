@@ -164,3 +164,47 @@ describe("Fretboard — non-pentatonic markers", () => {
     expect(g).not.toHaveAttribute("data-non-pentatonic");
   });
 });
+
+describe("Fretboard — grip overlays", () => {
+  const base = {
+    markers: [] as NoteMarker[],
+    startFret: 0,
+    endFret: 12,
+    tuning: TUNINGS.standard,
+    enabledStrings: new Set([0, 1, 2, 3, 4, 5]),
+    onToggleString: () => {},
+  };
+
+  it("renders a barre with its fret and string span", () => {
+    render(
+      <Fretboard
+        {...base}
+        barres={[{ id: "E-1", fret: 1, stringLow: 0, stringHigh: 5 }]}
+      />,
+    );
+    const barre = screen.getByTestId("barre");
+    expect(barre).toHaveAttribute("data-fret", "1");
+    expect(barre).toHaveAttribute("data-string-low", "0");
+    expect(barre).toHaveAttribute("data-string-high", "5");
+  });
+
+  it("renders one × per unplayed string", () => {
+    render(
+      <Fretboard
+        {...base}
+        unplayedStrings={[
+          { id: "a", string: 0, fret: 0 },
+          { id: "b", string: 1, fret: 0 },
+        ]}
+      />,
+    );
+    const marks = screen.getAllByTestId("unplayed-string");
+    expect(marks.map((m) => m.getAttribute("data-string"))).toEqual(["0", "1"]);
+  });
+
+  it("renders no overlays when the props are absent", () => {
+    render(<Fretboard {...base} />);
+    expect(screen.queryByTestId("barre")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("unplayed-string")).not.toBeInTheDocument();
+  });
+});

@@ -4,6 +4,12 @@ import { DEFAULT_END_FRET } from "../../theory/constants";
 import { FretboardString } from "./FretboardString";
 import { FretMarkers } from "./FretMarkers";
 import { NoteCircle } from "./NoteCircle";
+import {
+  Barres,
+  UnplayedStrings,
+  type BarreOverlay,
+  type UnplayedStringOverlay,
+} from "./ShapeOverlays";
 
 export type PositionWindow = {
   id: string;
@@ -24,6 +30,9 @@ type FretboardProps = {
   endFret?: number;
   positionWindows?: ReadonlyArray<PositionWindow>;
   overlapZones?: ReadonlyArray<OverlapZone>;
+  // Full-chord grip overlays (Chord Shapes → CAGED).
+  barres?: ReadonlyArray<BarreOverlay>;
+  unplayedStrings?: ReadonlyArray<UnplayedStringOverlay>;
   // When set, an overlay with this message renders on top of the fretboard.
   // The presence of the message is the signal — omit it to render normally.
   emptyMessage?: string;
@@ -110,6 +119,8 @@ export function Fretboard({
   endFret = DEFAULT_END_FRET,
   positionWindows,
   overlapZones,
+  barres,
+  unplayedStrings,
   emptyMessage,
   tuning,
   enabledStrings,
@@ -324,6 +335,17 @@ export function Fretboard({
             />
           );
         })}
+
+        {barres && (
+          <Barres barres={barres} fretCenterX={fretCenterX} stringY={stringY} />
+        )}
+        {unplayedStrings && (
+          <UnplayedStrings
+            unplayed={unplayedStrings}
+            fretCenterX={fretCenterX}
+            stringY={stringY}
+          />
+        )}
 
         {/* Note markers */}
         {markers.map((marker, i) => (
