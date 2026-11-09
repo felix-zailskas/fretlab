@@ -836,6 +836,22 @@ describe("buildChordToneMarkers with pentatonic", () => {
     expect(markers.some((m) => [F, B].includes(getNoteIndex(m.note)))).toBe(false);
   });
 
+  it("drops the hollow flag on muted markers so context chord tones stay legible", () => {
+    const markers = buildChordToneMarkers({
+      ...base,
+      chord: g7(),
+      positions: ["P1"],
+      showContext: true,
+      enabledStrings: new Set([0, 1, 2, 3, 4]),
+      scaleType: "pentatonic",
+    });
+    const mutedFB = markers.filter(
+      (m) => m.role === "muted" && [F, B].includes(getNoteIndex(m.note)),
+    );
+    expect(mutedFB.length).toBeGreaterThan(0);
+    for (const m of mutedFB) expect(m.isNonPentatonic).toBeUndefined();
+  });
+
   it("ignores pentatonic in modes without one (Dorian)", () => {
     const input = { ...base, key: "D", mode: "dorian" as const };
     expect(buildChordToneMarkers({ ...input, scaleType: "pentatonic" })).toEqual(

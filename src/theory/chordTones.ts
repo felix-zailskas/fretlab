@@ -199,7 +199,8 @@ export function buildChordToneMarkers({
         role: finalRole,
         ...(characteristicSet.has(pc) ? { isCharacteristic: true } : {}),
         ...(spelled.isOutsideKey ? { isOutsideKey: true } : {}),
-        ...(isNonPentatonic ? { isNonPentatonic: true } : {}),
+        // Muted wins over hollow: a hollow muted marker is near-invisible.
+        ...(isNonPentatonic && finalRole !== "muted" ? { isNonPentatonic: true } : {}),
       });
     }
   }
