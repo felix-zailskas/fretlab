@@ -25,6 +25,8 @@ import { useProgressionPlayer } from "./useProgressionPlayer";
 import { ChordShapesView } from "./views/ChordShapesView";
 import { NoteMapView } from "./views/NoteMapView";
 import { ScalePositionsView } from "./views/ScalePositionsView";
+import { isPentatonicAvailable } from "./theory/pentatonic";
+import type { Mode } from "./theory/modes";
 import { useChordShapesState } from "./views/useChordShapesState";
 import { useScalePositionsState } from "./views/useScalePositionsState";
 import type { ViewId } from "./views/types";
@@ -149,6 +151,18 @@ function App() {
   // view's hook bundles its own useState calls + handlers.
   const chordShapesControls = useChordShapesState();
   const scalePositionsControls = useScalePositionsState();
+  const { setScaleType } = scalePositionsControls;
+
+  // Pentatonic exists only in Ionian/Aeolian. Leaving those modes resets the
+  // Scale Positions switch to Full, so returning doesn't silently re-enable it.
+  // Done here rather than in the view because the view may be unmounted.
+  const handleModeChange = useCallback(
+    (nextMode: Mode) => {
+      if (!isPentatonicAvailable(nextMode)) setScaleType("full");
+      dispatchTonal({ type: "set-mode", mode: nextMode });
+    },
+    [setScaleType],
+  );
 
   useEffect(() => {
     if (themeMode === "auto") {
@@ -484,7 +498,7 @@ function App() {
               </label>
               <ModeSelector
                 mode={mode}
-                onModeChange={(mode) => dispatchTonal({ type: "set-mode", mode })}
+                onModeChange={handleModeChange}
                 disabled={isAllNotesKey}
               />
             </div>

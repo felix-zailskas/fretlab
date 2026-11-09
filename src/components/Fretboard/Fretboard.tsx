@@ -335,6 +335,7 @@ export function Fretboard({
             role={marker.role}
             isCharacteristic={marker.isCharacteristic}
             isOutsideKey={marker.isOutsideKey}
+            isNonPentatonic={marker.isNonPentatonic}
             string={marker.string}
             fret={marker.fret}
           />

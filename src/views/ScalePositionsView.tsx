@@ -5,6 +5,8 @@ import {
   type PositionWindow,
 } from "../components/Fretboard/Fretboard";
 import { PositionToggles } from "../components/PositionToggles";
+import { ScaleTypeToggle } from "../components/ScaleTypeToggle";
+import { isPentatonicAvailable } from "../theory/pentatonic";
 import { ALL_NOTES_KEY } from "../theory/notes";
 import { Legend } from "../components/Legend";
 import type { HighlightableRole } from "../theory/types";
@@ -54,7 +56,16 @@ export function ScalePositionsView({
   onToggleString,
   mode = "ionian",
 }: ScalePositionsViewProps) {
-  const { selectedPositions, togglePosition, showContext, setShowContext } = controls;
+  const {
+    selectedPositions,
+    togglePosition,
+    showContext,
+    setShowContext,
+    scaleType,
+    setScaleType,
+  } = controls;
+  const pentatonicAvailable = isPentatonicAvailable(mode);
+  const showPentatonic = pentatonicAvailable && scaleType === "pentatonic";
 
   // CAGED windows are anchored to the parent major scale: when mode is
   // non-Ionian, position math runs on parentKey rather than selectedKey, so
@@ -108,6 +119,7 @@ export function ScalePositionsView({
         startFret,
         endFret,
         mode,
+        scaleType,
       }),
     [
       tuning,
@@ -120,6 +132,7 @@ export function ScalePositionsView({
       startFret,
       endFret,
       mode,
+      scaleType,
     ],
   );
 
@@ -163,6 +176,20 @@ export function ScalePositionsView({
           />
           Show context notes
         </label>
+        <ScaleTypeToggle
+          value={pentatonicAvailable ? scaleType : "full"}
+          onChange={setScaleType}
+          disabled={!pentatonicAvailable}
+        />
+        {showPentatonic && (
+          <span className="inline-flex items-center gap-1.5 text-sm text-fg-secondary">
+            <span
+              aria-hidden="true"
+              className="inline-block w-3 h-3 rounded-full border-2 border-fg-secondary"
+            />
+            Not in pentatonic
+          </span>
+        )}
       </div>
     </div>
   );
