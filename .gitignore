@@ -34,7 +34,9 @@ coverage/
 *.tsbuildinfo
 
 # Superpowers brainstorming visual companion (transient mockups)
+docs/superpowers/
 .superpowers/
+.claude/
 
 # Asset-recording temp dir (Playwright WebM + ffmpeg palettes)
 scripts/.recording-tmp/
