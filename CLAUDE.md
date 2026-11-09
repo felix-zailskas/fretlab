@@ -31,8 +31,8 @@ src/
 docs/
   design/         # Vision and per-view design notes
   superpowers/
-    specs/        # Feature spec files (research output, committed to source control)
-    plans/        # Implementation plans tracked task-by-task (committed to source control)
+    specs/        # Feature spec files (research output, local only — git-ignored)
+    plans/        # Implementation plans tracked task-by-task (local only — git-ignored)
   practice/       # Structured practice plans that utilize the application
 ```
 

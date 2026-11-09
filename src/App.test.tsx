@@ -240,6 +240,24 @@ describe("App — secondary dominants in triads mode", () => {
     expect(screen.getByRole("button", { name: "7th" })).toBeDisabled();
   });
 
+  it("Chord Shapes CAGED voices V7/ii as a dom7 grip with the 7th available", async () => {
+    render(<App />);
+    await userEvent.click(screen.getByRole("button", { name: /^V7\/ii A7/ }));
+    await userEvent.click(screen.getByRole("tab", { name: /Chord Shapes/ }));
+    await userEvent.click(screen.getByRole("radio", { name: "CAGED" }));
+    expect(screen.getByRole("button", { name: "7th" })).toBeEnabled();
+    const markers = screen.getAllByTestId("note-marker");
+    expect(markers.some((m) => m.getAttribute("data-role") === "seventh")).toBe(true);
+    expect(markers.some((m) => m.getAttribute("data-note") === "G")).toBe(true);
+  });
+
+  it("keeps the 7th disabled in Chord Shapes CAGED for a plain triad", async () => {
+    render(<App />);
+    await userEvent.click(screen.getByRole("tab", { name: /Chord Shapes/ }));
+    await userEvent.click(screen.getByRole("radio", { name: "CAGED" }));
+    expect(screen.getByRole("button", { name: "7th" })).toBeDisabled();
+  });
+
   it("Chord Shapes voices the triad of V7/ii without a seventh", async () => {
     render(<App />);
     await userEvent.click(screen.getByRole("button", { name: /^V7\/ii A7/ }));

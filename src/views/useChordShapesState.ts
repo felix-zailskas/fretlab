@@ -5,6 +5,11 @@ import type {
   StringSet,
   VoicingSystem,
 } from "../theory/chordShapes";
+import type { CagedShape } from "../theory/positions";
+
+// Inversions = string-set/inversion (or voicing-system) shapes; caged = full
+// CAGED grips.
+export type VoicingStyle = "inversions" | "caged";
 
 // Cross-system position labels: which physical string the bass note sits on.
 //   low  — bass on string 6 (low E)
@@ -31,6 +36,11 @@ export function useChordShapesState() {
   const [selectedSeventhInversions, setSelectedSeventhInversions] = useState<
     Set<SeventhInversion>
   >(() => new Set<SeventhInversion>(["root"]));
+  const [voicingStyle, setVoicingStyle] = useState<VoicingStyle>("inversions");
+  // E and A first: the two barre shapes beginners learn first.
+  const [selectedCagedShapes, setSelectedCagedShapes] = useState<Set<CagedShape>>(
+    () => new Set<CagedShape>(["E", "A"]),
+  );
 
   const toggleStringSet = useCallback((id: StringSet) => {
     setSelectedStringSets((prev) => {
@@ -68,6 +78,15 @@ export function useChordShapesState() {
     });
   }, []);
 
+  const toggleCagedShape = useCallback((id: CagedShape) => {
+    setSelectedCagedShapes((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }, []);
+
   return {
     selectedStringSets,
     toggleStringSet,
@@ -79,6 +98,10 @@ export function useChordShapesState() {
     toggleSeventhPosition,
     selectedSeventhInversions,
     toggleSeventhInversion,
+    voicingStyle,
+    setVoicingStyle,
+    selectedCagedShapes,
+    toggleCagedShape,
   };
 }
 
