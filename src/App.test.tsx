@@ -169,7 +169,7 @@ describe("App — chord map selection", () => {
     render(<App />);
     await userEvent.click(screen.getByRole("radio", { name: "Mixolydian" }));
     await userEvent.click(screen.getByRole("button", { name: "V7/♭VII F7" }));
-    await userEvent.click(screen.getByRole("radio", { name: "Ionian" }));
+    await userEvent.click(screen.getByRole("radio", { name: "Ionian (Major)" }));
     await userEvent.click(screen.getByRole("radio", { name: "Mixolydian" }));
     expect(pressedCards()).toEqual([]);
   });
