@@ -158,13 +158,14 @@ export function ChordShapesView({
       .filter((s): s is SeventhStringSet => s !== undefined);
   }, [selectedSeventhPositions, selectedVoicingSystem]);
 
-  // Triads mode voices only triads; a secondary dominant drops its 7th.
+  // CAGED always voices the chord as selected: a secondary dominant keeps its
+  // 7th even in triads mode (its resolution hinges on that 7th).
   const cagedPlacements = useMemo(() => {
     if (!isCaged || !selectedChord) return [];
     return buildCagedPlacements({
       tuning,
       modalMode,
-      chord: mode === "triads" ? triadOf(selectedChord) : selectedChord,
+      chord: selectedChord,
       key: selectedKey,
       shapes: Array.from(selectedCagedShapes),
       enabledStrings,
@@ -176,7 +177,6 @@ export function ChordShapesView({
     selectedChord,
     tuning,
     modalMode,
-    mode,
     selectedKey,
     selectedCagedShapes,
     enabledStrings,
