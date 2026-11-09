@@ -1,7 +1,6 @@
 import { ALL_NOTES_KEY, type AccidentalStyle } from "../theory/notes";
+import { HEADER_SELECT } from "./controlStyles";
 
-// Note keys only — All is rendered separately so it reads as a meta-toggle
-// (clear key) rather than yet another key choice in the row.
 const FLAT_STYLE_NOTE_KEYS = [
   "C",
   "Db",
@@ -37,6 +36,7 @@ type KeySelectorProps = {
   onKeyChange: (key: string) => void;
 };
 
+// Header dropdown. "All notes" (no key) comes first.
 export function KeySelector({
   selectedKey,
   accidentalStyle,
@@ -44,39 +44,23 @@ export function KeySelector({
 }: KeySelectorProps) {
   const noteKeys =
     accidentalStyle === "sharp" ? SHARP_STYLE_NOTE_KEYS : FLAT_STYLE_NOTE_KEYS;
-  const isAllSelected = selectedKey === ALL_NOTES_KEY;
 
   return (
-    <div className="relative after:absolute after:right-0 after:top-0 after:bottom-0 after:w-6 after:bg-gradient-to-l after:from-surface after:to-transparent after:pointer-events-none md:after:hidden">
-      <div className="flex flex-nowrap overflow-x-auto md:flex-wrap items-center gap-1 pb-0.5">
-        <button
-          onClick={() => onKeyChange(ALL_NOTES_KEY)}
-          className={`px-2 py-1.5 md:px-3 md:py-2.5 pointer-coarse:py-3 rounded text-xs md:text-sm font-semibold border transition-colors cursor-pointer shrink-0 ${
-            isAllSelected
-              ? "bg-selection text-fg-emphasis border-selection"
-              : "bg-transparent text-fg-secondary border-line hover:bg-surface-raised"
-          }`}
-        >
-          All
-        </button>
-        <span
-          aria-hidden="true"
-          className="w-px h-6 bg-line self-center mx-1 shrink-0"
-        />
+    <label className="flex items-center gap-1.5 text-xs text-fg-muted">
+      Key
+      <select
+        aria-label="Key"
+        value={selectedKey}
+        onChange={(e) => onKeyChange(e.target.value)}
+        className={HEADER_SELECT}
+      >
+        <option value={ALL_NOTES_KEY}>All notes</option>
         {noteKeys.map((key) => (
-          <button
-            key={key}
-            onClick={() => onKeyChange(key)}
-            className={`min-w-[2rem] md:min-w-[2.5rem] px-2 py-1.5 md:px-3 md:py-2.5 pointer-coarse:py-3 rounded text-xs md:text-sm font-semibold transition-colors cursor-pointer shrink-0 ${
-              selectedKey === key
-                ? "bg-selection text-fg-emphasis"
-                : "bg-surface-raised text-fg-secondary hover:bg-surface-active"
-            }`}
-          >
+          <option key={key} value={key}>
             {key}
-          </button>
+          </option>
         ))}
-      </div>
-    </div>
+      </select>
+    </label>
   );
 }

@@ -77,7 +77,7 @@ export function TuningSelector({
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="px-3 py-2.5 pointer-coarse:py-3 rounded text-sm font-semibold bg-surface-raised text-fg-secondary hover:bg-surface-active cursor-pointer"
+        className="px-3 py-1.5 pointer-coarse:py-3 rounded text-sm font-semibold bg-surface-raised text-fg-secondary hover:bg-surface-active cursor-pointer"
         aria-haspopup="listbox"
         aria-expanded={open}
       >
@@ -91,7 +91,7 @@ export function TuningSelector({
         aria-disabled={editDisabled}
         aria-label="Edit tuning"
         title={editDisabled ? "Select a custom tuning to edit" : "Edit tuning"}
-        className={`px-2.5 py-2.5 pointer-coarse:py-3 rounded text-sm bg-surface-raised text-fg-secondary transition-transform active:scale-[0.97] ${
+        className={`px-3 py-1.5 pointer-coarse:py-3 rounded text-sm bg-surface-raised text-fg-secondary transition-transform active:scale-[0.97] ${
           editDisabled
             ? "opacity-50 cursor-not-allowed"
             : "hover:bg-surface-active cursor-pointer"

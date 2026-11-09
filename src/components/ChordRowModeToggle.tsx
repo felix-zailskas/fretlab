@@ -30,7 +30,7 @@ export function ChordRowModeToggle({ value, onChange }: ChordRowModeToggleProps)
           role="radio"
           aria-checked={value === opt.value}
           onClick={() => onChange(opt.value)}
-          className={`relative z-10 px-2 py-1.5 md:px-3 md:py-2.5 pointer-coarse:py-3 text-xs md:text-sm font-semibold cursor-pointer ${
+          className={`relative z-10 px-3 py-1.5 pointer-coarse:py-3 text-sm font-semibold cursor-pointer ${
             value === opt.value
               ? "text-fg-emphasis"
               : "text-fg-muted hover:text-fg-secondary"

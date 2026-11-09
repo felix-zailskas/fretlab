@@ -43,6 +43,8 @@ export type ProgressionPlayer = {
   currentSlot: number | null;
   nextSlot: number | null;
   beatInBar: number;
+  // Beats elapsed in the current slot (0-based), for the chip's progress line.
+  beatInSlot: number;
   add(ref: ChordRef): void;
   remove(id: string): void;
   move(from: number, to: number): void;
@@ -63,13 +65,19 @@ type PlaybackState = {
   isPlaying: boolean;
   currentSlotId: string | null;
   beatInBar: number;
+  beatInSlot: number;
 };
 type LiveState = TransportSnapshot & {
   playable: ProgressionSlot[];
   onChordChange: (ref: ChordRef) => void;
 };
 
-const IDLE: PlaybackState = { isPlaying: false, currentSlotId: null, beatInBar: 0 };
+const IDLE: PlaybackState = {
+  isPlaying: false,
+  currentSlotId: null,
+  beatInBar: 0,
+  beatInSlot: 0,
+};
 
 function createSlotId(): string {
   return `slot:${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
@@ -181,6 +189,7 @@ export function useProgressionPlayer({
             isPlaying: true,
             currentSlotId: slot?.id ?? null,
             beatInBar: pos.beatInBar,
+            beatInSlot: pos.beatInSlot,
           });
           if (slot && lastAnnounced.current !== slot.id) {
             lastAnnounced.current = slot.id;
@@ -193,6 +202,7 @@ export function useProgressionPlayer({
         isPlaying: true,
         currentSlotId: slots[startIndex]?.id ?? null,
         beatInBar: 0,
+        beatInSlot: 0,
       });
     },
     [playable, state.bpm, state.click, state.loop, transport],
@@ -275,13 +285,11 @@ export function useProgressionPlayer({
     (loop: boolean) => dispatch({ type: "set-loop", loop }),
     [],
   );
-  // Hiding the panel stops playback: no playing without a visible Stop.
+  // "Edit progression" only shows or hides the chord cards' ＋ buttons; the
+  // transport (and its Stop) is always in the header, so playback continues.
   const setVisible = useCallback(
-    (visible: boolean) => {
-      if (!visible) stop();
-      dispatch({ type: "set-visible", visible });
-    },
-    [stop],
+    (visible: boolean) => dispatch({ type: "set-visible", visible }),
+    [],
   );
 
   const currentIndex = playback.isPlaying
@@ -305,6 +313,7 @@ export function useProgressionPlayer({
     currentSlot: currentIndex === -1 ? null : currentIndex,
     nextSlot: nextIndex === -1 ? null : nextIndex,
     beatInBar: playback.beatInBar,
+    beatInSlot: playback.beatInSlot,
     add,
     remove,
     move,

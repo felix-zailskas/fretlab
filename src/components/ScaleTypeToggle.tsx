@@ -38,7 +38,7 @@ export function ScaleTypeToggle({
             onClick={() => onChange(opt.value)}
             aria-pressed={isActive}
             disabled={disabled}
-            className={`px-3 py-1.5 text-sm font-semibold transition-colors ${
+            className={`px-3 py-1.5 pointer-coarse:py-3 text-sm font-semibold transition-colors ${
               disabled ? "pointer-events-none" : "cursor-pointer"
             } ${
               isActive

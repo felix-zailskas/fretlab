@@ -1,7 +1,8 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { render, screen, act } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { ProgressionPanel } from "./ProgressionPanel";
+import { ProgressionLane } from "./ProgressionLane";
+import { PlayerTransport } from "./PlayerTransport";
 import { ALL_NOTES_KEY } from "../theory/notes";
 import { useProgressionPlayer } from "../useProgressionPlayer";
 import { FakeAudioContext } from "../audio/testing";
@@ -38,7 +39,8 @@ function Harness({ selectedKey = "C" }: { selectedKey?: string }) {
       <button type="button" onClick={() => player.add({ tier: "diatonic", degree: 4 })}>
         Add F
       </button>
-      <ProgressionPanel player={player} noKey={selectedKey === ALL_NOTES_KEY} />
+      <PlayerTransport player={player} />
+      <ProgressionLane player={player} noKey={selectedKey === ALL_NOTES_KEY} />
     </>
   );
 }
@@ -52,12 +54,12 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-describe("ProgressionPanel — slots", () => {
-  it("shows the empty state", () => {
+describe("ProgressionLane — slots", () => {
+  it("takes no space while the progression is empty", () => {
     render(<Harness />);
     expect(
-      screen.getByText("Click ＋ on a chord below to start a progression"),
-    ).toBeInTheDocument();
+      screen.queryByRole("region", { name: "Progression" }),
+    ).not.toBeInTheDocument();
   });
 
   it("adds a slot", async () => {
@@ -131,14 +133,14 @@ describe.each(TIME_SIGNATURE_PRESETS.map((p) => [timeSignatureLabel(p), p] as co
   },
 );
 
-describe("ProgressionPanel — transport and visibility", () => {
+describe("ProgressionLane — transport and visibility", () => {
   it("plays with an empty progression", async () => {
     render(<Harness />);
     await userEvent.click(screen.getByRole("button", { name: "Play" }));
-    expect([
-      screen.getByRole("button", { name: "Stop" }),
-      screen.getByText("Click ＋ on a chord below to start a progression"),
-    ]).toHaveLength(2);
+    expect(screen.getByRole("button", { name: "Stop" })).toBeInTheDocument();
+    expect(
+      screen.queryByRole("region", { name: "Progression" }),
+    ).not.toBeInTheDocument();
   });
 
   it("plays when nothing on the strip resolves", async () => {
@@ -153,9 +155,15 @@ describe("ProgressionPanel — transport and visibility", () => {
     async (_label, preset) => {
       prime({ timeSignature: preset });
       render(<Harness />);
-      expect(screen.queryAllByTestId("beat-dot")).toHaveLength(0);
+      const current = () =>
+        screen
+          .getAllByTestId("beat-dot")
+          .filter((d) => d.getAttribute("data-current") === "true");
+      expect(screen.getAllByTestId("beat-dot")).toHaveLength(preset.beats);
+      expect(current()).toHaveLength(0);
       await userEvent.click(screen.getByRole("button", { name: "Play" }));
       expect(screen.getAllByTestId("beat-dot")).toHaveLength(preset.beats);
+      expect(current()).toHaveLength(1);
     },
   );
 
@@ -174,11 +182,11 @@ describe("ProgressionPanel — transport and visibility", () => {
     ).not.toBeInTheDocument();
   });
 
-  it("under the All key, only the strip shows a hint", () => {
+  it("under the All key, the lane hides but the transport stays usable", () => {
     prime({ slots: [{ id: "f", ref: { tier: "diatonic", degree: 4 }, bars: 1 }] });
     render(<Harness selectedKey={ALL_NOTES_KEY} />);
     expect([
-      screen.queryByText("Pick a key to build a progression.") !== null,
+      screen.queryByRole("region", { name: "Progression" }) === null,
       screen.queryByTestId("progression-slot"),
       (screen.getByRole("button", { name: "Play" }) as HTMLButtonElement).disabled,
       (screen.getByRole("spinbutton", { name: "BPM" }) as HTMLInputElement).disabled,
@@ -192,7 +200,7 @@ describe("ProgressionPanel — transport and visibility", () => {
   });
 });
 
-describe("ProgressionPanel — switching to All while playing", () => {
+describe("ProgressionLane — switching to All while playing", () => {
   it("keeps playing and Stop still works", async () => {
     prime({ slots: [{ id: "f", ref: { tier: "diatonic", degree: 4 }, bars: 1 }] });
     const { rerender } = render(<Harness />);

@@ -280,11 +280,11 @@ describe("useProgressionPlayer — metronome only", () => {
 });
 
 describe("useProgressionPlayer — visibility", () => {
-  it("hiding the panel stops playback", () => {
+  it("leaving edit mode keeps playback running", () => {
     const { result, metronome } = setup();
     act(() => result.current.add(F));
     act(() => result.current.play());
     act(() => result.current.setVisible(false));
-    expect([result.current.isPlaying, metronome.running]).toEqual([false, false]);
+    expect([result.current.isPlaying, metronome.running]).toEqual([true, true]);
   });
 });

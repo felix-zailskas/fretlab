@@ -165,9 +165,11 @@ describe("TransportControls — toggles", () => {
 });
 
 describe("TransportControls — beat dots", () => {
-  it("shows no dots while stopped", () => {
+  it("keeps the dots while stopped, none current, so nothing shifts on play", () => {
     renderControls({ isPlaying: false, beatInBar: null });
-    expect(screen.queryAllByTestId("beat-dot")).toHaveLength(0);
+    const dots = screen.getAllByTestId("beat-dot");
+    expect(dots).toHaveLength(4);
+    expect(dots.some((d) => d.getAttribute("data-current") === "true")).toBe(false);
   });
 
   it.each(TIME_SIGNATURE_PRESETS.map((p) => [timeSignatureLabel(p), p] as const))(

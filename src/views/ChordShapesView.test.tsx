@@ -10,16 +10,27 @@ import type { HighlightableRole } from "../theory/types";
 const F_MAJOR: ChordToneSource = { quality: "maj", notes: ["F", "A", "C"] };
 const E_DIM: ChordToneSource = { quality: "dim", notes: ["E", "G", "Bb"] };
 
-function Harness({ chord }: { chord: ChordToneSource }) {
+const CHROME = { tabs: null, scaleName: "F Ionian (Major)", scale: null };
+
+function Harness({
+  chord,
+  rowMode = "triads",
+  endFret = 15,
+}: {
+  chord: ChordToneSource;
+  rowMode?: "triads" | "sevenths";
+  endFret?: number;
+}) {
   const controls = useChordShapesState();
   return (
     <ChordShapesView
+      chrome={CHROME}
       tuning={TUNINGS.standard}
       selectedKey="F"
       startFret={0}
-      endFret={15}
+      endFret={endFret}
       selectedChord={chord}
-      chordRowMode="triads"
+      chordRowMode={rowMode}
       enabledHighlights={new Set<HighlightableRole>(["root", "third", "fifth"])}
       onToggleRole={() => {}}
       controls={controls}
@@ -34,19 +45,59 @@ async function switchToCaged() {
   await userEvent.click(screen.getByRole("radio", { name: "CAGED" }));
 }
 
-describe("ChordShapesView — CAGED", () => {
-  it("swaps the string-set selectors for C-A-G-E-D toggles with E and A on", async () => {
+const regionLabels = () =>
+  screen.getAllByTestId("region-toggle").map((b) => ({
+    id: b.getAttribute("data-region-id"),
+    on: b.getAttribute("aria-pressed") === "true",
+  }));
+
+describe("ChordShapesView — Inversions", () => {
+  it("draws string groups as icons named by their strings", () => {
     render(<Harness chord={F_MAJOR} />);
-    expect(screen.getByRole("group", { name: "String groups" })).toBeInTheDocument();
+    const group = screen.getByRole("group", { name: "String groups" });
+    expect(
+      Array.from(group.querySelectorAll("button")).map((b) =>
+        b.getAttribute("aria-label"),
+      ),
+    ).toEqual([
+      "Strings 1-2-3 (high E side)",
+      "Strings 2-3-4 (middle strings)",
+      "Strings 3-4-5 (middle strings)",
+      "Strings 4-5-6 (low E side)",
+    ]);
+  });
+
+  it("names drop-3 groups by the string they skip", async () => {
+    render(<Harness chord={F_MAJOR} rowMode="sevenths" />);
+    await userEvent.selectOptions(
+      screen.getByRole("combobox", { name: "Voicing system" }),
+      "drop3",
+    );
+    expect(
+      screen.getByRole("button", { name: "Strings 6-4-3-2 (skips string 5)" }),
+    ).toBeInTheDocument();
+  });
+
+  it("explains string groups in the legend", () => {
+    render(<Harness chord={F_MAJOR} />);
+    expect(screen.getByTestId("legend-stringGroup")).toBeInTheDocument();
+  });
+});
+
+describe("ChordShapesView — CAGED", () => {
+  it("swaps the string-group selectors for shape labels above the board, E and A on", async () => {
+    render(<Harness chord={F_MAJOR} />);
     await switchToCaged();
     expect(
       screen.queryByRole("group", { name: "String groups" }),
     ).not.toBeInTheDocument();
-    const shapes = screen.getByRole("group", { name: "CAGED shapes" });
-    const pressed = Array.from(shapes.querySelectorAll('[aria-pressed="true"]')).map(
-      (b) => b.textContent,
-    );
-    expect(pressed).toEqual(["A", "E"]);
+    expect(regionLabels()).toEqual([
+      { id: "C", on: false },
+      { id: "A", on: true },
+      { id: "G", on: false },
+      { id: "E", on: true },
+      { id: "D", on: false },
+    ]);
   });
 
   it("labels each placement box with its shape and draws the F barre", async () => {
@@ -62,17 +113,33 @@ describe("ChordShapesView — CAGED", () => {
     ).toBe(true);
   });
 
+  it("toggles a shape from its label", async () => {
+    render(<Harness chord={F_MAJOR} />);
+    await switchToCaged();
+    await userEvent.click(screen.getByRole("button", { name: "C-shape" }));
+    expect(regionLabels().find((r) => r.id === "C")?.on).toBe(true);
+  });
+
+  it("pins a shape that doesn't fit the fret range so it stays toggleable", async () => {
+    render(<Harness chord={F_MAJOR} endFret={5} />);
+    await switchToCaged();
+    expect(screen.getByRole("button", { name: "G-shape" })).toHaveAttribute(
+      "title",
+      "G-shape doesn't fit the current fret range",
+    );
+  });
+
   it("explains that a diminished triad has no CAGED shapes", async () => {
     render(<Harness chord={E_DIM} />);
     await switchToCaged();
     expect(screen.getByText("No CAGED shapes for this chord.")).toBeInTheDocument();
   });
 
-  it("asks for a shape when every toggle is off", async () => {
+  it("asks for a shape when every label is off", async () => {
     render(<Harness chord={F_MAJOR} />);
     await switchToCaged();
-    await userEvent.click(screen.getByRole("button", { name: "E" }));
-    await userEvent.click(screen.getByRole("button", { name: "A" }));
+    await userEvent.click(screen.getByRole("button", { name: "E-shape" }));
+    await userEvent.click(screen.getByRole("button", { name: "A-shape" }));
     expect(screen.getByText("Toggle a shape to begin.")).toBeInTheDocument();
   });
 });

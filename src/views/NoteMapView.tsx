@@ -7,8 +7,12 @@ import type { ChordToneSource } from "../theory/harmony";
 import type { AccidentalStyle } from "../theory/notes";
 import type { Tuning } from "../theory/tuning";
 import type { Mode } from "../theory/modes";
+import { ViewFrame, type ViewChrome } from "./ViewFrame";
+
+const SYMBOLS = ["scale", "characteristic", "outsideKey", "hiddenString"] as const;
 
 type NoteMapViewProps = {
+  chrome: ViewChrome;
   tuning: Tuning;
   selectedKey: string;
   accidentalStyle: AccidentalStyle;
@@ -26,6 +30,7 @@ type NoteMapViewProps = {
 };
 
 export function NoteMapView({
+  chrome,
   tuning,
   selectedKey,
   accidentalStyle,
@@ -66,7 +71,17 @@ export function NoteMapView({
   );
 
   return (
-    <div className="space-y-2 md:space-y-4">
+    <ViewFrame
+      chrome={chrome}
+      symbols={SYMBOLS}
+      highlight={
+        <Legend
+          enabledRoles={enabledHighlights}
+          onToggleRole={onToggleRole}
+          disabledRoles={disabledRoles}
+        />
+      }
+    >
       <Fretboard
         markers={markers}
         startFret={startFret}
@@ -75,17 +90,6 @@ export function NoteMapView({
         enabledStrings={enabledStrings}
         onToggleString={onToggleString}
       />
-      {/* min-h reserves the height of the tallest sibling-view controls bar so
-          the diatonic chord row sits at the same y on every view. At ≥1320px
-          everything fits on one row (~36px); below that, Chord Shapes Sevenths
-          wraps to two rows (~80px) and the other views match it. */}
-      <div className="flex flex-wrap items-center gap-x-3 md:gap-x-6 gap-y-2 md:gap-y-3 min-h-9 md:max-[1319px]:min-h-20">
-        <Legend
-          enabledRoles={enabledHighlights}
-          onToggleRole={onToggleRole}
-          disabledRoles={disabledRoles}
-        />
-      </div>
-    </div>
+    </ViewFrame>
   );
 }

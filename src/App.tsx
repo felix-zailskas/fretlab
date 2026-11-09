@@ -20,13 +20,16 @@ import type { HighlightableRole } from "./theory/types";
 import { ScaleDisplay } from "./components/ScaleDisplay";
 import { AboutModal } from "./components/AboutModal";
 import { ChordMap } from "./components/ChordMap";
-import { ProgressionPanel } from "./components/ProgressionPanel";
+import { ProgressionLane } from "./components/ProgressionLane";
+import { PlayerTransport } from "./components/PlayerTransport";
+import { SettingsMenu, SettingsRow } from "./components/SettingsMenu";
+import type { ViewChrome } from "./views/ViewFrame";
 import { useProgressionPlayer } from "./useProgressionPlayer";
 import { ChordShapesView } from "./views/ChordShapesView";
 import { NoteMapView } from "./views/NoteMapView";
 import { ScalePositionsView } from "./views/ScalePositionsView";
 import { isPentatonicAvailable } from "./theory/pentatonic";
-import type { Mode } from "./theory/modes";
+import { MODE_NAMES, type Mode } from "./theory/modes";
 import { useChordShapesState } from "./views/useChordShapesState";
 import { useScalePositionsState } from "./views/useScalePositionsState";
 import type { ViewId } from "./views/types";
@@ -139,7 +142,6 @@ function App() {
     onChordChange: setSelectedChordRef,
   });
   const togglePlayback = player.toggle;
-  const progressionVisible = player.state.visible;
   const [showAbout, setShowAbout] = useState(false);
   const [startFret, setStartFret] = useState(0);
   const [endFret, setEndFret] = useState(() =>
@@ -209,10 +211,10 @@ function App() {
   // Space toggles the progression player. Ignored in form fields and on
   // buttons (a focused button already activates on Space, and dnd-kit's drag
   // handle uses Space to pick up a card), on key repeat (holding Space would
-  // flip playback on and off), and while the panel is hidden (no visible Stop).
+  // flip playback on and off). The transport is always in the header.
   useEffect(() => {
     function handleSpace(e: KeyboardEvent) {
-      if (e.key !== " " || e.repeat || !progressionVisible) return;
+      if (e.key !== " " || e.repeat) return;
       if (e.metaKey || e.ctrlKey || e.altKey) return;
       const t = e.target;
       if (
@@ -228,7 +230,7 @@ function App() {
     }
     window.addEventListener("keydown", handleSpace);
     return () => window.removeEventListener("keydown", handleSpace);
-  }, [togglePlayback, progressionVisible]);
+  }, [togglePlayback]);
 
   const cycleTheme = useCallback(() => {
     setThemeMode((prev) =>
@@ -305,11 +307,10 @@ function App() {
 
   const isAllNotesKey = selectedKey === ALL_NOTES_KEY;
 
-  // Progression panel sits between the view (which ends with its Legend) and
-  // the chord map, identically in every view.
+  // The chord map follows every view. "Edit progression" shows the ＋ buttons;
+  // the progression itself lives in the lane under the header.
   const chordArea = (
     <>
-      <ProgressionPanel player={player} noKey={isAllNotesKey} />
       <ChordMap
         selectedKey={selectedKey}
         modalMode={mode}
@@ -320,19 +321,42 @@ function App() {
         onAdd={player.state.visible ? player.add : undefined}
         progressionVisible={player.state.visible}
         onToggleProgression={() => player.setVisible(!player.state.visible)}
+        showAddHint={
+          player.state.visible && player.state.slots.length === 0 && !isAllNotesKey
+        }
       />
     </>
   );
 
+  // Handed to every view: the tabs (which the view extends with its own
+  // sub-modes) and the scale summary shown in its legend.
+  const chrome: ViewChrome = {
+    tabs: <ViewSelector selectedView={selectedView} onViewChange={setSelectedView} />,
+    scaleName: isAllNotesKey ? "Scale" : `${selectedKey} ${MODE_NAMES[mode]}`,
+    scale: isAllNotesKey ? (
+      <p className="text-fg-muted text-sm">Pick a key to see scales and chords.</p>
+    ) : (
+      <ScaleDisplay
+        selectedKey={selectedKey}
+        selectedChord={selectedChord}
+        enabledRoles={enabledHighlights}
+        mode={mode}
+      />
+    ),
+  };
+
   function renderView(): ReactNode {
     if (!tuningSupportsView(tuning, selectedView)) {
       return (
-        <UnavailableInTuning
-          viewId={selectedView}
-          tuning={tuning}
-          onSwitchToStandard={() => setTuningId("standard")}
-          onSwitchToNoteMap={() => setSelectedView("note-map")}
-        />
+        <div className="space-y-3">
+          {chrome.tabs}
+          <UnavailableInTuning
+            viewId={selectedView}
+            tuning={tuning}
+            onSwitchToStandard={() => setTuningId("standard")}
+            onSwitchToNoteMap={() => setSelectedView("note-map")}
+          />
+        </div>
       );
     }
     switch (selectedView) {
@@ -340,6 +364,7 @@ function App() {
         return (
           <>
             <NoteMapView
+              chrome={chrome}
               tuning={tuning}
               selectedKey={selectedKey}
               accidentalStyle={accidentalStyle}
@@ -360,6 +385,7 @@ function App() {
         return (
           <>
             <ScalePositionsView
+              chrome={chrome}
               tuning={tuning}
               selectedKey={selectedKey}
               enabledHighlights={effectiveHighlights}
@@ -380,6 +406,7 @@ function App() {
         return (
           <>
             <ChordShapesView
+              chrome={chrome}
               tuning={tuning}
               selectedKey={selectedKey}
               startFret={startFret}
@@ -435,72 +462,42 @@ function App() {
       <div role="status" aria-live="polite" aria-atomic="true" className="sr-only">
         {announcement}
       </div>
-      <header className="max-w-[90rem] mx-auto">
-        {/* Top bar: title + global preferences (sharp/flat, fret range) */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 md:gap-4 px-4 py-3 border-b border-line">
-          <div className="flex items-center gap-2">
-            <h1 className="text-xl font-bold">Fretlab</h1>
-            <button
-              onClick={() => setShowAbout(true)}
-              title="About Fretlab"
-              aria-label="About Fretlab"
-              className="px-3 py-2.5 pointer-coarse:py-3 rounded text-sm font-semibold bg-surface-raised text-fg-secondary hover:bg-surface-active cursor-pointer inline-flex items-center"
-            >
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 14 14"
-                fill="none"
-                aria-hidden="true"
+      {/* Header: tonal centre, transport and settings. Sticky from md up so
+          play/stop stays reachable while scrolling the chord map. */}
+      <header className="md:sticky md:top-0 z-20 bg-surface border-b border-line">
+        <div className="max-w-[90rem] mx-auto flex flex-wrap items-center justify-between gap-x-6 gap-y-2 px-4 py-2">
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+            <div className="flex items-center gap-1">
+              <h1 className="text-lg font-bold">Fretlab</h1>
+              <button
+                onClick={() => setShowAbout(true)}
+                title="About Fretlab"
+                aria-label="About Fretlab"
+                className="p-1.5 pointer-coarse:p-3 rounded text-fg-muted hover:text-fg-secondary hover:bg-surface-raised cursor-pointer inline-flex items-center"
               >
-                <circle cx="7" cy="7" r="6" stroke="currentColor" strokeWidth="1.5" />
-                <path
-                  d="M7 6.5v3.5M7 4v.5"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                />
-              </svg>
-            </button>
-          </div>
-          <div className="flex flex-wrap items-center gap-2 md:gap-4">
-            <AccidentalToggle
-              accidentalStyle={accidentalStyle}
-              onChange={(style) => dispatchTonal({ type: "set-accidental", style })}
-            />
-            <ThemeToggle mode={themeMode} onCycle={cycleTheme} />
-            <TuningSelector
-              tuningId={tuningId}
-              customs={customs}
-              onTuningChange={setTuningId}
-              onOpenCreateModal={() => setModalState({ mode: "create" })}
-              onOpenEditModal={(id) => setModalState({ mode: "edit", id })}
-            />
-            <FretRangeControl
-              startFret={startFret}
-              endFret={endFret}
-              onChange={handleFretRangeChange}
-            />
-          </div>
-        </div>
-
-        {/* Focal-control row: tonal-center selectors */}
-        <div className="px-4 pt-4 space-y-4">
-          <div className="flex flex-col xl:flex-row xl:items-end gap-4 xl:gap-12">
-            <div>
-              <label className="text-xs text-fg-muted uppercase tracking-wide block mb-1">
-                Key
-              </label>
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 14 14"
+                  fill="none"
+                  aria-hidden="true"
+                >
+                  <circle cx="7" cy="7" r="6" stroke="currentColor" strokeWidth="1.5" />
+                  <path
+                    d="M7 6.5v3.5M7 4v.5"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                  />
+                </svg>
+              </button>
+            </div>
+            <div className="flex items-center gap-3">
               <KeySelector
                 selectedKey={selectedKey}
                 accidentalStyle={accidentalStyle}
                 onKeyChange={(key) => dispatchTonal({ type: "set-key", key })}
               />
-            </div>
-            <div>
-              <label className="text-xs text-fg-muted uppercase tracking-wide block mb-1">
-                Mode
-              </label>
               <ModeSelector
                 mode={mode}
                 onModeChange={handleModeChange}
@@ -508,31 +505,46 @@ function App() {
               />
             </div>
           </div>
-          {/* min-h reserves the ScaleDisplay's natural height so the fretboard
-              doesn't shift up when "All" is selected and only the short hint
-              renders on the right. */}
-          <div className="flex flex-wrap items-center justify-between gap-x-8 gap-y-3 min-h-[50px]">
-            <ViewSelector selectedView={selectedView} onViewChange={setSelectedView} />
-            {isAllNotesKey ? (
-              <p className="text-fg-muted text-sm">
-                Pick a key above to see scales and chords.
-              </p>
-            ) : (
-              <ScaleDisplay
-                selectedKey={selectedKey}
-                selectedChord={selectedChord}
-                enabledRoles={enabledHighlights}
-                mode={mode}
-              />
-            )}
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+            <PlayerTransport player={player} />
+            <SettingsMenu summary={`${tuning.name} · ${startFret}–${endFret}`}>
+              <SettingsRow label="Accidentals">
+                <AccidentalToggle
+                  accidentalStyle={accidentalStyle}
+                  onChange={(style) => dispatchTonal({ type: "set-accidental", style })}
+                />
+              </SettingsRow>
+              <SettingsRow label="Theme">
+                <ThemeToggle mode={themeMode} onCycle={cycleTheme} />
+              </SettingsRow>
+              <SettingsRow label="Tuning">
+                <TuningSelector
+                  tuningId={tuningId}
+                  customs={customs}
+                  onTuningChange={setTuningId}
+                  onOpenCreateModal={() => setModalState({ mode: "create" })}
+                  onOpenEditModal={(id) => setModalState({ mode: "edit", id })}
+                />
+              </SettingsRow>
+              <SettingsRow label="Frets">
+                <FretRangeControl
+                  startFret={startFret}
+                  endFret={endFret}
+                  onChange={handleFretRangeChange}
+                />
+              </SettingsRow>
+            </SettingsMenu>
           </div>
+        </div>
+        <div className="max-w-[90rem] mx-auto">
+          <ProgressionLane player={player} noKey={isAllNotesKey} />
         </div>
       </header>
 
       <main
         id="main-content"
         tabIndex={-1}
-        className="max-w-[90rem] mx-auto px-4 pb-4 focus:outline-none"
+        className="max-w-[90rem] mx-auto px-4 pt-3 pb-4 focus:outline-none"
       >
         {renderView()}
       </main>

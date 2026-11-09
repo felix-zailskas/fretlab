@@ -19,9 +19,11 @@ type ChordMapProps = {
   onRowModeChange: (m: ChordRowMode) => void;
   selectedRef: ChordRef | null;
   onSelect: (ref: ChordRef) => void;
-  onAdd?: (ref: ChordRef) => void; // only while the progression panel is visible
+  onAdd?: (ref: ChordRef) => void; // only while editing the progression
   progressionVisible?: boolean;
   onToggleProgression?: () => void;
+  // Editing with an empty progression: explain what the ＋ buttons do.
+  showAddHint?: boolean;
 };
 
 export function ChordMap({
@@ -34,9 +36,8 @@ export function ChordMap({
   onAdd,
   progressionVisible = false,
   onToggleProgression,
+  showAddHint = false,
 }: ChordMapProps) {
-  // Under All there are no chords, but the toolbar must stay: its
-  // Progression/Metronome toggle is the way to reach the metronome.
   const showTiers = selectedKey !== ALL_NOTES_KEY;
   const map = showTiers ? getChordMap(selectedKey, modalMode, rowMode) : null;
   const tiers: { tier: ChordTier; label: string }[] = [
@@ -49,22 +50,27 @@ export function ChordMap({
   ];
 
   return (
-    <section className="mt-4 md:mt-8" aria-label="Chord map">
-      <div className="flex flex-wrap items-center justify-start gap-2 mb-3">
+    <section className="mt-10 md:mt-14" aria-label="Chord map">
+      <div className="flex flex-wrap items-center justify-start gap-2 mb-2">
         <ChordRowModeToggle value={rowMode} onChange={onRowModeChange} />
         {onToggleProgression && (
           <button
             type="button"
             aria-pressed={progressionVisible}
             onClick={onToggleProgression}
-            className={`px-2 py-1.5 md:px-3 md:py-2.5 pointer-coarse:py-3 rounded border border-line text-xs md:text-sm font-semibold cursor-pointer ${
+            className={`px-3 py-1.5 pointer-coarse:py-3 rounded border border-line text-sm font-semibold cursor-pointer ${
               progressionVisible
                 ? "bg-surface-active text-fg-emphasis"
                 : "text-fg-muted hover:text-fg-secondary"
             }`}
           >
-            Progression/Metronome
+            Edit progression
           </button>
+        )}
+        {showAddHint && (
+          <span className="text-xs text-fg-muted">
+            Click ＋ on a chord to add it to the progression.
+          </span>
         )}
       </div>
       {map && (

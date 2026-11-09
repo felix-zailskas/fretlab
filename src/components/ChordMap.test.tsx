@@ -159,7 +159,7 @@ describe("ChordMap — progression toggle", () => {
     );
   }
 
-  const PROGRESSION_TOGGLE = "Progression/Metronome";
+  const PROGRESSION_TOGGLE = "Edit progression";
 
   it("is absent without onToggleProgression", () => {
     renderMap();

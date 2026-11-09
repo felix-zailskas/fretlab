@@ -41,7 +41,7 @@ type LegendProps = {
 export function Legend({ enabledRoles, onToggleRole, disabledRoles }: LegendProps) {
   return (
     <div
-      className="inline-flex rounded overflow-hidden border border-line"
+      className="inline-flex rounded overflow-hidden border border-dashed border-line-emphasis"
       role="group"
       aria-label="Highlight roles"
     >
@@ -62,7 +62,7 @@ export function Legend({ enabledRoles, onToggleRole, disabledRoles }: LegendProp
               title={isDisabled ? undefined : tooltip}
               aria-pressed={isEnabled}
               disabled={isDisabled}
-              className={`flex items-center gap-1 md:gap-1.5 px-2 py-1 md:px-3 md:py-1.5 text-xs md:text-sm font-semibold transition-colors ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 pointer-coarse:py-3 text-sm font-semibold transition-colors ${
                 isDisabled
                   ? "bg-surface text-fg-muted opacity-40 pointer-events-none"
                   : isEnabled
@@ -71,7 +71,7 @@ export function Legend({ enabledRoles, onToggleRole, disabledRoles }: LegendProp
               }`}
             >
               <span
-                className="inline-block w-3 h-3 rounded-full shrink-0"
+                className="inline-block w-2.5 h-2.5 rounded-full shrink-0"
                 style={{ backgroundColor: item.color }}
               />
               <span>{item.label}</span>

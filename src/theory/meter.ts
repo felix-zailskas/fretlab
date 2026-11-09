@@ -4,7 +4,13 @@
 export type TimeSignature = { beats: number; unit: 2 | 4 | 8 | 16 };
 export type Accent = "strong" | "medium" | "weak";
 export type Timeline = { starts: number[]; totalBeats: number };
-export type TimelinePosition = { slotIndex: number; beatInBar: number };
+// beatInSlot counts from the start of the current slot, so a two-bar chord
+// runs 0..7 in 4/4 — what the progress line on a slot chip fills against.
+export type TimelinePosition = {
+  slotIndex: number;
+  beatInBar: number;
+  beatInSlot: number;
+};
 
 export const TIME_SIGNATURE_PRESETS: readonly TimeSignature[] = [
   { beats: 2, unit: 4 },
@@ -99,7 +105,11 @@ export function locate(
       break;
     }
   }
-  return { slotIndex, beatInBar: wrapped % sig.beats };
+  return {
+    slotIndex,
+    beatInBar: wrapped % sig.beats,
+    beatInSlot: wrapped - timeline.starts[slotIndex],
+  };
 }
 
 export function secondsPerBeat(bpm: number): number {

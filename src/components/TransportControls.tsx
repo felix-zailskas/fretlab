@@ -7,6 +7,7 @@ import {
 } from "../theory/meter";
 import { BPM_MAX, BPM_MIN, clampBpm } from "../theory/progressionStorage";
 import { BeatDots } from "./BeatDots";
+import { BUTTON, FIELD } from "./controlStyles";
 
 type TransportControlsProps = {
   isPlaying: boolean;
@@ -26,11 +27,7 @@ type TransportControlsProps = {
   onClear: () => void;
 };
 
-const BUTTON =
-  "px-3 py-1.5 pointer-coarse:py-3 rounded text-sm font-semibold cursor-pointer disabled:cursor-not-allowed disabled:opacity-40";
-const LABEL = "flex items-center gap-2 text-xs text-fg-muted uppercase tracking-wide";
-const FIELD =
-  "px-2 py-1 rounded border border-line bg-surface-raised text-fg-primary text-sm";
+const LABEL = "flex items-center gap-1.5 text-xs text-fg-muted";
 
 function toggleClass(on: boolean): string {
   return `${BUTTON} ${on ? "bg-surface-active text-fg-emphasis" : "bg-surface-raised text-fg-muted hover:text-fg-secondary"}`;
@@ -57,7 +54,6 @@ function BpmInput({ bpm, onCommit }: BpmInputProps) {
 
   return (
     <label className={LABEL}>
-      BPM
       <input
         type="number"
         min={BPM_MIN}
@@ -68,8 +64,10 @@ function BpmInput({ bpm, onCommit }: BpmInputProps) {
         onKeyDown={(e) => {
           if (e.key === "Enter") e.currentTarget.blur();
         }}
-        className={`w-16 ${FIELD}`}
+        aria-label="BPM"
+        className={`w-14 ${FIELD}`}
       />
+      BPM
     </label>
   );
 }
@@ -79,17 +77,30 @@ export function TransportControls(props: TransportControlsProps) {
   const { click, loop } = props;
 
   return (
-    <div className="flex flex-wrap items-center gap-2 md:gap-4">
+    <div
+      role="group"
+      aria-label="Transport"
+      className="flex flex-wrap items-center gap-1.5 rounded-lg border border-line bg-surface-raised/40 p-1"
+    >
       <button
         type="button"
         onClick={props.onTogglePlay}
-        className={`${BUTTON} min-w-[4.5rem] bg-surface-active text-fg-emphasis hover:bg-surface-raised`}
+        className={`${BUTTON} min-w-[3.75rem] bg-surface-active text-fg-emphasis hover:bg-surface-raised`}
       >
         {isPlaying ? "Stop" : "Play"}
       </button>
+      {/* Always rendered so starting playback doesn't shift the transport;
+          dimmed while stopped, where it previews the meter. */}
+      <span className={isPlaying ? undefined : "opacity-40"}>
+        <BeatDots
+          source="transport"
+          beats={timeSignature.beats}
+          current={isPlaying && beatInBar !== null ? beatInBar : -1}
+          accents={accentPattern(timeSignature)}
+        />
+      </span>
       <BpmInput key={bpm} bpm={bpm} onCommit={props.onBpmChange} />
       <label className={LABEL}>
-        Time
         <select
           aria-label="Time signature"
           value={timeSignatureLabel(timeSignature)}
@@ -138,14 +149,6 @@ export function TransportControls(props: TransportControlsProps) {
       >
         Clear
       </button>
-      {isPlaying && beatInBar !== null && (
-        <BeatDots
-          source="transport"
-          beats={timeSignature.beats}
-          current={beatInBar}
-          accents={accentPattern(timeSignature)}
-        />
-      )}
     </div>
   );
 }

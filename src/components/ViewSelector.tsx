@@ -15,7 +15,7 @@ export function ViewSelector({ selectedView, onViewChange }: ViewSelectorProps) 
   const activeIndex = VIEWS.findIndex((v) => v.id === selectedView);
   return (
     <div
-      className="relative grid grid-cols-3 max-w-md rounded border border-line"
+      className="relative grid grid-cols-3 shrink-0 rounded border border-line"
       role="tablist"
     >
       <div
@@ -33,7 +33,7 @@ export function ViewSelector({ selectedView, onViewChange }: ViewSelectorProps) 
           role="tab"
           aria-selected={selectedView === view.id}
           onClick={() => onViewChange(view.id)}
-          className={`relative z-10 px-2 py-1.5 md:px-3 md:py-2.5 pointer-coarse:py-3 text-xs md:text-sm font-medium cursor-pointer ${
+          className={`relative z-10 px-3 py-1.5 pointer-coarse:py-3 text-sm font-semibold whitespace-nowrap cursor-pointer ${
             selectedView === view.id
               ? "text-fg-emphasis"
               : "text-fg-muted hover:text-fg-secondary"

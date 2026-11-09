@@ -29,7 +29,7 @@ beforeAll(() => {
   }
 });
 
-const PROGRESSION_TOGGLE = "Progression/Metronome";
+const PROGRESSION_TOGGLE = "Edit progression";
 
 const CAGED_CUSTOM: CustomTuning = {
   id: "custom:1715600000-aaa",
@@ -167,17 +167,21 @@ describe("App — chord map selection", () => {
 
   it("clears a selection whose cell empties after a mode change", async () => {
     render(<App />);
-    await userEvent.click(screen.getByRole("radio", { name: "Mixolydian" }));
+    const modeSelect = screen.getByRole("combobox", { name: "Mode" });
+    await userEvent.selectOptions(modeSelect, "mixolydian");
     await userEvent.click(screen.getByRole("button", { name: "V7/♭VII F7" }));
-    await userEvent.click(screen.getByRole("radio", { name: "Ionian (Major)" }));
-    await userEvent.click(screen.getByRole("radio", { name: "Mixolydian" }));
+    await userEvent.selectOptions(modeSelect, "ionian");
+    await userEvent.selectOptions(modeSelect, "mixolydian");
     expect(pressedCards()).toEqual([]);
   });
 
   it("keeps a selection that still resolves after a mode change", async () => {
     render(<App />);
     await userEvent.click(screen.getByRole("button", { name: "V7/V D7" }));
-    await userEvent.click(screen.getByRole("radio", { name: "Dorian" }));
+    await userEvent.selectOptions(
+      screen.getByRole("combobox", { name: "Mode" }),
+      "dorian",
+    );
     // Dorian's v is minor, so the numeral changes but the chord stays D.
     expect(pressedCards()).toEqual(["V7/v D7"]);
   });
@@ -185,14 +189,18 @@ describe("App — chord map selection", () => {
   it("keeps the selection through a detour via the All key", async () => {
     render(<App />);
     await userEvent.click(screen.getByRole("button", { name: "V7/V D7" }));
-    await userEvent.click(screen.getByRole("button", { name: "All" }));
-    await userEvent.click(screen.getByRole("button", { name: "C" }));
+    const keySelect = screen.getByRole("combobox", { name: "Key" });
+    await userEvent.selectOptions(keySelect, "all");
+    await userEvent.selectOptions(keySelect, "C");
     expect(pressedCards()).toEqual(["V7/V D7"]);
   });
 
   it("clears a selection whose cell empties after a row-mode change", async () => {
     render(<App />);
-    await userEvent.click(screen.getByRole("radio", { name: "Dorian" }));
+    await userEvent.selectOptions(
+      screen.getByRole("combobox", { name: "Mode" }),
+      "dorian",
+    );
     await userEvent.keyboard("s");
     const borrowedIV = document.querySelector(
       '[data-testid="chord-card"][data-tier="borrowed"][data-degree="4"]',
@@ -304,13 +312,14 @@ describe("App — progression player", () => {
     ).toHaveAttribute("aria-pressed", "true");
   });
 
-  it("the Progression/Metronome toggle hides the panel and the ＋ buttons", async () => {
+  it("Edit progression hides the ＋ buttons but keeps the lane", async () => {
     render(<App />);
+    await addF();
     await userEvent.click(screen.getByRole("button", { name: PROGRESSION_TOGGLE }));
     expect([
-      screen.queryByRole("region", { name: "Progression" }),
+      screen.queryByRole("region", { name: "Progression" }) !== null,
       screen.queryByRole("button", { name: "Add F to progression" }),
-    ]).toEqual([null, null]);
+    ]).toEqual([true, null]);
   });
 
   it("persists the hidden state", async () => {
@@ -370,20 +379,18 @@ describe("App — progression player", () => {
     expect(screen.getByRole("button", { name: "Stop" })).toBeInTheDocument();
   });
 
-  it("hiding the panel stops playback", async () => {
+  it("leaving edit mode keeps playback running", async () => {
     render(<App />);
     await userEvent.click(screen.getByRole("button", { name: "Play" }));
     await userEvent.click(screen.getByRole("button", { name: PROGRESSION_TOGGLE }));
-    await userEvent.click(screen.getByRole("button", { name: PROGRESSION_TOGGLE }));
-    expect(screen.getByRole("button", { name: "Play" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Stop" })).toBeInTheDocument();
   });
 
-  it("Space is ignored while the panel is hidden", async () => {
+  it("Space toggles playback outside edit mode too", async () => {
     render(<App />);
     await userEvent.click(screen.getByRole("button", { name: PROGRESSION_TOGGLE }));
     blurActive();
     await userEvent.keyboard(" ");
-    await userEvent.click(screen.getByRole("button", { name: PROGRESSION_TOGGLE }));
-    expect(screen.getByRole("button", { name: "Play" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Stop" })).toBeInTheDocument();
   });
 });

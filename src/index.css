@@ -1,8 +1,10 @@
 @import "tailwindcss";
 
+/* clip, not hidden: hidden turns body into a scroll container, which breaks
+   the sticky header. */
 html,
 body {
-  overflow-x: hidden;
+  overflow-x: clip;
 }
 
 /* Don't scan documentation markdown for utility classes — example class names

@@ -131,20 +131,28 @@ describe("locate", () => {
   const timeline = buildTimeline([1, 0.5, 2], FOUR_FOUR); // starts 0, 4, 6; total 14
 
   it.each([
-    [0, 0, 0],
-    [3, 0, 3],
-    [4, 1, 0],
-    [5, 1, 1],
-    [6, 2, 2],
-    [13, 2, 1],
-  ])("beat %i → slot %i, beatInBar %i", (beat, slotIndex, beatInBar) => {
-    expect(locate(beat, timeline, FOUR_FOUR)).toEqual({ slotIndex, beatInBar });
-  });
+    [0, 0, 0, 0],
+    [3, 0, 3, 3],
+    [4, 1, 0, 0],
+    [5, 1, 1, 1],
+    [6, 2, 2, 0],
+    [13, 2, 1, 7],
+  ])(
+    "beat %i → slot %i, beatInBar %i, beatInSlot %i",
+    (beat, slotIndex, beatInBar, beatInSlot) => {
+      expect(locate(beat, timeline, FOUR_FOUR)).toEqual({
+        slotIndex,
+        beatInBar,
+        beatInSlot,
+      });
+    },
+  );
 
   it("wraps past the end (loop)", () => {
     expect(locate(14, timeline, FOUR_FOUR)).toEqual({
       slotIndex: 0,
       beatInBar: 0,
+      beatInSlot: 0,
     });
   });
 
@@ -152,6 +160,7 @@ describe("locate", () => {
     expect(locate(14 + 14 + 4, timeline, FOUR_FOUR)).toEqual({
       slotIndex: 1,
       beatInBar: 0,
+      beatInSlot: 0,
     });
   });
 
