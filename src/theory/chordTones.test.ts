@@ -735,3 +735,137 @@ describe("out-of-key chord tones", () => {
     });
   });
 });
+
+describe("buildChordToneMarkers with pentatonic", () => {
+  const allRoles: Set<HighlightableRole> = new Set([
+    "root",
+    "third",
+    "fifth",
+    "seventh",
+  ]);
+  const allPositions = CAGED_POSITIONS.map((p) => p.id);
+  const base = {
+    tuning: TUNINGS.standard,
+    key: "C",
+    chord: null as ChordToneSource | null,
+    positions: allPositions,
+    showContext: false,
+    enabledHighlights: allRoles,
+    enabledStrings: new Set([0, 1, 2, 3, 4, 5]),
+    startFret: 0,
+    endFret: 12,
+  };
+  const F = getNoteIndex("F");
+  const B = getNoteIndex("B");
+  const g7 = () => getModalDiatonicChords("C", "ionian")[4];
+
+  it("drops the 4th and 7th of C major when no chord is selected", () => {
+    const markers = buildChordToneMarkers({ ...base, scaleType: "pentatonic" });
+    expect(markers.length).toBeGreaterThan(0);
+    for (const m of markers) {
+      expect([F, B]).not.toContain(getNoteIndex(m.note));
+      expect(m.isNonPentatonic).toBeUndefined();
+    }
+  });
+
+  it("keeps G7's B and F as hollow chord tones", () => {
+    const markers = buildChordToneMarkers({
+      ...base,
+      chord: g7(),
+      scaleType: "pentatonic",
+    });
+    const fb = markers.filter((m) => [F, B].includes(getNoteIndex(m.note)));
+    expect(fb.length).toBeGreaterThan(0);
+    for (const m of fb) {
+      expect(m.isNonPentatonic).toBe(true);
+      expect(["third", "seventh"]).toContain(m.role);
+    }
+    for (const m of markers.filter((m) => !fb.includes(m))) {
+      expect(m.isNonPentatonic).toBeUndefined();
+    }
+  });
+
+  it("hides a non-pentatonic chord tone whose Legend role is off", () => {
+    const markers = buildChordToneMarkers({
+      ...base,
+      chord: g7(),
+      enabledHighlights: new Set<HighlightableRole>(["root", "third", "fifth"]),
+      scaleType: "pentatonic",
+    });
+    expect(markers.some((m) => getNoteIndex(m.note) === F)).toBe(false);
+    expect(markers.some((m) => getNoteIndex(m.note) === B && m.isNonPentatonic)).toBe(
+      true,
+    );
+  });
+
+  it("leaves outside-key chord tones filled with the dashed ring (A7 in C)", () => {
+    const a7 = getModalDiatonicChords("D", "ionian")[4]; // A C# E G
+    expect(a7.notes).toContain("C#");
+    const markers = buildChordToneMarkers({
+      ...base,
+      chord: a7,
+      scaleType: "pentatonic",
+    });
+    const cSharp = markers.filter((m) => m.note === "C#");
+    expect(cSharp.length).toBeGreaterThan(0);
+    for (const m of cSharp) {
+      expect(m.isOutsideKey).toBe(true);
+      expect(m.isNonPentatonic).toBeUndefined();
+    }
+  });
+
+  it("keeps flat-key spelling (E♭ major pentatonic)", () => {
+    const markers = buildChordToneMarkers({
+      ...base,
+      key: "Eb",
+      scaleType: "pentatonic",
+    });
+    expect(new Set(markers.map((m) => m.note))).toEqual(
+      new Set(["Eb", "F", "G", "Bb", "C"]),
+    );
+  });
+
+  it("shows only pentatonic notes as context outside the windows", () => {
+    const markers = buildChordToneMarkers({
+      ...base,
+      positions: ["P1"],
+      showContext: true,
+      scaleType: "pentatonic",
+    });
+    expect(markers.some((m) => m.role === "muted")).toBe(true);
+    expect(markers.some((m) => [F, B].includes(getNoteIndex(m.note)))).toBe(false);
+  });
+
+  it("drops the hollow flag on muted markers so context chord tones stay legible", () => {
+    const markers = buildChordToneMarkers({
+      ...base,
+      chord: g7(),
+      positions: ["P1"],
+      showContext: true,
+      enabledStrings: new Set([0, 1, 2, 3, 4]),
+      scaleType: "pentatonic",
+    });
+    const mutedFB = markers.filter(
+      (m) => m.role === "muted" && [F, B].includes(getNoteIndex(m.note)),
+    );
+    expect(mutedFB.length).toBeGreaterThan(0);
+    for (const m of mutedFB) expect(m.isNonPentatonic).toBeUndefined();
+  });
+
+  it("ignores pentatonic in modes without one (Dorian)", () => {
+    const input = { ...base, key: "D", mode: "dorian" as const };
+    expect(buildChordToneMarkers({ ...input, scaleType: "pentatonic" })).toEqual(
+      buildChordToneMarkers({ ...input, scaleType: "full" }),
+    );
+  });
+
+  for (const key of CHROMATIC_SCALE) {
+    it(`"full" matches the default output (${key} ionian, V7)`, () => {
+      const chord = getModalDiatonicChords(key, "ionian")[4];
+      const input = { ...base, key, chord };
+      expect(buildChordToneMarkers({ ...input, scaleType: "full" })).toEqual(
+        buildChordToneMarkers(input),
+      );
+    });
+  }
+});

@@ -1,5 +1,6 @@
 import { useCallback, useState } from "react";
 import { type PositionId } from "../theory/positions";
+import { type ScaleType } from "../theory/pentatonic";
 
 const DEFAULT_POSITIONS: PositionId[] = ["P1"];
 
@@ -10,6 +11,7 @@ export function useScalePositionsState() {
     () => new Set(DEFAULT_POSITIONS),
   );
   const [showContext, setShowContext] = useState(false);
+  const [scaleType, setScaleType] = useState<ScaleType>("full");
 
   const togglePosition = useCallback((position: PositionId) => {
     setSelectedPositions((prev) => {
@@ -25,6 +27,8 @@ export function useScalePositionsState() {
     togglePosition,
     showContext,
     setShowContext,
+    scaleType,
+    setScaleType,
   };
 }
 

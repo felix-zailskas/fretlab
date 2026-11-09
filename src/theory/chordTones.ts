@@ -17,6 +17,7 @@ import {
   type Mode,
 } from "./modes";
 import type { HighlightableRole, NoteDisplayRole, NoteMarker } from "./types";
+import { getPentatonicPitchClasses, type ScaleType } from "./pentatonic";
 
 // Roles the Legend can toggle off (demoted to 'scale' when their toggle is
 // disabled). Both NoteMapView and ScalePositionsView read from this single set.
@@ -117,6 +118,11 @@ export type BuildChordToneMarkersInput = {
   // 'ionian', the in-mode check, parent-major anchoring, and characteristic
   // overlay all degrade to identical output of the pre-modal pipeline.
   mode?: Mode;
+  // Optional — defaults to 'full'. 'pentatonic' filters to the mode's
+  // pentatonic (Ionian/Aeolian only; ignored elsewhere). Non-pentatonic
+  // chord tones in the key stay, flagged isNonPentatonic; ones whose Legend
+  // role is off are dropped. Outside-key chord tones are unaffected.
+  scaleType?: ScaleType;
 };
 
 // Pure function: given the Chord-Tones view's full input, returns the
@@ -148,6 +154,7 @@ export function buildChordToneMarkers({
   startFret,
   endFret,
   mode = "ionian",
+  scaleType = "full",
 }: BuildChordToneMarkersInput): NoteMarker[] {
   if (key === ALL_NOTES_KEY) return [];
   if (positions.length === 0) return [];
@@ -155,6 +162,9 @@ export function buildChordToneMarkers({
   const parentKey = parentMajorOf(key, mode);
   const characteristicSet = getCharacteristicNoteIndexSet(key, mode);
   const spelling = buildKeyChordSpelling(key, mode, chord);
+  const pentatonic =
+    scaleType === "pentatonic" ? getPentatonicPitchClasses(key, mode) : null;
+  const filterPentatonic = pentatonic !== null && pentatonic.size > 0;
 
   const result: NoteMarker[] = [];
 
@@ -172,6 +182,10 @@ export function buildChordToneMarkers({
       if (!inWindow && !showContext) continue; // hide outside-position notes
 
       let role = demoteDisabledRole(roleFromChordTone(note, chord), enabledHighlights);
+      const isNonPentatonic =
+        filterPentatonic && !pentatonic.has(pc) && !spelled.isOutsideKey;
+      // A non-pentatonic note only earns a place as a highlighted chord tone.
+      if (isNonPentatonic && role === "scale") continue;
       if (!inWindow) {
         role = "muted"; // outside-window context override
       }
@@ -185,6 +199,8 @@ export function buildChordToneMarkers({
         role: finalRole,
         ...(characteristicSet.has(pc) ? { isCharacteristic: true } : {}),
         ...(spelled.isOutsideKey ? { isOutsideKey: true } : {}),
+        // Muted wins over hollow: a hollow muted marker is near-invisible.
+        ...(isNonPentatonic && finalRole !== "muted" ? { isNonPentatonic: true } : {}),
       });
     }
   }

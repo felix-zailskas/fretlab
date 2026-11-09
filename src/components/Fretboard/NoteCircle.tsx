@@ -16,6 +16,9 @@ type NoteCircleProps = {
   role: NoteDisplayRole;
   isCharacteristic?: boolean;
   isOutsideKey?: boolean;
+  // Chord tone outside the active pentatonic: drawn hollow (role-colour
+  // outline, faint role-colour fill, role-colour label).
+  isNonPentatonic?: boolean;
   // String/fret coordinates exposed as data-* attributes for E2E tests; not
   // used for rendering. Optional so existing callers don't have to pass them.
   string?: number;
@@ -29,6 +32,7 @@ export function NoteCircle({
   role,
   isCharacteristic,
   isOutsideKey,
+  isNonPentatonic,
   string,
   fret,
 }: NoteCircleProps) {
@@ -49,6 +53,7 @@ export function NoteCircle({
       data-note={note}
       data-role={role}
       data-outside-key={isOutsideKey ? "true" : undefined}
+      data-non-pentatonic={isNonPentatonic ? "true" : undefined}
     >
       {isCharacteristic && (
         <circle
@@ -74,13 +79,29 @@ export function NoteCircle({
           strokeDasharray="3 2"
         />
       )}
-      <circle cx={cx} cy={cy} r={radius} fill={color} />
+      {isNonPentatonic ? (
+        <>
+          {/* Opaque base so the string line doesn't strike through the label. */}
+          <circle cx={cx} cy={cy} r={radius - 1} fill="var(--color-fretboard)" />
+          <circle
+            cx={cx}
+            cy={cy}
+            r={radius - 1}
+            fill={color}
+            fillOpacity={0.2}
+            stroke={color}
+            strokeWidth={2.5}
+          />
+        </>
+      ) : (
+        <circle cx={cx} cy={cy} r={radius} fill={color} />
+      )}
       <text
         x={cx}
         y={cy}
         textAnchor="middle"
         dominantBaseline="central"
-        fill="white"
+        fill={isNonPentatonic ? color : "white"}
         fontSize={fontSize}
         fontWeight="bold"
         fontFamily="system-ui, sans-serif"

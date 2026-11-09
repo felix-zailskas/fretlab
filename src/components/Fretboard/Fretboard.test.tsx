@@ -143,6 +143,28 @@ describe("Fretboard — out-of-key markers", () => {
   });
 });
 
+describe("Fretboard — non-pentatonic markers", () => {
+  it("flags hollow markers with data-non-pentatonic and leaves others unflagged", () => {
+    const markers: NoteMarker[] = [
+      { string: 0, fret: 1, note: "F", role: "seventh", isNonPentatonic: true },
+      { string: 0, fret: 3, note: "G", role: "root" },
+    ];
+    render(
+      <Fretboard
+        markers={markers}
+        startFret={0}
+        endFret={12}
+        tuning={TUNINGS.standard}
+        enabledStrings={new Set([0, 1, 2, 3, 4, 5])}
+        onToggleString={() => {}}
+      />,
+    );
+    const [f, g] = screen.getAllByTestId("note-marker");
+    expect(f).toHaveAttribute("data-non-pentatonic", "true");
+    expect(g).not.toHaveAttribute("data-non-pentatonic");
+  });
+});
+
 describe("Fretboard — grip overlays", () => {
   const base = {
     markers: [] as NoteMarker[],
