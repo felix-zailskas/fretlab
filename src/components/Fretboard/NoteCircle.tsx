@@ -80,15 +80,19 @@ export function NoteCircle({
         />
       )}
       {isNonPentatonic ? (
-        <circle
-          cx={cx}
-          cy={cy}
-          r={radius - 1}
-          fill={color}
-          fillOpacity={0.15}
-          stroke={color}
-          strokeWidth={2.5}
-        />
+        <>
+          {/* Opaque base so the string line doesn't strike through the label. */}
+          <circle cx={cx} cy={cy} r={radius - 1} fill="var(--color-fretboard)" />
+          <circle
+            cx={cx}
+            cy={cy}
+            r={radius - 1}
+            fill={color}
+            fillOpacity={0.2}
+            stroke={color}
+            strokeWidth={2.5}
+          />
+        </>
       ) : (
         <circle cx={cx} cy={cy} r={radius} fill={color} />
       )}
