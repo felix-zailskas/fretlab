@@ -1,14 +1,4 @@
-import { MODES, type Mode } from "../theory/modes";
-
-const MODE_LABELS: Record<Mode, string> = {
-  ionian: "Ionian",
-  dorian: "Dorian",
-  phrygian: "Phrygian",
-  lydian: "Lydian",
-  mixolydian: "Mixolydian",
-  aeolian: "Aeolian",
-  locrian: "Locrian",
-};
+import { MODES, MODE_NAMES, type Mode } from "../theory/modes";
 
 type ModeSelectorProps = {
   mode: Mode;
@@ -44,7 +34,7 @@ export function ModeSelector({ mode, onModeChange, disabled }: ModeSelectorProps
                 : "bg-surface-raised text-fg-secondary hover:bg-surface-active"
             }`}
           >
-            {MODE_LABELS[m]}
+            {MODE_NAMES[m]}
           </button>
         ))}
       </div>

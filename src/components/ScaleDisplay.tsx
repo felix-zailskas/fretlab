@@ -2,6 +2,7 @@ import type { ChordToneSource } from "../theory/harmony";
 import {
   getModalScaleNotes,
   MODE_DEGREE_LABELS,
+  MODE_NAMES,
   MODE_STEPS,
   type Mode,
 } from "../theory/modes";
@@ -17,16 +18,6 @@ const ROLE_PILL_CLASSES: Record<HighlightableRole, string> = {
 };
 
 const NEUTRAL_PILL_CLASSES = "bg-surface-raised border-line text-fg-secondary";
-
-const MODE_DISPLAY_NAME: Record<Mode, string> = {
-  ionian: "major",
-  dorian: "Dorian",
-  phrygian: "Phrygian",
-  lydian: "Lydian",
-  mixolydian: "Mixolydian",
-  aeolian: "Aeolian",
-  locrian: "Locrian",
-};
 
 type ScaleDisplayProps = {
   selectedKey: string;
@@ -58,7 +49,7 @@ export function ScaleDisplay({
       <div className="overflow-x-auto overflow-y-clip pr-8">
         <div
           role="list"
-          aria-label={`${selectedKey} ${MODE_DISPLAY_NAME[mode]} scale degrees`}
+          aria-label={`${selectedKey} ${MODE_NAMES[mode]} scale degrees`}
           className="inline-grid items-center gap-x-2 gap-y-1 text-sm"
           style={gridStyle}
         >
@@ -66,7 +57,7 @@ export function ScaleDisplay({
             className="hidden md:inline text-xs text-fg-muted uppercase tracking-wide self-center"
             style={{ gridRow: 1, gridColumn: 1 }}
           >
-            {selectedKey} {MODE_DISPLAY_NAME[mode]}
+            {selectedKey} {MODE_NAMES[mode]}
           </span>
           {notes.map((note, i) => {
             let role = roleFromChordTone(note, selectedChord);

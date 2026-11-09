@@ -29,14 +29,14 @@ export async function record(browser) {
     "Phrygian",
     "Lydian",
     "Mixolydian",
-    "Aeolian",
+    "Aeolian (Minor)",
     "Locrian",
   ]) {
     await modeRadio(mode).click();
     await page.waitForTimeout(HOLD);
   }
   // Back to Ionian briefly before the parent-key demo.
-  await modeRadio("Ionian").click();
+  await modeRadio("Ionian (Major)").click();
   await page.waitForTimeout(STEP);
 
   // Switch to D Lydian — accidental should auto-flip to sharps (parent A major).

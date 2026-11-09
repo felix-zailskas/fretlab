@@ -53,7 +53,7 @@ describe("ChordMap", () => {
     render(<Harness modalMode="dorian" />);
     expect(screen.getByText("Secondary dominants")).toBeInTheDocument();
     expect(screen.getByText("Diatonic (C Dorian)")).toBeInTheDocument();
-    expect(screen.getByText("Borrowed (C Ionian)")).toBeInTheDocument();
+    expect(screen.getByText("Borrowed (C Ionian (Major))")).toBeInTheDocument();
   });
 
   it("renders 7 diatonic cards", () => {
