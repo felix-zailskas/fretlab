@@ -649,7 +649,8 @@ function getRootFrets(
 }
 
 // Places all fitting occurrences of a single chord's shape on one combo.
-// Returns clusters in ascending root-fret order; no coupling between combos.
+// Returns one cluster per placement, in ascending root-fret order; no
+// coupling between combos.
 //
 // `tuning` determines both:
 // 1. Where the shape anchors (root fret on the anchor string depends on that
@@ -662,21 +663,21 @@ function getRootFrets(
 // the shape — is unchanged. Only the absolute anchor fret shifts. Calling
 // this with a non-CAGED tuning is undefined behavior; the view layer must
 // gate on tuningSupportsView.
-function placeChordOnCombo(
+export function placeShapeClusters(
   chord: ChordToneSource,
-  shape: TriadShape | SeventhShape,
+  shape: { rootString: number; positions: ReadonlyArray<ShapePosition> },
   tuning: Tuning,
   spellingMap: ReadonlyMap<number, string>,
   startFret: number,
   endFret: number,
   characteristicSet: ReadonlySet<number>,
   enabledStrings: ReadonlySet<number>,
-): NoteMarker[] {
+): NoteMarker[][] {
   const anchorMarkerString = shapeStringToMarkerString(shape.rootString);
   const openAnchorNote = tuning.strings[anchorMarkerString];
   const candidates = getRootFrets(chord.notes[0], openAnchorNote, startFret, endFret);
   const chordSpelling = new Map(chord.notes.map((n) => [getNoteIndex(n), n]));
-  const result: NoteMarker[] = [];
+  const clusters: NoteMarker[][] = [];
 
   for (const candidate of candidates) {
     const allFit = shape.positions.every(
@@ -685,6 +686,7 @@ function placeChordOnCombo(
     );
     if (!allFit) continue;
 
+    const cluster: NoteMarker[] = [];
     for (const p of shape.positions) {
       const absFret = candidate + p.fretOffset;
       const markerString = shapeStringToMarkerString(p.string);
@@ -694,7 +696,7 @@ function placeChordOnCombo(
       const isCharacteristic = characteristicSet.has(pc);
       const isOutsideKey = !spellingMap.has(pc);
       const finalRole = enabledStrings.has(markerString) ? p.role : "muted";
-      result.push({
+      cluster.push({
         string: markerString,
         fret: absFret,
         // Chord spelling first (A7's C#), then the key's, then the sharp name.
@@ -704,9 +706,16 @@ function placeChordOnCombo(
         ...(isOutsideKey ? { isOutsideKey: true } : {}),
       });
     }
+    clusters.push(cluster);
   }
 
-  return result;
+  return clusters;
+}
+
+function placeChordOnCombo(
+  ...args: Parameters<typeof placeShapeClusters>
+): NoteMarker[] {
+  return placeShapeClusters(...args).flat();
 }
 
 // Canonical order ensures stable output regardless of input order of inversions.
