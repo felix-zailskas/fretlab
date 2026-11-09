@@ -32,4 +32,7 @@ export type NoteMarker = {
   // When true, the note is a chord tone outside the key/mode (e.g. the C#
   // of A7 in C major). The renderer draws a dashed neutral ring.
   isOutsideKey?: boolean;
+  // Chord tone that is in the key but not in the active pentatonic
+  // (Scale Positions, Pentatonic switch on). Rendered hollow.
+  isNonPentatonic?: boolean;
 };
