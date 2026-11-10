@@ -89,16 +89,16 @@ describe("progressionReducer — settings", () => {
     ).toBe(true);
   });
 
+  it("set-preview", () => {
+    expect(
+      progressionReducer(DEFAULT_PROGRESSION, { type: "set-preview", preview: 0 })
+        .preview,
+    ).toBe(0);
+  });
+
   it("set-loop", () => {
     expect(
       progressionReducer(DEFAULT_PROGRESSION, { type: "set-loop", loop: false }).loop,
-    ).toBe(false);
-  });
-
-  it("set-visible", () => {
-    expect(
-      progressionReducer(DEFAULT_PROGRESSION, { type: "set-visible", visible: false })
-        .visible,
     ).toBe(false);
   });
 });
@@ -146,7 +146,7 @@ const ACTIONS: ProgressionAction[] = [
   { type: "set-time-signature", sig: { beats: 3, unit: 4 } },
   { type: "set-click", enabled: true },
   { type: "set-loop", loop: false },
-  { type: "set-visible", visible: false },
+  { type: "set-preview", preview: 4 },
 ];
 
 describe.each([

@@ -13,7 +13,7 @@ type AccidentalToggleProps = {
 export function AccidentalToggle({ accidentalStyle, onChange }: AccidentalToggleProps) {
   const activeIndex = OPTIONS.findIndex((o) => o.value === accidentalStyle);
   return (
-    <div className="relative inline-grid grid-cols-2 rounded overflow-hidden border border-line">
+    <div className="relative inline-grid grid-cols-2 rounded border border-line">
       <div
         aria-hidden="true"
         className="absolute top-0 bottom-0 left-0 w-1/2 bg-surface-active transition-transform duration-200 ease-out"
@@ -26,7 +26,7 @@ export function AccidentalToggle({ accidentalStyle, onChange }: AccidentalToggle
           onClick={() => onChange(opt.value)}
           aria-pressed={accidentalStyle === opt.value}
           title={opt.title}
-          className={`relative z-10 px-3 py-2.5 pointer-coarse:py-3 text-sm font-semibold cursor-pointer ${
+          className={`relative z-10 px-3 py-1.5 pointer-coarse:py-2 touch-target text-sm font-semibold cursor-pointer ${
             accidentalStyle === opt.value
               ? "text-fg-emphasis"
               : "text-fg-muted hover:text-fg-secondary"

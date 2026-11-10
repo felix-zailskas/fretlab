@@ -111,6 +111,46 @@ export const inGroup = (page, label) =>
   );
 
 export const chordRowMode = (page) => inGroup(page, "Chord row mode");
-export const voicingSystem = (page) => inGroup(page, "Voicing system");
 export const stringGroups = (page) => inGroup(page, "String groups");
 export const inversions = (page) => inGroup(page, "Inversions");
+export const highlightRoles = (page) => inGroup(page, "Highlight roles");
+// The voicing system is a native <select> in sevenths mode.
+export const voicingSystem = (page) =>
+  page.getByRole("combobox", { name: "Voicing system" });
+
+// Key and Mode are native <select>s in the header. Key values are note names
+// ("C", "Eb", …) or "all"; mode values are ids ("dorian", "aeolian", …).
+export const selectKey = (page, key) =>
+  page.getByRole("combobox", { name: "Key" }).selectOption(key);
+export const selectMode = (page, mode) =>
+  page.getByRole("combobox", { name: "Mode" }).selectOption(mode);
+
+// Accidentals, theme, tuning and fret range live in the header's settings
+// popover. Opens it, runs `fn`, then closes it with Escape.
+export async function inSettings(page, fn) {
+  await page.getByRole("button", { name: /^Settings/ }).click();
+  await page.waitForTimeout(SHORT);
+  await fn(page.getByRole("dialog", { name: "Settings" }));
+  await page.keyboard.press("Escape");
+  // Escape returns focus to the trigger; drop its focus ring for the video.
+  await page.evaluate(() => document.activeElement?.blur());
+  await page.waitForTimeout(SHORT);
+}
+
+// Scale-position labels (P1…P5) sit in the strip above the board.
+export const regionToggle = (page, id) =>
+  page.locator(`[data-testid="region-toggle"][data-region-id="${id}"]`);
+
+// Adds chords through the progression lane's picker, which stays open
+// between picks, then closes it. `pause` paces the picks for recordings.
+export async function addChords(page, symbols, pause = 0) {
+  await page.getByRole("button", { name: /^＋/ }).click();
+  await page.waitForTimeout(pause);
+  for (const symbol of symbols) {
+    await page
+      .getByRole("button", { name: `Add ${symbol} to progression`, exact: true })
+      .click();
+    await page.waitForTimeout(pause);
+  }
+  await page.keyboard.press("Escape");
+}

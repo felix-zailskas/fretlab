@@ -202,6 +202,24 @@ describe("CustomTuningModal — keyboard and backdrop", () => {
     expect(onCancel).toHaveBeenCalledOnce();
   });
 
+  it("numbers the strings like a guitar: 6 is the low string", async () => {
+    const onSave = vi.fn();
+    render(
+      <CustomTuningModal
+        mode="create"
+        initialName="Drop D"
+        initialStrings={["E", "A", "D", "G", "B", "E"]}
+        onSave={onSave}
+        onSaveCopy={() => {}}
+        onDelete={() => {}}
+        onCancel={() => {}}
+      />,
+    );
+    await userEvent.selectOptions(screen.getByLabelText("String 6"), "D");
+    await userEvent.click(screen.getByRole("button", { name: "Save" }));
+    expect(onSave.mock.calls[0][1]).toEqual(["D", "A", "D", "G", "B", "E"]);
+  });
+
   it("Enter on a string picker fires onSave", async () => {
     const onSave = vi.fn();
     render(

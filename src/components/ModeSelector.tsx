@@ -1,4 +1,5 @@
 import { MODES, MODE_NAMES, type Mode } from "../theory/modes";
+import { HEADER_SELECT } from "./controlStyles";
 
 type ModeSelectorProps = {
   mode: Mode;
@@ -6,38 +7,25 @@ type ModeSelectorProps = {
   disabled?: boolean;
 };
 
-// Mirrors KeySelector's button-pill pattern. Every mode (including Ionian)
-// uses the same selected treatment — Ionian gets no visual differentiation.
+// Header dropdown next to the key.
 export function ModeSelector({ mode, onModeChange, disabled }: ModeSelectorProps) {
   return (
-    <div className="relative after:absolute after:right-0 after:top-0 after:bottom-0 after:w-6 after:bg-gradient-to-l after:from-surface after:to-transparent after:pointer-events-none md:after:hidden">
-      <div
-        role="radiogroup"
+    <label className="flex items-center gap-1.5 text-xs text-fg-muted">
+      Mode
+      <select
         aria-label="Mode"
-        aria-disabled={disabled}
+        value={mode}
+        onChange={(e) => onModeChange(e.target.value as Mode)}
+        disabled={disabled}
         title={disabled ? "Select a key first" : undefined}
-        className={`flex flex-nowrap overflow-x-auto md:flex-wrap gap-1 pb-0.5 ${
-          disabled ? "opacity-40 pointer-events-none cursor-not-allowed" : ""
-        }`}
+        className={`${HEADER_SELECT} disabled:opacity-40 disabled:cursor-not-allowed`}
       >
         {MODES.map((m) => (
-          <button
-            key={m}
-            type="button"
-            role="radio"
-            aria-checked={mode === m}
-            onClick={() => onModeChange(m)}
-            disabled={disabled}
-            className={`shrink-0 md:min-w-[6.5rem] px-2 py-1.5 md:px-3 md:py-2.5 pointer-coarse:py-3 rounded text-xs md:text-sm font-semibold transition-colors cursor-pointer ${
-              mode === m
-                ? "bg-mode text-surface"
-                : "bg-surface-raised text-fg-secondary hover:bg-surface-active"
-            }`}
-          >
+          <option key={m} value={m}>
             {MODE_NAMES[m]}
-          </button>
+          </option>
         ))}
-      </div>
-    </div>
+      </select>
+    </label>
   );
 }

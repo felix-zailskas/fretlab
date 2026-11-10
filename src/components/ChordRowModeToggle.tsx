@@ -13,7 +13,7 @@ const OPTIONS: { value: ChordRowMode; label: string }[] = [
 export function ChordRowModeToggle({ value, onChange }: ChordRowModeToggleProps) {
   return (
     <div
-      className="relative inline-grid grid-cols-2 rounded overflow-hidden border border-line"
+      className="relative inline-grid grid-cols-2 rounded border border-line"
       role="radiogroup"
       aria-label="Chord row mode"
     >
@@ -30,7 +30,7 @@ export function ChordRowModeToggle({ value, onChange }: ChordRowModeToggleProps)
           role="radio"
           aria-checked={value === opt.value}
           onClick={() => onChange(opt.value)}
-          className={`relative z-10 px-2 py-1.5 md:px-3 md:py-2.5 pointer-coarse:py-3 text-xs md:text-sm font-semibold cursor-pointer ${
+          className={`relative z-10 px-3 py-1.5 pointer-coarse:py-2 touch-target text-sm font-semibold cursor-pointer ${
             value === opt.value
               ? "text-fg-emphasis"
               : "text-fg-muted hover:text-fg-secondary"

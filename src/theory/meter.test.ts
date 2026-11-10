@@ -1,6 +1,8 @@
 import { describe, it, expect } from "vitest";
 import {
   TIME_SIGNATURE_PRESETS,
+  inPreviewWindow,
+  previewRampBeats,
   accentPattern,
   allowedSlotLengths,
   beatsInWindow,
@@ -131,20 +133,28 @@ describe("locate", () => {
   const timeline = buildTimeline([1, 0.5, 2], FOUR_FOUR); // starts 0, 4, 6; total 14
 
   it.each([
-    [0, 0, 0],
-    [3, 0, 3],
-    [4, 1, 0],
-    [5, 1, 1],
-    [6, 2, 2],
-    [13, 2, 1],
-  ])("beat %i → slot %i, beatInBar %i", (beat, slotIndex, beatInBar) => {
-    expect(locate(beat, timeline, FOUR_FOUR)).toEqual({ slotIndex, beatInBar });
-  });
+    [0, 0, 0, 0],
+    [3, 0, 3, 3],
+    [4, 1, 0, 0],
+    [5, 1, 1, 1],
+    [6, 2, 2, 0],
+    [13, 2, 1, 7],
+  ])(
+    "beat %i → slot %i, beatInBar %i, beatInSlot %i",
+    (beat, slotIndex, beatInBar, beatInSlot) => {
+      expect(locate(beat, timeline, FOUR_FOUR)).toEqual({
+        slotIndex,
+        beatInBar,
+        beatInSlot,
+      });
+    },
+  );
 
   it("wraps past the end (loop)", () => {
     expect(locate(14, timeline, FOUR_FOUR)).toEqual({
       slotIndex: 0,
       beatInBar: 0,
+      beatInSlot: 0,
     });
   });
 
@@ -152,6 +162,7 @@ describe("locate", () => {
     expect(locate(14 + 14 + 4, timeline, FOUR_FOUR)).toEqual({
       slotIndex: 1,
       beatInBar: 0,
+      beatInSlot: 0,
     });
   });
 
@@ -192,5 +203,43 @@ describe("beatsInWindow", () => {
   it("is robust to floating-point beat times", () => {
     const beat2 = 2 * secondsPerBeat(90);
     expect(beatsInWindow(beat2, beat2 + 0.1, 0, 90)).toEqual([2]);
+  });
+});
+
+describe("inPreviewWindow", () => {
+  it("never previews when set to 0", () => {
+    expect([0, 1, 2, 3].some((b) => inPreviewWindow(b, 4, 0))).toBe(false);
+  });
+
+  it("previews only the last beat when set to 1", () => {
+    expect([0, 1, 2, 3].map((b) => inPreviewWindow(b, 4, 1))).toEqual([
+      false,
+      false,
+      false,
+      true,
+    ]);
+  });
+
+  it("previews the last 3 beats when set to 3", () => {
+    expect([4, 5, 6, 7].map((b) => inPreviewWindow(b, 8, 3))).toEqual([
+      false,
+      true,
+      true,
+      true,
+    ]);
+  });
+
+  it("previews a chord shorter than the window throughout", () => {
+    expect([0, 1].map((b) => inPreviewWindow(b, 2, 4))).toEqual([true, true]);
+  });
+});
+
+describe("previewRampBeats", () => {
+  it("is solid half a beat before the change", () => {
+    expect([previewRampBeats(4, 1), previewRampBeats(8, 4)]).toEqual([0.5, 3.5]);
+  });
+
+  it("fits a chord shorter than the window", () => {
+    expect(previewRampBeats(2, 4)).toBe(1.5);
   });
 });

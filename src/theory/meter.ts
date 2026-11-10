@@ -4,7 +4,17 @@
 export type TimeSignature = { beats: number; unit: 2 | 4 | 8 | 16 };
 export type Accent = "strong" | "medium" | "weak";
 export type Timeline = { starts: number[]; totalBeats: number };
-export type TimelinePosition = { slotIndex: number; beatInBar: number };
+// How many beats before a chord change the next chord is previewed on the
+// board; 0 turns the preview off.
+export const PREVIEW_BEAT_OPTIONS: readonly number[] = [0, 1, 2, 3, 4, 6, 8];
+export const DEFAULT_PREVIEW_BEATS = 1;
+// beatInSlot counts from the start of the current slot, so a two-bar chord
+// runs 0..7 in 4/4 — what the progress line on a slot chip fills against.
+export type TimelinePosition = {
+  slotIndex: number;
+  beatInBar: number;
+  beatInSlot: number;
+};
 
 export const TIME_SIGNATURE_PRESETS: readonly TimeSignature[] = [
   { beats: 2, unit: 4 },
@@ -99,7 +109,11 @@ export function locate(
       break;
     }
   }
-  return { slotIndex, beatInBar: wrapped % sig.beats };
+  return {
+    slotIndex,
+    beatInBar: wrapped % sig.beats,
+    beatInSlot: wrapped - timeline.starts[slotIndex],
+  };
 }
 
 export function secondsPerBeat(bpm: number): number {
@@ -117,4 +131,22 @@ export function beatsInWindow(
   const beats: number[] = [];
   for (let n = first; startTime + n * spb < toTime - EPSILON; n++) beats.push(n);
   return beats;
+}
+
+// True while the next chord should be previewed: during the last
+// `previewBeats` beats of the current slot. A slot shorter than that is
+// previewed throughout.
+export function inPreviewWindow(
+  beatInSlot: number,
+  slotBeats: number,
+  previewBeats: number,
+): boolean {
+  return previewBeats > 0 && beatInSlot >= slotBeats - previewBeats;
+}
+
+// Beats over which the preview fades from faint to full: from the start of
+// the preview window until half a beat before the change, so the target is
+// solid as it arrives. Never shorter than half a beat.
+export function previewRampBeats(slotBeats: number, previewBeats: number): number {
+  return Math.max(Math.min(previewBeats, slotBeats) - 0.5, 0.5);
 }

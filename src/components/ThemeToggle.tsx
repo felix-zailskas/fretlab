@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { SETTINGS_TRIGGER } from "./controlStyles";
 
 type ThemeToggleProps = {
   mode: "auto" | "light" | "dark";
@@ -82,7 +83,7 @@ export function ThemeToggle({ mode, onCycle }: ThemeToggleProps) {
     <button
       type="button"
       onClick={onCycle}
-      className="px-3 py-2.5 pointer-coarse:py-3 rounded text-sm font-semibold bg-surface-raised text-fg-secondary hover:bg-surface-active cursor-pointer inline-flex items-center gap-2"
+      className={`${SETTINGS_TRIGGER} inline-flex items-center gap-1.5`}
     >
       {icon}
       <span>{label}</span>

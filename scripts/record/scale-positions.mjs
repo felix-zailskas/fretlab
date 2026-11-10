@@ -4,6 +4,8 @@ import {
   loadApp,
   toGif,
   chordRowMode,
+  regionToggle,
+  selectKey,
   outDir,
   STEP,
   HOLD,
@@ -24,17 +26,16 @@ export async function record(browser) {
   await chordRowMode(page).getByRole("radio", { name: "Sevenths" }).click();
   await page.waitForTimeout(STEP);
 
-  // Initial state: P1 toggled on. Match by unique title="Pn-shape position …".
-  const positionBtn = (id) => page.locator(`button[title^="${id}-shape"]`);
-  await positionBtn("P1").click();
+  // P1 is on by default; hold on it, then toggle more positions from their
+  // labels above the board.
   await page.waitForTimeout(HOLD);
 
   // P2 — overlap zone appears.
-  await positionBtn("P2").click();
+  await regionToggle(page, "P2").click();
   await page.waitForTimeout(HOLD);
 
   // P3 — three boxes, two overlap zones.
-  await positionBtn("P3").click();
+  await regionToggle(page, "P3").click();
   await page.waitForTimeout(HOLD);
 
   // Deselect I — markers shift to plain scale tones (no chord context).
@@ -46,11 +47,19 @@ export async function record(browser) {
   await page.waitForTimeout(STEP);
 
   // Switch key to G — boxes shift up the neck.
-  await page.getByRole("button", { name: "G", exact: true }).click();
+  await selectKey(page, "G");
   await page.waitForTimeout(HOLD);
 
-  // Show context notes — out-of-position in-key notes appear muted.
-  await page.getByLabel("Show context notes").check();
+  // Context notes — out-of-position in-key notes appear muted.
+  await page.getByLabel("Context notes").check();
+  await page.waitForTimeout(HOLD);
+
+  // Pentatonic — the 4th and 7th drop out; chord tones outside the
+  // pentatonic stay as hollow markers.
+  await page
+    .getByRole("group", { name: "Scale" })
+    .getByRole("button", { name: "Pentatonic" })
+    .click();
   await page.waitForTimeout(HOLD);
 
   const video = page.video();

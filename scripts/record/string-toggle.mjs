@@ -1,7 +1,7 @@
 import { join } from "node:path";
 import { newDarkContext, loadApp, outDir, STEP } from "./_lib.mjs";
 
-// Captures the Scale Positions view with strings 5 (high E) and 4 (B) muted
+// Captures the Scale Positions view with strings 1 (high E) and 2 (B) muted
 // via the eye column. The remaining four strings show normal chord-tone
 // coloring; the muted strings show dimmed scale markers — the visual contract
 // the string-toggle feature ships.

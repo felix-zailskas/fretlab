@@ -15,7 +15,7 @@ Fretlab is a **reference tool, not a tutorial.** It is aimed at intermediate and
 advanced players who already know what they want to practice and need a clean visual
 lookup.
 
-![Hero screenshot — the Note Map tab in C major with the I chord (Cmaj7) selected. The fretboard shows all in-key notes across 16 frets: C is highlighted as the root (blue), E as the 3rd (orange), G as the 5th (green), B as the 7th (purple); the rest of the scale (D, F, A) renders in muted gray. The diatonic chord row sits below the fretboard with Cmaj7 highlighted, and the C major scale display above the board shows whole/half step intervals between scale degrees.](docs/images/hero.png)
+![Hero screenshot — the Note Map in C Ionian with Sevenths on and Cmaj7 highlighted. The header holds Key and Mode, the transport and the Settings button; under it the progression lane holds Cmaj7, Am7, Fmaj7 and G7 and a ＋ Add chord chip. Below the board, the legend shows the Highlight roles, the symbols on the board and the C Ionian scale degrees, followed by the chord map with secondary dominants, diatonic chords and chords borrowed from C Aeolian.](docs/images/hero.png)
 
 ## About
 
@@ -26,13 +26,30 @@ extends practice to the seven parallel modes — switching to Dorian, Lydian, Ph
 etc. re-anchors every view to the modal scale.
 
 The whole interface is designed for **fast switching during practice**: instant key,
-mode, chord, and position changes; no animations that interrupt you; consistent coloring
-across all views (R / 3rd / 5th / 7th have fixed colors, and out-of-key notes are hidden
-by default). The Legend stays on screen so you always know what each color means.
+mode, chord, and position changes, and consistent coloring across all views (R / 3rd /
+5th / 7th have fixed colors, and out-of-key notes are hidden by default). The only
+motion is a short fade when the chord changes, so you can see which notes move and which
+stay put.
 
-A header **theme toggle** cycles Auto / Light / Dark — Auto follows the system
-`prefers-color-scheme`, with a small icon and label that reveals which mode Auto is
-currently resolving to so you can tell at a glance.
+### The page at a glance
+
+The whole page is built to fit a 1280×720 screen above the fold:
+
+- **Header** — Key and Mode, the transport (Play, BPM, time signature, Click, Loop,
+  next-chord preview, Clear), and a **Settings** button summarising tuning and fret
+  range (`Standard · 0–15 ⚙`). Settings holds ♭ / ♯ spelling, theme, tuning and frets.
+- **Progression lane** — a slim strip under the header where a chord progression is
+  built and played (see [Progression player](#progression-player)).
+- **View tabs** — Note Map, Scale Positions, Chord Shapes, with each view's own options
+  right next to them (Full / Pentatonic, Inversions / CAGED, string groups, …).
+- **Fretboard** — with clickable position or shape labels above it where the view has
+  them, and an eye per string on its left.
+- **Legend** — the Highlight toggles (R / 3rd / 5th / 7th), the symbols the current view
+  can show (each with an ⓘ tooltip explaining it), and the scale with its degrees.
+- **Chord map** — every chord of the key, at the bottom.
+
+A **theme** setting cycles Auto / Light / Dark — Auto follows the system
+`prefers-color-scheme`, and its label shows which theme Auto currently resolves to.
 
 ## Views
 
@@ -43,35 +60,42 @@ the full roadmap and what's deferred).
 
 ### Note Map
 
-![Short recording of the Note Map tab — cycling through keys (C → G → D → E♭) to show how the in-key notes shift across the neck. Then clicking through the diatonic chord row to watch each chord's R / 3 / 5 / 7 light up. Toggling individual roles (3rd, 5th, 7th) in the Legend to demote them to plain scale tones. Switching the accidental toggle from sharp to flat. Switching the key to "All Notes" to disable key filtering and see every note on the neck.](docs/images/note-map.gif)
+![Short recording of the Note Map in Sevenths — changing the key C → G → D → E♭ (switching to flat spelling in Settings), cycling the diatonic chords with the number keys, toggling the 3rd, 5th and 7th off and on in the Highlight group, then switching to All notes to show every chromatic note across the neck.](docs/images/note-map.gif)
 
 The default landing view. For the selected key, all in-key notes render across the
-visible fret range (default 0–15, user-configurable via the FretRangeControl popover up
-to fret 24). Root / 3rd / 5th / 7th appear in their interval colors; the rest of the
-scale (2nd / 4th / 6th) is muted.
+visible fret range (default 0–15, configurable in Settings up to fret 24). Root / 3rd /
+5th / 7th appear in their interval colors; the rest of the scale (2nd / 4th / 6th) is
+muted.
 
-A **chord map** sits below the fretboard: the key's 7 diatonic chords, the **secondary
-dominants** that resolve to them (V7/ii, V7/V, …, with an arrow to their target), and
-the **borrowed chords** from the parallel mode (Aeolian for major-third modes, Ionian
-for minor-third modes). Selecting any chord remaps the highlights so that chord's R / 3
-/ 5 / 7 light up against the muted scale background. Chord tones outside the key (the C♯
-of A7 in C major) are shown with a dashed ring and spelled the chord's way, and the key
-note they replace (C) is hidden. Clicking the selected card again deselects it, clearing
-all chord-tone highlights.
+The **chord map** below the board lists the key's chords as compact cards, each with its
+Roman numeral and notes:
+
+- the 7 **diatonic** chords;
+- the **secondary dominants** (V7/ii, V7/V, …), each placed above the chord it resolves
+  to with a small arrow;
+- the **borrowed** chords from the parallel mode (Aeolian for major-third modes, Ionian
+  for minor-third modes), on a tinted background.
+
+Selecting a card remaps the highlights so that chord's R / 3 / 5 / 7 light up against
+the muted scale background. Chord tones outside the key (the C♯ of A7 in C major) get a
+dashed ring and are spelled the chord's way, and the key note they replace (C) is
+hidden. Clicking the selected card again clears the highlights. A Triads / Sevenths
+switch next to the chord map's title applies to every row.
 
 **Features**
 
-- 12-key selector plus an "All Notes" mode that disables key filtering
+- 12-key selector plus an "All notes" option that disables key filtering
 - **Diatonic note spelling** — every scale uses all 7 letter names with the right
   accidentals, so C♯ Ionian reads as `C♯ D♯ E♯ F♯ G♯ A♯ B♯` (not the enharmonic mishmash
   `C♯ D♯ F F♯ G♯ A♯ C`). Double accidentals appear for theoretical roots like A♯ major.
-- Sharp / flat accidental toggle for the chromatic "All Notes" view (in-scale notes are
-  always spelled diatonically — the toggle has no effect on them)
-- Configurable fret range (default 0–15, ceiling 24) via a header popover; the chosen
-  range applies to every view
+- Sharp / flat spelling (in Settings) for the chromatic "All notes" view (in-scale notes
+  are always spelled diatonically — the toggle has no effect on them)
+- Configurable fret range (default 0–15, ceiling 24); the chosen range applies to every
+  view
 - Chord map with diatonic, secondary-dominant and borrowed chords, and a triads /
-  sevenths toggle (R/3/5 or R/3/5/7 highlighting)
-- Legend with R / 3 / 5 / 7 toggles to selectively show or hide chord-tone roles
+  sevenths switch (R/3/5 or R/3/5/7 highlighting)
+- Highlight toggles for R / 3rd / 5th / 7th to show or hide chord-tone roles. When a
+  role isn't available (the 7th of a triad), hovering or focusing it says why.
 
 **During practice**
 
@@ -80,127 +104,138 @@ all chord-tone highlights.
 
 ### Scale Positions
 
-![Short recording of the Scale Positions tab — starting in C major with P1 selected (corner-bracketed at frets 0–3, labeled "P1 — C" above the board). Toggling P2 on, second box appears at frets 2–5 with a brighter outlined overlap rectangle at frets 2–3. Toggling P3 on, three boxes total with two overlap zones. Toggling the I chord card off — markers shift from chord-tone highlighting to plain major-scale R / 3 / 5 / 7. Switching key to G — boxes shift up the neck; P5 wraps to the low frets. Toggling "Show context notes" on — out-of-position in-key notes render in muted color.](docs/images/scale-positions.gif)
+![Short recording of Scale Positions in C with Cmaj7 — P1 starts on, then P2 and P3 are switched on from their labels above the board, adding overlap zones. The chord is deselected and reselected, the key changes to G and the boxes move up the neck, Context notes is switched on, and finally Pentatonic drops the 4th and 7th, leaving the chord tones outside the pentatonic as hollow notes.](docs/images/scale-positions.gif)
 
-A consolidated CAGED-box practice tool. Each selected position renders as a framed
-region on the neck with a label (e.g. `P1 — C` for the first position, C-shape). When
-two or more boxes overlap, the shared frets render as a brighter outlined zone —
-reinforcing that the CAGED shapes are connected pieces of one continuous map, not
+A consolidated CAGED-box practice tool. The five positions are switched on and off from
+labels above the board (`P1 C`, `P2 A`, …), each sitting over the box it controls. A
+position that doesn't fit the current fret range keeps its label, pinned to the right
+edge, so it stays reachable. Each selected position renders as a bracketed region on the
+neck. When two or more boxes overlap, the shared frets render as a brighter outlined
+zone — reinforcing that the CAGED shapes are connected pieces of one continuous map, not
 isolated islands.
 
 The view supports two complementary practice modes via the same controls:
 
-- **Chord-tone targeting** — pick a chord from the diatonic row. The chord's R / 3 / 5 /
-  7 light up _inside_ the selected positions, against the scale-tone background.
-- **Pure scale-position study** — click the currently-selected chord card again to
-  deselect it. With no chord active, no chord tones highlight at all — every in-key note
-  renders as a plain scale tone, leaving just the box framing on the neck. The Legend's
-  R / 3 / 5 / 7 toggles stay enabled, but with no chord context they have nothing to
-  demote.
+- **Chord-tone targeting** — pick a chord from the chord map. The chord's R / 3 / 5 / 7
+  light up _inside_ the selected positions, against the scale-tone background.
+- **Pure scale-position study** — click the selected chord card again to deselect it.
+  With no chord active, every in-key note renders as a plain scale tone, leaving just
+  the box framing on the neck.
+
+**Full / Pentatonic** sits next to the view tabs. Pentatonic reduces each box to the
+major pentatonic (Ionian without 4 and 7) or minor pentatonic (Aeolian without 2 and 6).
+A chord tone the pentatonic leaves out still shows, as a hollow note, so you can see
+what the chord adds. In the other modes the switch is disabled (there's no conventional
+pentatonic) and explains why.
 
 **Features**
 
 - Independent toggles for the 5 CAGED positions (P1 C-shape through P5 D-shape, the
   canonical CAGED order ascending from open in C major); any combination is valid
-- Multi-octave window placement: every octave that fits fully inside the configured
-  visible fret range renders as its own bracketed box, so a wide range can show the same
-  position twice on the neck
-- Corner-bracket framing on each selected position
-- Brighter outlined fill for overlap zones between adjacent boxes
-- "Show context notes" toggle: render in-key notes outside the selected positions in
-  muted color, useful when practicing transitions
+- Multi-octave window placement: every octave that fits fully inside the visible fret
+  range renders as its own bracketed box
+- Corner-bracket framing on each selected position, with brighter overlap zones
+- Full / Pentatonic switch for Ionian and Aeolian, with hollow non-pentatonic chord
+  tones
+- "Context notes": in-key notes outside the selected positions in a faint color, useful
+  when practicing transitions
 
 **During practice**
 
-- _Box study_ — _"What does the C-shape (P3) look like in G major? Where does it overlap
-  with the A-shape (P4)?"_ Toggle on adjacent positions and the overlap zone shows you
+- _Box study_ — _"What does the C-shape (P1) look like in G major? Where does it overlap
+  with the A-shape (P2)?"_ Toggle on adjacent positions and the overlap zone shows you
   exactly which frets connect them.
 - _Target-tone soloing_ — _"Soloing over Am7 in P3 — where do I aim?"_ Pick the chord,
   pick the position, and the chord's R / 3 / 5 / 7 light up only inside the box.
-- _Position transitions_ — toggle two adjacent positions and use the overlap zone as a
-  pivot region to practice moving between boxes.
+- _Pentatonic soloing_ — switch to Pentatonic and keep the chord selected: the hollow
+  notes are the chord tones the pentatonic box doesn't cover.
 
 ### Chord Shapes
 
-![Short recording of the Chord Shapes tab — starting in C major with the I chord (Cmaj7) selected and the 7th chord shapes mode active. Cycling the voicing-system selector through Close → Drop 2 → Drop 3 → Drop 2&4 to watch the same chord render as four different 4-note shapes ascending the neck. Adding a second string-position toggle to render the same voicing on a different anchor string. Adding a second inversion (1st Inversion) to render both voicings stacked. Switching the chord-row mode to Triads — the voicing selector hides, the string-set toggles switch to 1-2-3 / 2-3-4 / 3-4-5 / 4-5-6, and triad shapes ascend the neck. Toggling 3rd off in the Legend — the third markers dim to muted gray instead of disappearing, keeping the reference signal visible.](docs/images/chord-shapes.gif)
+![Short recording of Chord Shapes in Inversions mode on C — adding a second string group from its fretboard icon (its tooltip names it), narrowing inversions to Root, switching to Sevenths and stepping the Voicing system select through Drop 2, Drop 3 and Drop 2&4 back to Close, adding the 1st inversion, then returning to Triads and turning the 3rd off.](docs/images/chord-shapes.gif)
 
-A chord-centric ascending-neck view: pick a chord from the diatonic row and Fretlab
-renders every fitting placement of that chord across the visible fret range. The view
-has two modes (driven by the same triads / sevenths toggle that drives the chord row):
+A chord-centric view: pick a chord from the chord map and Fretlab renders every fitting
+placement of it across the visible fret range. An **Inversions | CAGED** switch next to
+the view tabs picks how the chord is voiced.
+
+**Inversions** follows the chord map's Triads / Sevenths switch:
 
 - **Triad shapes** — major / minor / diminished triad inversions across four 3-string
-  groups (1-2-3, 2-3-4, 3-4-5, 4-5-6) and three inversions (root / 1st / 2nd).
+  groups and three inversions (Root / 1st / 2nd). The string groups are small fretboard
+  icons; hover or focus one for its name (`Strings 1-2-3 (high E side)`).
 - **7th chord shapes** — full 4-note voicings (R / 3 / 5 / 7) generated from a unified
-  close-voicing → drop pipeline. A voicing-system selector (Close / Drop 2 / Drop 3 /
-  Drop 2&4) sits above the sub-selectors. Each system exposes its own valid string sets
-  (e.g. drop-2 uses the adjacent 4-string sets, drop-3 uses skipped-middle sets like
-  6-4-3-2). All four inversions (root / 1st / 2nd / 3rd) are available.
+  close-voicing → drop pipeline. A **Voicing system** select (Close / Drop 2 / Drop 3 /
+  Drop 2&4) picks the system, and each system exposes its own string sets (drop-2 uses
+  adjacent 4-string sets, drop-3 skips a string, e.g.
+  `Strings 6-4-3-2 (skips string 5)`). All four inversions (Root / 1st / 2nd / 3rd) are
+  available.
 
-String-set and inversion selections are **shared across voicing systems** via a low /
+String-group and inversion selections are **shared across voicing systems** via a low /
 mid / high position abstraction — switching from drop-2 to drop-3 with the "low"
-position selected automatically maps `3-4-5-6` to `6-4-3-2` so your hand stays in the
-same neck region. Drop-3 and Drop-2&4 only have low and mid positions; if your active
-selection includes "high", those systems silently render nothing for that toggle.
+position selected keeps your hand in the same neck region.
+
+![Short recording of Chord Shapes in CAGED mode — F major with the E- and A-shapes on (the E-shape's barre at fret 1, × on unplayed strings), switching on the D-, C- and G-shapes from their labels above the board, then picking Am and A7 (V7/ii) in the chord map; A7's C♯ shows the dashed outside-the-key ring.](docs/images/caged-shapes.gif)
+
+**CAGED** shows the chord as its full barre and open shapes — the C, A, G, E and D
+shapes — toggled from labels above the board (E and A are on by default). A barre is
+drawn as a bar across the strings, and strings the shape doesn't play are marked ×. This
+answers questions like _"where's the F barre chord?"_: in F major the E-shape sits at
+fret 1 with its barre. A secondary dominant keeps its 7th in CAGED, since its resolution
+hinges on it.
 
 **Features**
 
-- Triads / sevenths mode toggle (shared with the diatonic chord row below the fretboard,
-  so changing mode in either place stays in sync)
-- Voicing-system selector in sevenths mode: Close, Drop 2, Drop 3, Drop 2&4 — 160 total
-  voicings across 4 systems × valid string sets × 4 inversions × 4 qualities
-- String-set + inversion sub-selectors; multiple toggles ON stack their voicings on the
-  same fretboard
-- **Dim, don't hide:** unselected Legend roles render as muted gray on this view instead
-  of disappearing, so the chord shape stays recognizable when you're focused on a single
-  role
+- Inversions: triads on four string groups, sevenths in four voicing systems — 160
+  seventh-chord voicings across 4 systems × valid string sets × 4 inversions × 4
+  qualities
+- CAGED: five full-chord shapes with barre and unplayed-string marks, derived from the
+  same CAGED positions as Scale Positions
+- Multiple string groups / inversions / shapes can be on at once and stack on the board
+- **Dim, don't hide:** unselected Highlight roles render as muted gray on this view
+  instead of disappearing, so the chord shape stays recognizable
 
 **During practice**
 
 - _Voicing comparison_ — _"What does Cmaj7 look like as a drop-2 vs. drop-3?"_ Same
-  chord, swap the voicing-system toggle, see both shapes side-by-side as you cycle.
+  chord, swap the voicing system, see both shapes as you cycle.
 - _Inversion drilling_ — _"Where do I find Cmaj7 with the 3 in the bass?"_ Toggle 1st
-  inversion only and the view shows every placement that fits the visible fret range.
-- _Diatonic comping_ — _"Which 7th chord shapes ascend the neck for a I-vi-ii-V in G?"_
-  Pick each chord in turn; the same string-set + inversion stays selected so the shapes
-  render at comparable positions.
-
-The originally-planned _Diatonic Chord Reference_ tab was folded into the existing
-diatonic chord row's triads / sevenths toggle, so the reference content is available
-directly in Note Map and Scale Positions without an extra tab.
+  inversion only and the view shows every placement that fits the fret range.
+- _Barre chords for beginners_ — switch to CAGED and toggle the shapes one at a time to
+  see how the same chord moves up the neck.
 
 ## Modal practice mode
 
-![Short recording of Modal practice mode — starting in C Ionian, then cycling through the seven modes (Ionian → Dorian → Phrygian → Lydian → Mixolydian → Aeolian → Locrian) using the Mode selector in the header. As each mode is selected, the ScaleDisplay relabels the degree pills with modal accidentals (♭3, ♯4, ♭2, etc.), the diatonic chord row recomputes with modal Roman numerals (i7 / ♭IIImaj7 / ♯ivø7 / etc.), and a subtle gold ring appears on the fretboard around each mode's characteristic note (Dorian's ♮6, Lydian's ♯4, Phrygian's ♭2, Mixolydian's ♭7, Locrian's ♭5). Switching keys to D Lydian shows the spelling auto-flipping to sharps (parent A major); switching to D Phrygian flips back to flats (parent B♭ major). Manually toggling the accidental override and watching it stick until the next mode change.](docs/images/modal-mode.gif)
+![Short recording of modal practice mode on the Note Map — the Mode select steps from Dorian through Locrian while the gold ring marks each mode's characteristic note and the scale degrees and chord map relabel. Then D Lydian (spelled with sharps) and D Phrygian (spelled with flats), and finally sharps forced from Settings.](docs/images/modal-mode.gif)
 
-A header-level **Mode selector** sits next to the Key selector and turns Fretlab into a
-parallel-modes practice tool. The seven modes of the major scale — Ionian, Dorian,
-Phrygian, Lydian, Mixolydian, Aeolian, Locrian — are all reachable by clicking once.
-Whenever a non-Ionian mode is active, the entire app re-anchors:
+A header-level **Mode** select sits next to Key and turns Fretlab into a parallel-modes
+practice tool. The seven modes of the major scale — Ionian, Dorian, Phrygian, Lydian,
+Mixolydian, Aeolian, Locrian — are one pick away. Whenever a non-Ionian mode is active,
+the entire app re-anchors:
 
-- **Diatonic chord row** recomputes against the modal scale (e.g. C Dorian shows
+- **Chord map** recomputes against the modal scale (e.g. C Dorian shows
   `i7, ii7, ♭IIImaj7, IV7, v7, viø7, ♭VIImaj7`).
-- **ScaleDisplay** relabels degrees with modal accidentals (`♭3`, `♯4`, etc.) so the
-  difference from same-root major is immediately visible.
+- **The scale in the legend** relabels degrees with modal accidentals (`♭3`, `♯4`, etc.)
+  so the difference from same-root major is immediately visible.
 - **Scale Positions** reanchors its CAGED windows to the mode's _parent major scale_
   (e.g. C Dorian uses B♭ major's CAGED positions). Position labels drop the C/A/G/E/D
-  shape suffix in non-Ionian modes since those names refer to major-scale fingerings.
+  shape letter in non-Ionian modes since those names refer to major-scale fingerings.
 - **Characteristic-tone overlay** — a subtle gold ring on the fretboard around each
   mode's defining tone: Dorian's ♮6, Lydian's ♯4, Phrygian's ♭2, Mixolydian's ♭7,
   Locrian's ♭5. Ionian and Aeolian (the references) have no characteristic-tone ring.
 - **Spelling auto-adjusts** to the parent major's natural preference. Picking D Lydian
   flips the accidental toggle to sharps (parent A major); picking D Phrygian flips it to
-  flats (parent B♭ major). Manual override is still available — toggle the accidental
-  yourself and the override sticks until the next key/mode change.
+  flats (parent B♭ major). Manual override is still available in Settings — the override
+  sticks until the next key/mode change.
 
 For Ionian (the default), behavior is byte-identical to a non-modal Fretlab — modal mode
 adds capability without disturbing major-scale practice.
 
 **Features**
 
-- 7-mode selector in the app header alongside Key
+- 7-mode select in the app header alongside Key
 - Cross-cutting effect: Note Map, Scale Positions, and Chord Shapes all respect the
   active mode
-- Modal Roman numerals on the chord row (`♭IIImaj7`, `viø7`, `♯ivø7`, etc.)
+- Modal Roman numerals in the chord map (`♭IIImaj7`, `viø7`, `♯ivø7`, etc.)
 - Modal degree labels (`1, 2, ♭3, 4, 5, 6, ♭7` for Dorian, etc.) with whole/half-step
   pattern reshuffled per mode
 - Parent-major-anchored CAGED windows in Scale Positions for non-Ionian modes
@@ -210,20 +245,19 @@ adds capability without disturbing major-scale practice.
 
 **During practice**
 
-- _Modal jam_ — vamp on Dm7 in D Dorian; the modal chord row + characteristic ♮6 are
+- _Modal jam_ — vamp on Dm7 in D Dorian; the modal chord map + characteristic ♮6 are
   visible without leaving the view.
 - _Mode comparison_ — flip between C Lydian and C Mixolydian; the ♯4 ↔ ♭7 swap is
-  visible on the fretboard ring overlay and in the ScaleDisplay degree labels.
+  visible on the fretboard ring overlay and in the legend's degree labels.
 - _Working with modal harmony_ — `♭IIImaj7` in Dorian or `♯ivø7` in Lydian read directly
-  off the chord row, no mental transposition.
+  off the chord map, no mental transposition.
 
 ## Tunings
 
-![Short recording of the Tuning selector — opening the grouped popover (Standard / Open / Drop / Modal & Other), picking D Standard to shift Note Map's note labels and Scale Positions' boxes up by 2 frets, then switching to Open G to surface the empty-state explanation on Scale Positions, then clicking "Switch to Standard tuning" to recover.](docs/images/tunings.gif)
+![Short recording of the tuning selector in Settings on the Note Map in G major — the grouped tuning list opens each time and the board's open-string notes change through D Standard, Open G, Drop D and DADGAD, with the Settings button's summary following the tuning.](docs/images/tunings.gif)
 
-A header **Tuning selector** sits next to the fret-range control and lets you switch
-between 18 preset tunings plus any custom tunings you've saved. Presets are grouped by
-category in the popover:
+The **Tuning** selector in Settings switches between 18 preset tunings plus any custom
+tunings you've saved. Presets are grouped by category in the popover:
 
 - **Standard** — Standard, Eb Standard, D Standard, C# Standard.
 - **Open** — Open G, Open D, Open E, Open A, Open C, Open Dm, Open Gm.
@@ -231,12 +265,13 @@ category in the popover:
 - **Modal & Other** — DADGAD, All Fourths, New Standard (NST).
 - **Custom** — your saved custom tunings (only visible once you've created one).
 
-The active tuning is shown in the trigger label (`Tuning: Standard ▾`). Each option in
-the popover lists the tuning's open strings (low → high) as a memory aid.
+The active tuning is shown on the Settings button (`Standard · 0–15`) and on the
+selector itself. Each option in the popover lists the tuning's open strings (low → high)
+as a memory aid.
 
 ### Custom tunings
 
-![Screenshot of the New custom tuning modal — name field with "My DADGAD" filled in, six string pickers below showing D A D G A D from low to high, and a Cancel / Save action row. The modal sits over the Note Map view with the standard-tuning fretboard visible behind it.](docs/images/custom-tuning.png)
+![Screenshot of the New custom tuning dialog over the Note Map — named "My DADGAD", with the six strings set to D A D G A D from low to high, and Cancel and Save buttons.](docs/images/custom-tuning.png)
 
 Pick `+ New custom tuning…` at the bottom of the tuning popover to define your own
 6-string tuning: a name plus a chromatic-note pick for each string (low → high). Custom
@@ -300,7 +335,7 @@ correctly identifies where each shape's barre actually lives on the new neck.
 
 ## String focus
 
-![Screenshot of Scale Positions with strings 1 and 2 (high E and B) muted via the eye column on the left of the fretboard. The two muted-string rows render in dim gray; the remaining four strings show normal chord-tone coloring with the C major P1 position bracketed.](docs/images/string-toggle.png)
+![Screenshot of Scale Positions in C with P1 boxed at frets 0–3 and again at 12–15. The high E and B strings are muted with the eye icons on the left of the board, so their notes are dimmed.](docs/images/string-toggle.png)
 
 An eye-icon column on the left of every fretboard lets you mute individual strings.
 Click an eye to toggle that string — the icon swaps to an eye-with-slash, and every
@@ -325,23 +360,39 @@ all six strings enabled on every reload.
 
 ## Progression player
 
-Build a chord progression straight from the chord map and play it back in time. Click
-the small ＋ on any chord card (diatonic, secondary dominant or borrowed) to append it,
-drag cards by their ⠿ handle to reorder, and use −/+ to set each chord's length in bars
-(½ bar is offered when the bar splits evenly). Press **Play** and the fretboard follows
-the current chord in every view; the next chord is outlined in the strip.
+![Short recording of the progression player on the Note Map — the ＋ picker adds C, Am, F and G while staying open, Preview 1 beat is selected and the tempo set to 100 BPM. On Play, each chord's chip fills across its beat ticks, the board recolours from chord to chord, and on the last beat rings mark where the next chord's new notes land, before playback stops.](docs/images/progression.gif)
+
+Build a chord progression and play it back in time, in the slim lane under the header.
+
+- **Build** — `＋ Start a progression` (or `＋ Add chord` once there are chords) opens
+  the chord map as a picker: diatonic, secondary dominants and borrowed chords, laid out
+  exactly like the chord map below the board. Click chords to append them; the picker
+  stays open so you can add several in a row (Esc or a click outside closes it). Drag a
+  chord by its ⠿ handle to reorder it, set its length with − / + (½ bar is offered when
+  the bar splits evenly), and remove it with ×.
+- **Play** — the fretboard follows the current chord in every view, and the chord map
+  rings it. A line fills each chord's chip as it plays, with a tick on every beat and a
+  taller one on each bar's 1, so you can tell where you are in a long chord. The next
+  chord's chip is outlined.
+- **See it coming** — when the chord changes, notes the two chords share stay in place
+  and only change color; the others fade out and in. Before the change, thin rings in
+  the new colors mark where the next chord's highlighted notes land, fading from faint
+  to full as the change approaches. A note that keeps its role gets no ring. To practise
+  landing on one role — say the root of every chord — turn the others off in Highlight
+  and only that role's targets are ringed. The transport's preview select sets how early
+  the rings appear: 1, 2, 3, 4, 6 or 8 beats before the change (1 by default), or **No
+  preview**.
 
 The transport has a BPM field (30–300, counting the time signature's unit, so 6/8 at 120
 is 120 eighth notes per minute), time-signature presets (2/4 to 12/8), an optional
 accented metronome **Click**, and **Loop**. Progressions are stored by scale degree, so
 they transpose with the key and adapt to the mode; a chord that doesn't exist in the
-current mode is greyed out and skipped. The progression, its settings and whether the
-panel is shown (the **Progression/Metronome** toggle next to Triads/Sevenths) are saved
-in your browser.
+current mode is greyed out and skipped. The progression and its settings are saved in
+your browser.
 
 Play also works as a plain metronome: with an empty progression (or with the key set to
-All, or when no chord is playable) it loops one bar, the click always sounds, and beat
-dots in the transport bar show the count.
+All notes, or when no chord is playable) it loops one bar, the click always sounds, and
+beat dots next to Play show the count.
 
 ## Keyboard shortcuts
 
@@ -382,6 +433,10 @@ The dev server prints a local URL (typically `http://localhost:5173/`).
 | `npm run test:e2e`    | Run Playwright E2E tests (boots the dev server automatically) |
 | `npm run test:e2e:ui` | Run Playwright in interactive UI mode for debugging           |
 
+The README's screenshots and GIFs are recorded with
+`node scripts/record-assets.mjs [asset …]` against a running dev server (`FRETLAB_URL`
+overrides the default `http://localhost:5173/`; GIFs need `ffmpeg` on `PATH`).
+
 ### Tech stack
 
 - **React 19** + **TypeScript ~6.0**
@@ -394,10 +449,6 @@ The dev server prints a local URL (typically `http://localhost:5173/`).
 ## Documentation
 
 - [`docs/design/`](docs/design) — vision and per-view design notes
-- [`docs/superpowers/specs/`](docs/superpowers/specs) — implementation specs for
-  completed work
-- [`docs/superpowers/plans/`](docs/superpowers/plans) — implementation plans tracked
-  task-by-task
 - [`docs/practice/`](docs/practice) — the practice plan that motivates this tool
 
 ## Theory references

@@ -1,10 +1,11 @@
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
+import { previewTargets } from "../theory/chordPreview";
+import type { DisabledRoles } from "../components/Legend";
 import {
   Fretboard,
   type OverlapZone,
   type PositionWindow,
 } from "../components/Fretboard/Fretboard";
-import { PositionToggles } from "../components/PositionToggles";
 import { ScaleTypeToggle } from "../components/ScaleTypeToggle";
 import { isPentatonicAvailable } from "../theory/pentatonic";
 import { ALL_NOTES_KEY } from "../theory/notes";
@@ -20,14 +21,20 @@ import {
 import type { ChordToneSource } from "../theory/harmony";
 import { parentMajorOf, type Mode } from "../theory/modes";
 import { type ScalePositionsControls } from "./useScalePositionsState";
+import type { RegionToggle } from "../components/Fretboard/RegionToggles";
+import type { SymbolKind } from "../components/legend/SymbolKey";
+import { ViewFrame, type ViewChrome } from "./ViewFrame";
 
 type ScalePositionsViewProps = {
+  chrome: ViewChrome;
   tuning: Tuning;
   selectedKey: string;
   enabledHighlights: Set<HighlightableRole>;
   onToggleRole: (role: HighlightableRole) => void;
-  disabledRoles?: Set<HighlightableRole>;
+  disabledRoles?: DisabledRoles;
   selectedChord: ChordToneSource | null;
+  // The progression's next chord while it is being previewed.
+  previewChord?: ChordToneSource | null;
   startFret: number;
   endFret: number;
   controls: ScalePositionsControls;
@@ -43,12 +50,14 @@ type ScalePositionsViewProps = {
 const EMPTY_KEY_MESSAGE = "Select a key to view scale positions.";
 
 export function ScalePositionsView({
+  chrome,
   tuning,
   selectedKey,
   enabledHighlights,
   onToggleRole,
   disabledRoles,
   selectedChord,
+  previewChord = null,
   startFret,
   endFret,
   controls,
@@ -101,17 +110,46 @@ export function ScalePositionsView({
     );
   }, [tuning, selectedKey, parentKey, selectedPositions, startFret, endFret, mode]);
 
+  // Every position gets a clickable label above the board, over its first
+  // on-screen window; positions that don't fit the fret range are pinned to
+  // the strip's edge so they stay reachable.
+  const regionToggles = useMemo<RegionToggle[]>(() => {
+    if (selectedKey === ALL_NOTES_KEY) return [];
+    return CAGED_POSITIONS.map((p) => {
+      const [first] = getPositionWindows(parentKey, p.id, startFret, endFret, tuning);
+      return {
+        id: p.id,
+        label: p.id,
+        sub: mode === "ionian" ? p.shape : undefined,
+        ariaLabel: `Position ${p.id.slice(1)}${mode === "ionian" ? ` (${p.shape} shape)` : ""}`,
+        on: selectedPositions.has(p.id),
+        low: first?.[0],
+        high: first?.[1],
+        onToggle: () => togglePosition(p.id),
+      };
+    });
+  }, [
+    selectedKey,
+    parentKey,
+    startFret,
+    endFret,
+    tuning,
+    mode,
+    selectedPositions,
+    togglePosition,
+  ]);
+
   const overlapZones = useMemo<OverlapZone[]>(() => {
     if (selectedKey === ALL_NOTES_KEY) return [];
     return computeOverlapZones(parentKey, positionsArray, startFret, endFret, tuning);
   }, [tuning, selectedKey, parentKey, positionsArray, startFret, endFret]);
 
-  const markers = useMemo(
-    () =>
+  const markersFor = useCallback(
+    (chord: ChordToneSource | null) =>
       buildChordToneMarkers({
         tuning,
         key: selectedKey,
-        chord: selectedChord,
+        chord,
         positions: positionsArray,
         showContext,
         enabledHighlights,
@@ -124,7 +162,6 @@ export function ScalePositionsView({
     [
       tuning,
       selectedKey,
-      selectedChord,
       positionsArray,
       showContext,
       enabledHighlights,
@@ -134,6 +171,11 @@ export function ScalePositionsView({
       mode,
       scaleType,
     ],
+  );
+  const markers = useMemo(() => markersFor(selectedChord), [markersFor, selectedChord]);
+  const previewMarkers = useMemo(
+    () => (previewChord ? previewTargets(markers, markersFor(previewChord)) : []),
+    [markersFor, markers, previewChord],
   );
 
   // No early return for ALL_NOTES_KEY — keep the fretboard mounted so the
@@ -147,50 +189,57 @@ export function ScalePositionsView({
         ? "Toggle a position to begin."
         : undefined;
 
+  const symbols: SymbolKind[] = [
+    "context",
+    "position",
+    "characteristic",
+    "outsideKey",
+    ...(showPentatonic ? (["nonPentatonic"] as const) : []),
+    "hiddenString",
+  ];
+
   return (
-    <div className="space-y-2 md:space-y-4">
-      <Fretboard
-        markers={markers}
-        startFret={startFret}
-        endFret={endFret}
-        positionWindows={positionWindows}
-        overlapZones={overlapZones}
-        emptyMessage={fretboardEmptyMessage}
-        tuning={tuning}
-        enabledStrings={enabledStrings}
-        onToggleString={onToggleString}
-      />
-      <div className="flex flex-wrap items-center gap-x-3 md:gap-x-6 gap-y-2 md:gap-y-3 min-h-9 md:max-[1319px]:min-h-20">
+    <ViewFrame
+      chrome={chrome}
+      symbols={symbols}
+      subModes={
+        <>
+          <ScaleTypeToggle
+            value={pentatonicAvailable ? scaleType : "full"}
+            onChange={setScaleType}
+            disabled={!pentatonicAvailable}
+          />
+          <label className="inline-flex items-center gap-2 text-sm text-fg-secondary cursor-pointer">
+            <input
+              type="checkbox"
+              checked={showContext}
+              onChange={(e) => setShowContext(e.target.checked)}
+            />
+            Context notes
+          </label>
+        </>
+      }
+      highlight={
         <Legend
           enabledRoles={enabledHighlights}
           onToggleRole={onToggleRole}
           disabledRoles={disabledRoles}
         />
-        <span aria-hidden="true" className="w-px h-6 bg-line self-center" />
-        <PositionToggles selected={selectedPositions} onToggle={togglePosition} />
-        <label className="inline-flex items-center gap-2 text-sm text-fg-secondary cursor-pointer">
-          <input
-            type="checkbox"
-            checked={showContext}
-            onChange={(e) => setShowContext(e.target.checked)}
-          />
-          Show context notes
-        </label>
-        <ScaleTypeToggle
-          value={pentatonicAvailable ? scaleType : "full"}
-          onChange={setScaleType}
-          disabled={!pentatonicAvailable}
-        />
-        {showPentatonic && (
-          <span className="inline-flex items-center gap-1.5 text-sm text-fg-secondary">
-            <span
-              aria-hidden="true"
-              className="inline-block w-3 h-3 rounded-full border-2 border-fg-secondary"
-            />
-            Not in pentatonic
-          </span>
-        )}
-      </div>
-    </div>
+      }
+    >
+      <Fretboard
+        markers={markers}
+        previewMarkers={previewMarkers}
+        startFret={startFret}
+        endFret={endFret}
+        positionWindows={positionWindows}
+        overlapZones={overlapZones}
+        regionToggles={regionToggles}
+        emptyMessage={fretboardEmptyMessage}
+        tuning={tuning}
+        enabledStrings={enabledStrings}
+        onToggleString={onToggleString}
+      />
+    </ViewFrame>
   );
 }

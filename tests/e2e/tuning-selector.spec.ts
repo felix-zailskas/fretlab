@@ -7,6 +7,7 @@ test.describe("TuningSelector", () => {
     await page.goto("/");
 
     // Trigger button shows current tuning
+    await page.getByRole("button", { name: /^Settings/ }).click();
     const trigger = page.getByRole("button", { name: /Tuning: Standard/ });
     await expect(trigger).toBeVisible();
 
@@ -49,6 +50,7 @@ test.describe("TuningSelector", () => {
     await page.goto("/");
 
     // Open the popover
+    await page.getByRole("button", { name: /^Settings/ }).click();
     await page.getByRole("button", { name: /Tuning: Standard/ }).click();
     await expect(page.getByRole("listbox", { name: "Tuning" })).toBeVisible();
 

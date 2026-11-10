@@ -2,7 +2,11 @@ import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { TransportControls } from "./TransportControls";
-import { TIME_SIGNATURE_PRESETS, timeSignatureLabel } from "../theory/meter";
+import {
+  PREVIEW_BEAT_OPTIONS,
+  TIME_SIGNATURE_PRESETS,
+  timeSignatureLabel,
+} from "../theory/meter";
 
 function renderControls(
   overrides: Partial<Parameters<typeof TransportControls>[0]> = {},
@@ -16,17 +20,42 @@ function renderControls(
     timeSignature: { beats: 4, unit: 4 } as const,
     click: false,
     loop: true,
+    preview: 1,
     onTogglePlay: vi.fn(),
     onBpmChange: vi.fn(),
     onTimeSignatureChange: vi.fn(),
     onClickChange: vi.fn(),
     onLoopChange: vi.fn(),
+    onPreviewChange: vi.fn(),
     onClear: vi.fn(),
     ...overrides,
   };
   render(<TransportControls {...props} />);
   return props;
 }
+
+describe("TransportControls — preview", () => {
+  it("offers every preview length", () => {
+    renderControls();
+    expect(
+      Array.from(
+        screen
+          .getByRole("combobox", { name: "Preview next chord" })
+          .querySelectorAll("option"),
+        (o) => o.value,
+      ),
+    ).toEqual(PREVIEW_BEAT_OPTIONS.map(String));
+  });
+
+  it("reports a new preview length", async () => {
+    const props = renderControls();
+    await userEvent.selectOptions(
+      screen.getByRole("combobox", { name: "Preview next chord" }),
+      "4",
+    );
+    expect(props.onPreviewChange).toHaveBeenCalledWith(4);
+  });
+});
 
 describe("TransportControls — play", () => {
   it("enables Play even in metronome-only mode", () => {
@@ -117,7 +146,8 @@ describe("TransportControls — BPM", () => {
 describe("TransportControls — time signature", () => {
   it("offers every preset", () => {
     renderControls();
-    expect(screen.getAllByRole("option").map((o) => o.textContent)).toEqual(
+    const select = screen.getByRole("combobox", { name: "Time signature" });
+    expect(Array.from(select.querySelectorAll("option"), (o) => o.textContent)).toEqual(
       TIME_SIGNATURE_PRESETS.map(timeSignatureLabel),
     );
   });
@@ -165,9 +195,11 @@ describe("TransportControls — toggles", () => {
 });
 
 describe("TransportControls — beat dots", () => {
-  it("shows no dots while stopped", () => {
+  it("keeps the dots while stopped, none current, so nothing shifts on play", () => {
     renderControls({ isPlaying: false, beatInBar: null });
-    expect(screen.queryAllByTestId("beat-dot")).toHaveLength(0);
+    const dots = screen.getAllByTestId("beat-dot");
+    expect(dots).toHaveLength(4);
+    expect(dots.some((d) => d.getAttribute("data-current") === "true")).toBe(false);
   });
 
   it.each(TIME_SIGNATURE_PRESETS.map((p) => [timeSignatureLabel(p), p] as const))(

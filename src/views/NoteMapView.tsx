@@ -1,4 +1,6 @@
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
+import { previewTargets } from "../theory/chordPreview";
+import type { DisabledRoles } from "../components/Legend";
 import { Fretboard } from "../components/Fretboard/Fretboard";
 import { Legend } from "../components/Legend";
 import type { HighlightableRole } from "../theory/types";
@@ -7,15 +9,21 @@ import type { ChordToneSource } from "../theory/harmony";
 import type { AccidentalStyle } from "../theory/notes";
 import type { Tuning } from "../theory/tuning";
 import type { Mode } from "../theory/modes";
+import { ViewFrame, type ViewChrome } from "./ViewFrame";
+
+const SYMBOLS = ["scale", "characteristic", "outsideKey", "hiddenString"] as const;
 
 type NoteMapViewProps = {
+  chrome: ViewChrome;
   tuning: Tuning;
   selectedKey: string;
   accidentalStyle: AccidentalStyle;
   enabledHighlights: Set<HighlightableRole>;
   onToggleRole: (role: HighlightableRole) => void;
-  disabledRoles?: Set<HighlightableRole>;
+  disabledRoles?: DisabledRoles;
   selectedChord: ChordToneSource | null;
+  // The progression's next chord while it is being previewed.
+  previewChord?: ChordToneSource | null;
   startFret: number;
   endFret: number;
   enabledStrings: ReadonlySet<number>;
@@ -26,6 +34,7 @@ type NoteMapViewProps = {
 };
 
 export function NoteMapView({
+  chrome,
   tuning,
   selectedKey,
   accidentalStyle,
@@ -33,20 +42,21 @@ export function NoteMapView({
   onToggleRole,
   disabledRoles,
   selectedChord,
+  previewChord = null,
   startFret,
   endFret,
   enabledStrings,
   onToggleString,
   mode = "ionian",
 }: NoteMapViewProps) {
-  const markers = useMemo(
-    () =>
+  const markersFor = useCallback(
+    (chord: ChordToneSource | null) =>
       buildNoteMapMarkers({
         tuning,
         key: selectedKey,
         mode,
         accidentalStyle,
-        chord: selectedChord,
+        chord,
         enabledHighlights,
         enabledStrings,
         startFret,
@@ -57,35 +67,39 @@ export function NoteMapView({
       selectedKey,
       mode,
       accidentalStyle,
-      selectedChord,
       enabledHighlights,
       enabledStrings,
       startFret,
       endFret,
     ],
   );
+  const markers = useMemo(() => markersFor(selectedChord), [markersFor, selectedChord]);
+  const previewMarkers = useMemo(
+    () => (previewChord ? previewTargets(markers, markersFor(previewChord)) : []),
+    [markersFor, markers, previewChord],
+  );
 
   return (
-    <div className="space-y-2 md:space-y-4">
+    <ViewFrame
+      chrome={chrome}
+      symbols={SYMBOLS}
+      highlight={
+        <Legend
+          enabledRoles={enabledHighlights}
+          onToggleRole={onToggleRole}
+          disabledRoles={disabledRoles}
+        />
+      }
+    >
       <Fretboard
         markers={markers}
+        previewMarkers={previewMarkers}
         startFret={startFret}
         endFret={endFret}
         tuning={tuning}
         enabledStrings={enabledStrings}
         onToggleString={onToggleString}
       />
-      {/* min-h reserves the height of the tallest sibling-view controls bar so
-          the diatonic chord row sits at the same y on every view. At ≥1320px
-          everything fits on one row (~36px); below that, Chord Shapes Sevenths
-          wraps to two rows (~80px) and the other views match it. */}
-      <div className="flex flex-wrap items-center gap-x-3 md:gap-x-6 gap-y-2 md:gap-y-3 min-h-9 md:max-[1319px]:min-h-20">
-        <Legend
-          enabledRoles={enabledHighlights}
-          onToggleRole={onToggleRole}
-          disabledRoles={disabledRoles}
-        />
-      </div>
-    </div>
+    </ViewFrame>
   );
 }

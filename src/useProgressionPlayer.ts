@@ -9,7 +9,11 @@ import {
   type MapChord,
 } from "./theory/harmony";
 import {
+  beatsPerSlot,
+  inPreviewWindow,
+  previewRampBeats,
   playbackTimeline,
+  secondsPerBeat,
   snapSlotLength,
   type TimeSignature,
   type TimelinePosition,
@@ -43,6 +47,13 @@ export type ProgressionPlayer = {
   currentSlot: number | null;
   nextSlot: number | null;
   beatInBar: number;
+  // Beats elapsed in the current slot (0-based), for the chip's progress line.
+  beatInSlot: number;
+  // The slot whose chord to preview on the board right now (the next one,
+  // during the preview window before the change), or null.
+  previewSlot: number | null;
+  // How long the preview takes to fade in, in seconds (see previewRampBeats).
+  previewRampSeconds: number;
   add(ref: ChordRef): void;
   remove(id: string): void;
   move(from: number, to: number): void;
@@ -56,20 +67,26 @@ export type ProgressionPlayer = {
   setTimeSignature(sig: TimeSignature): void;
   setClick(enabled: boolean): void;
   setLoop(loop: boolean): void;
-  setVisible(visible: boolean): void;
+  setPreview(previewBeats: number): void;
 };
 
 type PlaybackState = {
   isPlaying: boolean;
   currentSlotId: string | null;
   beatInBar: number;
+  beatInSlot: number;
 };
 type LiveState = TransportSnapshot & {
   playable: ProgressionSlot[];
   onChordChange: (ref: ChordRef) => void;
 };
 
-const IDLE: PlaybackState = { isPlaying: false, currentSlotId: null, beatInBar: 0 };
+const IDLE: PlaybackState = {
+  isPlaying: false,
+  currentSlotId: null,
+  beatInBar: 0,
+  beatInSlot: 0,
+};
 
 function createSlotId(): string {
   return `slot:${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
@@ -181,6 +198,7 @@ export function useProgressionPlayer({
             isPlaying: true,
             currentSlotId: slot?.id ?? null,
             beatInBar: pos.beatInBar,
+            beatInSlot: pos.beatInSlot,
           });
           if (slot && lastAnnounced.current !== slot.id) {
             lastAnnounced.current = slot.id;
@@ -193,6 +211,7 @@ export function useProgressionPlayer({
         isPlaying: true,
         currentSlotId: slots[startIndex]?.id ?? null,
         beatInBar: 0,
+        beatInSlot: 0,
       });
     },
     [playable, state.bpm, state.click, state.loop, transport],
@@ -271,17 +290,13 @@ export function useProgressionPlayer({
     (id: string, bars: number) => dispatch({ type: "set-bars", id, bars }),
     [],
   );
+  const setPreview = useCallback(
+    (preview: number) => dispatch({ type: "set-preview", preview }),
+    [],
+  );
   const setLoop = useCallback(
     (loop: boolean) => dispatch({ type: "set-loop", loop }),
     [],
-  );
-  // Hiding the panel stops playback: no playing without a visible Stop.
-  const setVisible = useCallback(
-    (visible: boolean) => {
-      if (!visible) stop();
-      dispatch({ type: "set-visible", visible });
-    },
-    [stop],
   );
 
   const currentIndex = playback.isPlaying
@@ -297,6 +312,15 @@ export function useProgressionPlayer({
       ? state.slots.findIndex((s) => s.id === nextPlayable.id)
       : -1;
 
+  const currentSlotBeats =
+    currentIndex === -1
+      ? 0
+      : beatsPerSlot(state.slots[currentIndex].bars, state.timeSignature);
+  const previewing =
+    currentIndex !== -1 &&
+    nextIndex !== -1 &&
+    inPreviewWindow(playback.beatInSlot, currentSlotBeats, state.preview);
+
   return {
     state,
     resolvedSlots,
@@ -305,6 +329,10 @@ export function useProgressionPlayer({
     currentSlot: currentIndex === -1 ? null : currentIndex,
     nextSlot: nextIndex === -1 ? null : nextIndex,
     beatInBar: playback.beatInBar,
+    beatInSlot: playback.beatInSlot,
+    previewSlot: previewing ? nextIndex : null,
+    previewRampSeconds:
+      previewRampBeats(currentSlotBeats, state.preview) * secondsPerBeat(state.bpm),
     add,
     remove,
     move,
@@ -318,6 +346,6 @@ export function useProgressionPlayer({
     setTimeSignature,
     setClick,
     setLoop,
-    setVisible,
+    setPreview,
   };
 }

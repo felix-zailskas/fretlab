@@ -125,7 +125,7 @@ export function CustomTuningModal({
 
         <div className="mb-6">
           <span className="block text-xs text-fg-muted uppercase tracking-wide mb-2">
-            Strings (low → high)
+            Strings (6 low → 1 high)
           </span>
           <div className="flex gap-2">
             {strings.map((note, i) => (
@@ -139,7 +139,9 @@ export function CustomTuningModal({
                     handleSubmit();
                   }
                 }}
-                aria-label={`String ${i + 1}`}
+                // Guitar numbering, as on the board's string toggles: 6 is the
+                // low string, listed first.
+                aria-label={`String ${strings.length - i}`}
                 className="min-w-[3.5ch] px-2 py-2 rounded bg-surface border border-line text-fg-emphasis font-mono"
               >
                 {CHROMATIC_SCALE.map((n) => (

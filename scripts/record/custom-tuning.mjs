@@ -10,7 +10,10 @@ export async function record(browser) {
   const page = await context.newPage();
   await loadApp(page);
 
-  // Open the tuning popover, then the "+ New custom tuning…" sentinel.
+  // Open Settings and the tuning popover, then the "+ New custom tuning…"
+  // sentinel.
+  await page.getByRole("button", { name: /^Settings/ }).click();
+  await page.waitForTimeout(250);
   await page.getByRole("button", { name: /Tuning:/ }).click();
   await page.waitForTimeout(250);
   await page.getByRole("option", { name: /New custom tuning/ }).click();
@@ -31,9 +34,12 @@ export async function record(browser) {
   const strings = ["D", "A", "D", "G", "A", "D"];
   for (let i = 0; i < strings.length; i++) {
     await dialog
-      .getByLabel(`String ${i + 1}`, { exact: true })
+      .getByLabel(`String ${strings.length - i}`, { exact: true })
       .selectOption(strings[i]);
   }
+  // Typing in the modal closed the Settings popover behind it (outside
+  // mousedown); click the name field once more so it is gone for the shot.
+  await nameInput.click();
   await page.waitForTimeout(400);
 
   await page.screenshot({

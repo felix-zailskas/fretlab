@@ -4,7 +4,7 @@ import { test, expect } from "@playwright/test";
 test.describe("CAGED chord shapes", () => {
   test("F major shows the E-shape barre at fret 1", async ({ page }) => {
     await page.goto("/");
-    await page.getByRole("button", { name: "F", exact: true }).click();
+    await page.getByRole("combobox", { name: "Key" }).selectOption("F");
     // The I chord is selected by default; clicking it would deselect it.
     await expect(
       page.getByRole("button", { name: "I F", exact: true }),
@@ -32,10 +32,7 @@ test.describe("CAGED chord shapes", () => {
     ).toHaveAttribute("aria-pressed", "true");
     await page.getByRole("tab", { name: "Chord Shapes" }).click();
     await page.getByRole("radio", { name: "CAGED" }).click();
-    await page
-      .getByRole("group", { name: "CAGED shapes" })
-      .getByRole("button", { name: "C", exact: true })
-      .click();
+    await page.getByRole("button", { name: "C-shape", exact: true }).click();
 
     await expect(
       page.locator('[data-testid="unplayed-string"][data-string="0"][data-fret="0"]'),

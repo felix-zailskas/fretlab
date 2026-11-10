@@ -1,115 +1,73 @@
 import { useMemo } from "react";
+import type { DisabledRoles } from "../components/Legend";
 import { Fretboard } from "../components/Fretboard/Fretboard";
+import type { RegionToggle } from "../components/Fretboard/RegionToggles";
+import type { SymbolKind } from "../components/legend/SymbolKey";
 import { ALL_NOTES_KEY } from "../theory/notes";
 import { Legend } from "../components/Legend";
 import type { HighlightableRole } from "../theory/types";
-import { StringSetToggles } from "../components/StringSetToggles";
-import { SegmentedRadio } from "../components/SegmentedRadio";
 import {
   buildCagedPlacements,
+  CAGED_GRIPS,
   CAGED_SHAPE_ORDER,
-  dedupeMarkers,
+  type CagedQuality,
 } from "../theory/cagedShapes";
-import type { CagedShape } from "../theory/positions";
+import { type ChordShapesMode, type SeventhStringSet } from "../theory/chordShapes";
+import { previewTargets } from "../theory/chordPreview";
 import {
-  buildChordShapeMarkers,
-  VOICING_SYSTEM_ORDER,
-  type ChordShapesMode,
-  type Inversion,
-  type SeventhInversion,
-  type SeventhStringSet,
-  type StringSet,
-  type VoicingSystem,
-} from "../theory/chordShapes";
+  chordShapeMarkersFor,
+  type ChordShapeMarkerOptions,
+} from "./chordShapeMarkers";
 import type { Tuning } from "../theory/tuning";
-import { triadOf, type ChordRowMode, type ChordToneSource } from "../theory/harmony";
+import { type ChordRowMode, type ChordToneSource } from "../theory/harmony";
 import { type Mode } from "../theory/modes";
-import {
-  type ChordShapesControls,
-  type SeventhStringPosition,
-  type VoicingStyle,
-} from "./useChordShapesState";
+import { type ChordShapesControls } from "./useChordShapesState";
+import { ChordShapesSubModes } from "./ChordShapesSubModes";
+import { STRING_SET_BY_POSITION } from "./chordShapesStringSets";
+import { ViewFrame, type ViewChrome } from "./ViewFrame";
 
 type ChordShapesViewProps = {
+  chrome: ViewChrome;
   tuning: Tuning;
   selectedKey: string;
   startFret: number;
   endFret: number;
   selectedChord: ChordToneSource | null;
+  // The progression's next chord while it is being previewed.
+  previewChord?: ChordToneSource | null;
   chordRowMode: ChordRowMode;
   enabledHighlights: Set<HighlightableRole>;
   onToggleRole: (role: HighlightableRole) => void;
-  disabledRoles?: Set<HighlightableRole>;
+  disabledRoles?: DisabledRoles;
   controls: ChordShapesControls;
   modalMode: Mode;
   enabledStrings: ReadonlySet<number>;
   onToggleString: (stringIndex: number) => void;
 };
 
-const STRING_SET_OPTIONS: ReadonlyArray<{ id: StringSet; label: string }> = [
-  { id: "1-2-3", label: "1-2-3" },
-  { id: "2-3-4", label: "2-3-4" },
-  { id: "3-4-5", label: "3-4-5" },
-  { id: "4-5-6", label: "4-5-6" },
+const INVERSION_SYMBOLS: readonly SymbolKind[] = [
+  "stringGroup",
+  "characteristic",
+  "outsideKey",
+  "hiddenString",
 ];
-
-const INVERSION_OPTIONS: ReadonlyArray<{ id: Inversion; label: string }> = [
-  { id: "root", label: "Root" },
-  { id: "first", label: "1st Inversion" },
-  { id: "second", label: "2nd Inversion" },
+const CAGED_SYMBOLS: readonly SymbolKind[] = [
+  "shape",
+  "barre",
+  "notPlayed",
+  "characteristic",
+  "outsideKey",
+  "hiddenString",
 ];
-
-const SEVENTH_INVERSION_OPTIONS: ReadonlyArray<{
-  id: SeventhInversion;
-  label: string;
-}> = [
-  { id: "root", label: "Root" },
-  { id: "first", label: "1st Inversion" },
-  { id: "second", label: "2nd Inversion" },
-  { id: "third", label: "3rd Inversion" },
-];
-
-const VOICING_SYSTEM_LABELS: Record<VoicingSystem, string> = {
-  close: "Close",
-  drop2: "Drop 2",
-  drop3: "Drop 3",
-  "drop2-4": "Drop 2&4",
-};
-
-const VOICING_SYSTEM_OPTIONS = VOICING_SYSTEM_ORDER.map((system) => ({
-  id: system,
-  label: VOICING_SYSTEM_LABELS[system],
-}));
-
-const VOICING_STYLE_OPTIONS: ReadonlyArray<{ id: VoicingStyle; label: string }> = [
-  { id: "inversions", label: "Inversions" },
-  { id: "caged", label: "CAGED" },
-];
-
-const CAGED_SHAPE_OPTIONS: ReadonlyArray<{ id: CagedShape; label: string }> =
-  CAGED_SHAPE_ORDER.map((shape) => ({ id: shape, label: shape }));
-
-const POSITION_ORDER: SeventhStringPosition[] = ["low", "mid", "high"];
-
-// Each system's mapping from position → its concrete string-set id. drop-3 and
-// drop-2&4 only have the lower two positions; the user's selection of "high"
-// silently produces no markers in those systems until they pick low or mid.
-const STRING_SET_BY_POSITION: Record<
-  VoicingSystem,
-  Partial<Record<SeventhStringPosition, SeventhStringSet>>
-> = {
-  close: { low: "3-4-5-6", mid: "2-3-4-5", high: "1-2-3-4" },
-  drop2: { low: "3-4-5-6", mid: "2-3-4-5", high: "1-2-3-4" },
-  drop3: { low: "6-4-3-2", mid: "5-3-2-1" },
-  "drop2-4": { low: "6-5-3-2", mid: "5-4-2-1" },
-};
 
 export function ChordShapesView({
+  chrome,
   tuning,
   selectedKey,
   startFret,
   endFret,
   selectedChord,
+  previewChord = null,
   chordRowMode,
   enabledHighlights,
   onToggleRole,
@@ -121,35 +79,16 @@ export function ChordShapesView({
 }: ChordShapesViewProps) {
   const {
     selectedStringSets,
-    toggleStringSet,
     selectedInversions,
-    toggleInversion,
     selectedVoicingSystem,
-    setSelectedVoicingSystem,
     selectedSeventhPositions,
-    toggleSeventhPosition,
     selectedSeventhInversions,
-    toggleSeventhInversion,
     voicingStyle,
-    setVoicingStyle,
     selectedCagedShapes,
     toggleCagedShape,
   } = controls;
   const isCaged = voicingStyle === "caged";
-
   const mode: ChordShapesMode = chordRowMode;
-
-  // Toggle row labels show the system's literal string-set id, but the click
-  // toggles the underlying position so the choice persists across systems.
-  const seventhPositionOptions = useMemo<
-    ReadonlyArray<{ id: SeventhStringPosition; label: string }>
-  >(() => {
-    const map = STRING_SET_BY_POSITION[selectedVoicingSystem];
-    return POSITION_ORDER.filter((p) => map[p] !== undefined).map((p) => ({
-      id: p,
-      label: map[p]!,
-    }));
-  }, [selectedVoicingSystem]);
 
   const activeSeventhStringSets = useMemo<SeventhStringSet[]>(() => {
     const map = STRING_SET_BY_POSITION[selectedVoicingSystem];
@@ -158,16 +97,18 @@ export function ChordShapesView({
       .filter((s): s is SeventhStringSet => s !== undefined);
   }, [selectedSeventhPositions, selectedVoicingSystem]);
 
-  // CAGED always voices the chord as selected: a secondary dominant keeps its
-  // 7th even in triads mode (its resolution hinges on that 7th).
-  const cagedPlacements = useMemo(() => {
+  // Every shape is placed, so each one's label can sit over it above the
+  // board even while it's toggled off. CAGED always voices the chord as
+  // selected: a secondary dominant keeps its 7th even in triads mode (its
+  // resolution hinges on that 7th).
+  const allPlacements = useMemo(() => {
     if (!isCaged || !selectedChord) return [];
     return buildCagedPlacements({
       tuning,
       modalMode,
       chord: selectedChord,
       key: selectedKey,
-      shapes: Array.from(selectedCagedShapes),
+      shapes: CAGED_SHAPE_ORDER,
       enabledStrings,
       startFret,
       endFret,
@@ -178,78 +119,90 @@ export function ChordShapesView({
     tuning,
     modalMode,
     selectedKey,
-    selectedCagedShapes,
     enabledStrings,
     startFret,
     endFret,
   ]);
 
-  const markers = useMemo(() => {
-    if (!selectedChord) return [];
-    if (isCaged) return dedupeMarkers(cagedPlacements);
-    if (mode === "triads") {
-      return buildChordShapeMarkers({
-        mode: "triads",
-        tuning,
-        modalMode,
-        // Chord Shapes only voices triads; a secondary dominant drops its 7th.
-        chord: triadOf(selectedChord),
-        key: selectedKey,
-        stringSets: Array.from(selectedStringSets),
-        inversions: Array.from(selectedInversions),
-        enabledStrings,
-        startFret,
-        endFret,
-      });
-    }
-    return buildChordShapeMarkers({
-      mode: "sevenths",
+  const cagedPlacements = useMemo(
+    () => allPlacements.filter((p) => selectedCagedShapes.has(p.shape)),
+    [allPlacements, selectedCagedShapes],
+  );
+
+  // One label per shape that has a grip for this chord quality; shapes whose
+  // grip doesn't fit the fret range are pinned to the strip's edge.
+  const regionToggles = useMemo<RegionToggle[]>(() => {
+    if (!isCaged || !selectedChord || selectedKey === ALL_NOTES_KEY) return [];
+    const grips = CAGED_GRIPS[selectedChord.quality as CagedQuality] ?? {};
+    return CAGED_SHAPE_ORDER.filter((shape) => grips[shape]).map((shape) => {
+      const first = allPlacements.find((p) => p.shape === shape);
+      return {
+        id: shape,
+        label: `${shape}-shape`,
+        on: selectedCagedShapes.has(shape),
+        low: first?.low,
+        high: first?.high,
+        onToggle: () => toggleCagedShape(shape),
+      };
+    });
+  }, [
+    isCaged,
+    selectedChord,
+    selectedKey,
+    allPlacements,
+    selectedCagedShapes,
+    toggleCagedShape,
+  ]);
+
+  const markerOptions = useMemo<ChordShapeMarkerOptions>(
+    () => ({
+      isCaged,
+      mode,
       tuning,
       modalMode,
+      selectedKey,
+      cagedShapes: selectedCagedShapes,
+      stringSets: selectedStringSets,
+      inversions: selectedInversions,
       voicingSystem: selectedVoicingSystem,
-      chord: selectedChord,
-      key: selectedKey,
-      stringSets: activeSeventhStringSets,
-      inversions: Array.from(selectedSeventhInversions),
+      seventhStringSets: activeSeventhStringSets,
+      seventhInversions: selectedSeventhInversions,
+      enabledHighlights,
       enabledStrings,
       startFret,
       endFret,
-    });
-  }, [
-    isCaged,
-    cagedPlacements,
-    mode,
-    tuning,
-    modalMode,
-    selectedChord,
-    selectedKey,
-    selectedStringSets,
-    selectedInversions,
-    selectedVoicingSystem,
-    activeSeventhStringSets,
-    selectedSeventhInversions,
-    enabledStrings,
-    startFret,
-    endFret,
-  ]);
-
-  // Demote unselected roles to plain scale tones instead of removing them —
-  // the chord shape stays recognizable while the focus is on the role(s) the
-  // user actually wants to study. Matches the Note Map / Scale Positions
-  // behavior in chordTones.ts so dimmed chord tones look identical to the
-  // surrounding non-highlighted scale notes.
-  //
-  // "muted" is preserved as-is: it carries different intent (the string is
-  // toggled off) and must not be folded into "scale".
+    }),
+    [
+      isCaged,
+      mode,
+      tuning,
+      modalMode,
+      selectedKey,
+      selectedCagedShapes,
+      selectedStringSets,
+      selectedInversions,
+      selectedVoicingSystem,
+      activeSeventhStringSets,
+      selectedSeventhInversions,
+      enabledHighlights,
+      enabledStrings,
+      startFret,
+      endFret,
+    ],
+  );
   const visibleMarkers = useMemo(
+    () => chordShapeMarkersFor(selectedChord, markerOptions),
+    [selectedChord, markerOptions],
+  );
+  const previewMarkers = useMemo(
     () =>
-      markers.map((m) => {
-        if (m.role === "muted") return m;
-        return enabledHighlights.has(m.role as HighlightableRole)
-          ? m
-          : { ...m, role: "scale" as const };
-      }),
-    [markers, enabledHighlights],
+      previewChord
+        ? previewTargets(
+            visibleMarkers,
+            chordShapeMarkersFor(previewChord, markerOptions),
+          )
+        : [],
+    [previewChord, visibleMarkers, markerOptions],
   );
 
   // No early return for ALL_NOTES_KEY — keep the fretboard mounted so the
@@ -268,12 +221,12 @@ export function ChordShapesView({
       ? "Select a key to view chord shapes."
       : !selectedChord
         ? "Select a chord to view shapes."
-        : activeSubSelectorEmpty
-          ? isCaged
-            ? "Toggle a shape to begin."
-            : "Select a string set to begin."
-          : isCaged && cagedPlacements.length === 0
-            ? "No CAGED shapes for this chord."
+        : isCaged && regionToggles.length === 0
+          ? "No CAGED shapes for this chord."
+          : activeSubSelectorEmpty
+            ? isCaged
+              ? "Toggle a shape to begin."
+              : "Select a string set to begin."
             : undefined;
 
   const cagedOverlays = useMemo(
@@ -294,14 +247,27 @@ export function ChordShapesView({
           fret: p.low,
         })),
       ),
+      regionToggles,
     }),
-    [cagedPlacements],
+    [cagedPlacements, regionToggles],
   );
 
   return (
-    <div className="space-y-2 md:space-y-4">
+    <ViewFrame
+      chrome={chrome}
+      symbols={isCaged ? CAGED_SYMBOLS : INVERSION_SYMBOLS}
+      subModes={<ChordShapesSubModes mode={mode} controls={controls} />}
+      highlight={
+        <Legend
+          enabledRoles={enabledHighlights}
+          onToggleRole={onToggleRole}
+          disabledRoles={disabledRoles}
+        />
+      }
+    >
       <Fretboard
         markers={visibleMarkers}
+        previewMarkers={previewMarkers}
         startFret={startFret}
         endFret={endFret}
         emptyMessage={fretboardMessage}
@@ -310,115 +276,6 @@ export function ChordShapesView({
         enabledStrings={enabledStrings}
         onToggleString={onToggleString}
       />
-      <div className="flex flex-wrap items-center gap-x-3 md:gap-x-6 gap-y-2 md:gap-y-3 min-h-9 md:max-[1319px]:min-h-20">
-        <Legend
-          enabledRoles={enabledHighlights}
-          onToggleRole={onToggleRole}
-          disabledRoles={disabledRoles}
-        />
-        <span aria-hidden="true" className="w-px h-6 bg-line self-center" />
-        <SegmentedRadio
-          options={VOICING_STYLE_OPTIONS}
-          selected={voicingStyle}
-          onChange={setVoicingStyle}
-          ariaLabel="Voicing style"
-        />
-        {isCaged ? (
-          <StringSetToggles
-            options={CAGED_SHAPE_OPTIONS}
-            selected={selectedCagedShapes}
-            onToggle={toggleCagedShape}
-            ariaLabel="CAGED shapes"
-          />
-        ) : (
-          <>
-            {mode === "sevenths" ? (
-              <SegmentedRadio
-                options={VOICING_SYSTEM_OPTIONS}
-                selected={selectedVoicingSystem}
-                onChange={setSelectedVoicingSystem}
-                ariaLabel="Voicing system"
-              />
-            ) : null}
-            <SubSelectorRow
-              mode={mode}
-              selectedStringSets={selectedStringSets}
-              selectedSeventhPositions={selectedSeventhPositions}
-              selectedInversions={selectedInversions}
-              selectedSeventhInversions={selectedSeventhInversions}
-              seventhPositionOptions={seventhPositionOptions}
-              onToggleStringSet={toggleStringSet}
-              onToggleSeventhPosition={toggleSeventhPosition}
-              onToggleInversion={toggleInversion}
-              onToggleSeventhInversion={toggleSeventhInversion}
-            />
-          </>
-        )}
-      </div>
-    </div>
-  );
-}
-
-type SubSelectorRowProps = {
-  mode: ChordShapesMode;
-  selectedStringSets: Set<StringSet>;
-  selectedSeventhPositions: Set<SeventhStringPosition>;
-  selectedInversions: Set<Inversion>;
-  selectedSeventhInversions: Set<SeventhInversion>;
-  seventhPositionOptions: ReadonlyArray<{
-    id: SeventhStringPosition;
-    label: string;
-  }>;
-  onToggleStringSet: (id: StringSet) => void;
-  onToggleSeventhPosition: (id: SeventhStringPosition) => void;
-  onToggleInversion: (id: Inversion) => void;
-  onToggleSeventhInversion: (id: SeventhInversion) => void;
-};
-
-function SubSelectorRow({
-  mode,
-  selectedStringSets,
-  selectedSeventhPositions,
-  selectedInversions,
-  selectedSeventhInversions,
-  seventhPositionOptions,
-  onToggleStringSet,
-  onToggleSeventhPosition,
-  onToggleInversion,
-  onToggleSeventhInversion,
-}: SubSelectorRowProps) {
-  if (mode === "triads") {
-    return (
-      <div className="flex flex-wrap items-center gap-4">
-        <StringSetToggles
-          options={STRING_SET_OPTIONS}
-          selected={selectedStringSets}
-          onToggle={onToggleStringSet}
-          ariaLabel="String groups"
-        />
-        <StringSetToggles
-          options={INVERSION_OPTIONS}
-          selected={selectedInversions}
-          onToggle={onToggleInversion}
-          ariaLabel="Inversions"
-        />
-      </div>
-    );
-  }
-  return (
-    <div className="flex flex-wrap items-center gap-4">
-      <StringSetToggles
-        options={seventhPositionOptions}
-        selected={selectedSeventhPositions}
-        onToggle={onToggleSeventhPosition}
-        ariaLabel="String groups"
-      />
-      <StringSetToggles
-        options={SEVENTH_INVERSION_OPTIONS}
-        selected={selectedSeventhInversions}
-        onToggle={onToggleSeventhInversion}
-        ariaLabel="Inversions"
-      />
-    </div>
+    </ViewFrame>
   );
 }

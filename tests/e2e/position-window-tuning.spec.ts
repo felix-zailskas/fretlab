@@ -9,6 +9,7 @@ test.describe("position-window tuning offset", () => {
     await page.goto("/");
 
     // Select C# Standard
+    await page.getByRole("button", { name: /^Settings/ }).click();
     await page.getByRole("button", { name: /Tuning: Standard/ }).click();
     await page.getByRole("option", { name: /C# Standard/ }).click();
 
@@ -16,7 +17,7 @@ test.describe("position-window tuning offset", () => {
     await page.getByRole("tab", { name: "Scale Positions" }).click();
 
     // Enable P2 (default is P1 only)
-    await page.locator('button[title^="P2-shape"]').click();
+    await page.locator('[data-testid="region-toggle"][data-region-id="P2"]').click();
 
     // P2 window for C major in C# Standard should be frets 5-8
     const window = page.locator(
@@ -37,7 +38,7 @@ test.describe("position-window tuning offset", () => {
     await page.getByRole("tab", { name: "Scale Positions" }).click();
 
     // Enable P2
-    await page.locator('button[title^="P2-shape"]').click();
+    await page.locator('[data-testid="region-toggle"][data-region-id="P2"]').click();
 
     // P2 window for C major in Standard should be frets 2-5
     const window = page.locator(
@@ -51,6 +52,7 @@ test.describe("position-window tuning offset", () => {
     await page.goto("/");
 
     // Select D Standard
+    await page.getByRole("button", { name: /^Settings/ }).click();
     await page.getByRole("button", { name: /Tuning: Standard/ }).click();
     await page.getByRole("option", { name: /D Standard/ }).click();
 
@@ -58,7 +60,7 @@ test.describe("position-window tuning offset", () => {
     await page.getByRole("tab", { name: "Scale Positions" }).click();
 
     // Enable P2
-    await page.locator('button[title^="P2-shape"]').click();
+    await page.locator('[data-testid="region-toggle"][data-region-id="P2"]').click();
 
     // P2 window for C major in D Standard should be frets 4-7
     const window = page.locator(

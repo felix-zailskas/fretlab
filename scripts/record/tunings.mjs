@@ -1,10 +1,19 @@
 import { join } from "node:path";
-import { newDarkContext, loadApp, toGif, outDir, STEP, HOLD } from "./_lib.mjs";
+import {
+  newDarkContext,
+  loadApp,
+  toGif,
+  selectKey,
+  outDir,
+  STEP,
+  SHORT,
+  HOLD,
+} from "./_lib.mjs";
 
 // Stays on Note Map throughout — that's the view that actually works in every
-// tuning. Showcases the grouped selector and demonstrates how the open-string
-// notes and in-key labels shift on the fretboard across step-down standards,
-// open tunings, drop tunings, and modal tunings.
+// tuning. Showcases the grouped selector (in the Settings popover) and how the
+// open-string notes and in-key labels shift across step-down standards, open
+// tunings, drop tunings, and modal tunings.
 //
 // Key is set to G major so the in-key tones (G/B/D) light up as roots/thirds/
 // fifths in the tunings whose open strings include them — Standard, Open G,
@@ -17,20 +26,21 @@ export async function record(browser) {
 
   // Switch to G major so open strings produce visible chord-tone color in
   // most of the cycled tunings. I (G major triad) stays selected by default.
-  await page.getByRole("button", { name: "G", exact: true }).click();
+  await selectKey(page, "G");
   await page.waitForTimeout(HOLD);
 
-  const tuningTrigger = page.getByRole("button", { name: /Tuning:/ });
-
-  // Each pickTuning() opens the popover (showing the grouped categories) and
-  // clicks an option, so the viewer sees the grouped selector at every step
-  // without needing a dedicated intro. The fretboard re-renders with the new
-  // open-string notes between picks; G's R/3/5 redistribute across the neck
-  // as the tuning changes.
+  // Each pickTuning() opens Settings and the tuning popover (showing the
+  // grouped categories), clicks an option, then closes Settings so the board
+  // is unobstructed for the hold.
   async function pickTuning(optionMatcher) {
-    await tuningTrigger.click();
+    await page.getByRole("button", { name: /^Settings/ }).click();
+    await page.waitForTimeout(SHORT);
+    await page.getByRole("button", { name: /Tuning:/ }).click();
     await page.waitForTimeout(STEP);
     await page.getByRole("option", { name: optionMatcher }).first().click();
+    await page.waitForTimeout(SHORT);
+    await page.keyboard.press("Escape");
+    await page.evaluate(() => document.activeElement?.blur());
     await page.waitForTimeout(HOLD);
   }
 

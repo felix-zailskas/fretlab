@@ -10,6 +10,9 @@ import {
   type BarreOverlay,
   type UnplayedStringOverlay,
 } from "./ShapeOverlays";
+import { RegionToggles, type RegionToggle } from "./RegionToggles";
+import { useMarkerTransitions } from "./useMarkerTransitions";
+import { PreviewRings } from "./PreviewRings";
 
 export type PositionWindow = {
   id: string;
@@ -33,6 +36,11 @@ type FretboardProps = {
   // Full-chord grip overlays (Chord Shapes → CAGED).
   barres?: ReadonlyArray<BarreOverlay>;
   unplayedStrings?: ReadonlyArray<UnplayedStringOverlay>;
+  // Clickable region labels (positions, CAGED shapes) in the strip above the
+  // board. When given, they replace the windows' own text labels.
+  regionToggles?: ReadonlyArray<RegionToggle>;
+  // The next chord's targets while a progression previews it.
+  previewMarkers?: ReadonlyArray<NoteMarker>;
   // When set, an overlay with this message renders on top of the fretboard.
   // The presence of the message is the signal — omit it to render normally.
   emptyMessage?: string;
@@ -41,14 +49,17 @@ type FretboardProps = {
   onToggleString: (stringIndex: number) => void;
 };
 
-// PADDING.top reserves space above the board for position-window labels.
-// boardTop = PADDING.top, so increasing top padding pushes the whole board
-// down and exposes a header strip for label text.
+// PADDING.top reserves space above the board for region labels. The strip
+// collapses to LABEL_STRIP_COLLAPSED when there is nothing to label.
 // PADDING.left reserves space for open-note markers (rendered at nutX-20)
 // AND the string-toggle eye column (rendered at viewBox-x=0..STRING_TOGGLE_RIGHT).
 // Increasing left padding pushes the nut right so both can sit side-by-side
 // without overlap.
 const PADDING = { top: 40, bottom: 40, left: 70, right: 20 };
+// Must clear a root note on the top string: radius 14 + characteristic ring
+// 3 + stroke, so nothing is clipped at the SVG's top edge.
+const LABEL_STRIP_COLLAPSED = 20;
+const LABEL_Y = 20;
 // X range reserved for the string-toggle eye column (viewBox coords). The
 // eye column lives flush-left in this strip; the rest of PADDING.left is
 // open-note marker territory.
@@ -121,13 +132,22 @@ export function Fretboard({
   overlapZones,
   barres,
   unplayedStrings,
+  regionToggles,
+  previewMarkers,
   emptyMessage,
   tuning,
   enabledStrings,
   onToggleString,
 }: FretboardProps) {
-  const boardTop = PADDING.top;
-  const boardBottom = PADDING.top + (NUM_STRINGS - 1) * STRING_SPACING;
+  const { current: currentMarkers, leaving: leavingMarkers } =
+    useMarkerTransitions(markers);
+  const hasRegionToggles = (regionToggles?.length ?? 0) > 0;
+  const showWindowLabels =
+    !hasRegionToggles && (positionWindows?.some((w) => w.label !== "") ?? false);
+  const padTop =
+    hasRegionToggles || showWindowLabels ? PADDING.top : LABEL_STRIP_COLLAPSED;
+  const boardTop = padTop;
+  const boardBottom = padTop + (NUM_STRINGS - 1) * STRING_SPACING;
   const boardWidth = 900;
 
   // effectiveStart preserves today's "fretCount = endFret" visual scale
@@ -347,10 +367,31 @@ export function Fretboard({
           />
         )}
 
-        {/* Note markers */}
-        {markers.map((marker, i) => (
+        {/* Note markers — keyed by position so a note held across a chord
+          change recolours in place; removed notes fade out underneath. */}
+        {previewMarkers && previewMarkers.length > 0 && (
+          <PreviewRings
+            markers={previewMarkers}
+            fretCenterX={fretCenterX}
+            stringY={stringY}
+          />
+        )}
+        {leavingMarkers.map(({ key, marker }) => (
           <NoteCircle
-            key={`${marker.string}-${marker.fret}-${marker.role}-${i}`}
+            key={`leaving-${key}`}
+            leaving
+            cx={fretCenterX(marker.fret)}
+            cy={stringY(marker.string)}
+            note={marker.note}
+            role={marker.role}
+            isCharacteristic={marker.isCharacteristic}
+            isOutsideKey={marker.isOutsideKey}
+            isNonPentatonic={marker.isNonPentatonic}
+          />
+        ))}
+        {currentMarkers.map(({ key, marker }) => (
+          <NoteCircle
+            key={key}
             cx={fretCenterX(marker.fret)}
             cy={stringY(marker.string)}
             note={marker.note}
@@ -365,27 +406,39 @@ export function Fretboard({
 
         {/* Position-window labels — placed in the dedicated header strip above
           the board (the boardTop padding reserves this space). */}
-        {positionWindows?.map((win) => {
-          const leftX = windowLeftX(win.low);
-          const rightX = windowRightX(win.high);
-          const centerX = (leftX + rightX) / 2;
-          return (
-            <text
-              key={`label-${win.id}`}
-              x={centerX}
-              y={22}
-              textAnchor="middle"
-              fontSize={13}
-              fontWeight={500}
-              fontFamily="system-ui, sans-serif"
-              fill="var(--color-fg-primary)"
-              style={{ letterSpacing: "0.04em" }}
-            >
-              {win.label}
-            </text>
-          );
-        })}
+        {showWindowLabels &&
+          positionWindows?.map((win) => {
+            const leftX = windowLeftX(win.low);
+            const rightX = windowRightX(win.high);
+            const centerX = (leftX + rightX) / 2;
+            return (
+              <text
+                key={`label-${win.id}`}
+                x={centerX}
+                y={LABEL_Y + 2}
+                textAnchor="middle"
+                fontSize={13}
+                fontWeight={500}
+                fontFamily="system-ui, sans-serif"
+                fill="var(--color-fg-primary)"
+                style={{ letterSpacing: "0.04em" }}
+              >
+                {win.label}
+              </text>
+            );
+          })}
       </svg>
+      {hasRegionToggles && (
+        <RegionToggles
+          toggles={regionToggles!}
+          regionCenterX={(low, high) => (windowLeftX(low) + windowRightX(high)) / 2}
+          minX={nutX - 30}
+          maxX={nutX + boardWidth}
+          y={LABEL_Y}
+          totalWidth={totalWidth}
+          totalHeight={totalHeight}
+        />
+      )}
       {emptyMessage && (
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
           <div className="px-4 py-2 rounded bg-surface-raised text-fg-primary shadow">

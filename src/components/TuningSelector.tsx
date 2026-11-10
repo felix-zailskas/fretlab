@@ -7,6 +7,7 @@ import {
   type CustomTuningId,
   type TuningId,
 } from "../theory/tuning";
+import { SETTINGS_TRIGGER } from "./controlStyles";
 
 type TuningSelectorProps = {
   tuningId: AnyTuningId;
@@ -36,6 +37,7 @@ export function TuningSelector({
 }: TuningSelectorProps) {
   const [open, setOpen] = useState(false);
   const wrapperRef = useRef<HTMLDivElement | null>(null);
+  const triggerRef = useRef<HTMLButtonElement | null>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -49,7 +51,10 @@ export function TuningSelector({
       }
     }
     function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape") setOpen(false);
+      if (e.key !== "Escape") return;
+      setOpen(false);
+      // Hand focus back to the trigger rather than dropping it on <body>.
+      triggerRef.current?.focus();
     }
     document.addEventListener("mousedown", onClick);
     document.addEventListener("keydown", onKey);
@@ -75,13 +80,15 @@ export function TuningSelector({
   return (
     <div className="relative flex items-center gap-2" ref={wrapperRef}>
       <button
+        ref={triggerRef}
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="px-3 py-2.5 pointer-coarse:py-3 rounded text-sm font-semibold bg-surface-raised text-fg-secondary hover:bg-surface-active cursor-pointer"
+        className={SETTINGS_TRIGGER}
         aria-haspopup="listbox"
+        aria-label={`Tuning: ${activeName}`}
         aria-expanded={open}
       >
-        Tuning: {activeName} ▾
+        {activeName} ▾
       </button>
       <button
         type="button"
@@ -91,9 +98,9 @@ export function TuningSelector({
         aria-disabled={editDisabled}
         aria-label="Edit tuning"
         title={editDisabled ? "Select a custom tuning to edit" : "Edit tuning"}
-        className={`px-2.5 py-2.5 pointer-coarse:py-3 rounded text-sm bg-surface-raised text-fg-secondary transition-transform active:scale-[0.97] ${
+        className={`relative px-2.5 py-1.5 pointer-coarse:py-2 touch-target rounded border border-line bg-surface text-sm text-fg-secondary transition-transform active:scale-[0.97] ${
           editDisabled
-            ? "opacity-50 cursor-not-allowed"
+            ? "opacity-40 cursor-not-allowed"
             : "hover:bg-surface-active cursor-pointer"
         }`}
       >

@@ -70,7 +70,9 @@ describe("createTransport", () => {
     metronome.emit(0, 0.05);
     metronome.currentTime = 0.05;
     frames.flush();
-    expect(onPosition).toHaveBeenCalledWith({ slotIndex: 0, beatInBar: 0 });
+    expect(onPosition).toHaveBeenCalledWith(
+      expect.objectContaining({ slotIndex: 0, beatInBar: 0 }),
+    );
   });
 
   it("offsets metronome beats by startBeat", () => {
@@ -78,7 +80,9 @@ describe("createTransport", () => {
     metronome.emit(0, 0);
     metronome.currentTime = 1;
     frames.flush();
-    expect(onPosition).toHaveBeenCalledWith({ slotIndex: 1, beatInBar: 0 });
+    expect(onPosition).toHaveBeenCalledWith(
+      expect.objectContaining({ slotIndex: 1, beatInBar: 0 }),
+    );
   });
 
   it("wraps to the first slot when loop is on", () => {
@@ -86,7 +90,9 @@ describe("createTransport", () => {
     metronome.emit(8, 0);
     metronome.currentTime = 1;
     frames.flush();
-    expect(onPosition).toHaveBeenCalledWith({ slotIndex: 0, beatInBar: 0 });
+    expect(onPosition).toHaveBeenCalledWith(
+      expect.objectContaining({ slotIndex: 0, beatInBar: 0 }),
+    );
   });
 
   it("ends after the last slot when loop is off", () => {
@@ -114,7 +120,9 @@ describe("createTransport", () => {
     metronome.emit(2, 0);
     metronome.currentTime = 1;
     frames.flush();
-    expect(onPosition).toHaveBeenCalledWith({ slotIndex: 1, beatInBar: 2 });
+    expect(onPosition).toHaveBeenCalledWith(
+      expect.objectContaining({ slotIndex: 1, beatInBar: 2 }),
+    );
   });
 
   it("gives the metronome accents from the timeline beat", () => {
@@ -152,8 +160,8 @@ describe("createTransport", () => {
     metronome.currentTime = 1;
     frames.flush();
     expect(onPosition.mock.calls).toEqual([
-      [{ slotIndex: 0, beatInBar: 0 }],
-      [{ slotIndex: 1, beatInBar: 1 }],
+      [expect.objectContaining({ slotIndex: 0, beatInBar: 0 })],
+      [expect.objectContaining({ slotIndex: 1, beatInBar: 1 })],
     ]);
   });
 

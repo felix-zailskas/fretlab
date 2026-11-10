@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect } from "vitest";
 import { useState } from "react";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -11,7 +11,6 @@ type HarnessProps = {
   selectedKey?: string;
   modalMode?: Mode;
   rowMode?: ChordRowMode;
-  onAdd?: (ref: ChordRef) => void;
 };
 
 // Mirrors App's wiring: onSelect toggles the selected ref.
@@ -19,7 +18,6 @@ function Harness({
   selectedKey = "C",
   modalMode = "ionian",
   rowMode = "triads",
-  onAdd,
 }: HarnessProps) {
   const [selectedRef, setSelectedRef] = useState<ChordRef | null>(null);
   return (
@@ -30,7 +28,6 @@ function Harness({
       onRowModeChange={() => {}}
       selectedRef={selectedRef}
       onSelect={(ref) => setSelectedRef((prev) => toggleChordRef(prev, ref))}
-      onAdd={onAdd}
     />
   );
 }
@@ -49,11 +46,21 @@ function emptyDegreesIn(tier: string): number[] {
 }
 
 describe("ChordMap", () => {
-  it("labels the three tiers with key and mode", () => {
+  it("names the key and mode once, and the borrowing source on its tier", () => {
     render(<Harness modalMode="dorian" />);
+    expect(
+      screen.getByRole("heading", { name: "Chords in C Dorian" }),
+    ).toBeInTheDocument();
     expect(screen.getByText("Secondary dominants")).toBeInTheDocument();
-    expect(screen.getByText("Diatonic (C Dorian)")).toBeInTheDocument();
-    expect(screen.getByText("Borrowed (C Ionian (Major))")).toBeInTheDocument();
+    expect(screen.getByText("Diatonic")).toBeInTheDocument();
+    expect(screen.getByText("Borrowed from C Ionian (Major)")).toBeInTheDocument();
+  });
+
+  it("shows each chord's notes on its card", () => {
+    render(<Harness rowMode="sevenths" />);
+    expect(screen.getByRole("button", { name: "V7/ii A7" })).toHaveTextContent(
+      "A C# E G",
+    );
   });
 
   it("renders 7 diatonic cards", () => {
@@ -104,94 +111,11 @@ describe("ChordMap", () => {
     expect(pressed.map((c) => c.getAttribute("aria-label"))).toEqual(["V7/V D7"]);
   });
 
-  it("shows no ＋ buttons without onAdd", () => {
-    render(<Harness />);
-    expect(screen.queryAllByRole("button", { name: /to progression/ })).toHaveLength(0);
-  });
-
-  it("shows one ＋ button per chord with onAdd", () => {
-    render(<Harness onAdd={() => {}} />);
-    expect(screen.getAllByRole("button", { name: /to progression/ })).toHaveLength(
-      screen.getAllByTestId("chord-card").length,
-    );
-  });
-
-  it("calls onAdd with the chord's ref from its ＋ button", async () => {
-    const onAdd = vi.fn();
-    render(<Harness rowMode="sevenths" onAdd={onAdd} />);
-    await userEvent.click(
-      screen.getByRole("button", { name: "Add A7 to progression" }),
-    );
-    expect(onAdd).toHaveBeenCalledWith({ tier: "secondary", degree: 2 });
-  });
-
-  it("does not select the card when its ＋ button is clicked", async () => {
-    render(<Harness rowMode="sevenths" onAdd={() => {}} />);
-    await userEvent.click(
-      screen.getByRole("button", { name: "Add A7 to progression" }),
-    );
-    expect(screen.getByRole("button", { name: "V7/ii A7" })).toHaveAttribute(
-      "aria-pressed",
-      "false",
-    );
-  });
-
   it("renders no chord tiers for the All key", () => {
     render(<Harness selectedKey={ALL_NOTES_KEY} />);
     expect(screen.queryAllByTestId("chord-card")).toHaveLength(0);
     expect(screen.queryAllByTestId("chord-cell-empty")).toHaveLength(0);
     expect(screen.queryByRole("heading", { level: 3 })).not.toBeInTheDocument();
-  });
-});
-
-describe("ChordMap — progression toggle", () => {
-  function renderMap(extra: Partial<Parameters<typeof ChordMap>[0]> = {}) {
-    render(
-      <ChordMap
-        selectedKey="C"
-        modalMode="ionian"
-        rowMode="triads"
-        onRowModeChange={() => {}}
-        selectedRef={null}
-        onSelect={() => {}}
-        {...extra}
-      />,
-    );
-  }
-
-  const PROGRESSION_TOGGLE = "Progression/Metronome";
-
-  it("is absent without onToggleProgression", () => {
-    renderMap();
-    expect(
-      screen.queryByRole("button", { name: PROGRESSION_TOGGLE }),
-    ).not.toBeInTheDocument();
-  });
-
-  it("reflects visibility with aria-pressed", () => {
-    renderMap({ progressionVisible: true, onToggleProgression: () => {} });
-    expect(screen.getByRole("button", { name: PROGRESSION_TOGGLE })).toHaveAttribute(
-      "aria-pressed",
-      "true",
-    );
-  });
-
-  it("calls onToggleProgression", async () => {
-    const onToggle = vi.fn();
-    renderMap({ progressionVisible: false, onToggleProgression: onToggle });
-    await userEvent.click(screen.getByRole("button", { name: PROGRESSION_TOGGLE }));
-    expect(onToggle).toHaveBeenCalledTimes(1);
-  });
-
-  it("keeps the toggle available under the All key", async () => {
-    const onToggle = vi.fn();
-    renderMap({
-      selectedKey: ALL_NOTES_KEY,
-      progressionVisible: false,
-      onToggleProgression: onToggle,
-    });
-    expect(screen.queryAllByTestId("chord-card")).toHaveLength(0);
-    await userEvent.click(screen.getByRole("button", { name: PROGRESSION_TOGGLE }));
-    expect(onToggle).toHaveBeenCalledTimes(1);
+    expect(screen.getByText("Pick a key to see its chords.")).toBeInTheDocument();
   });
 });

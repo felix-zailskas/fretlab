@@ -75,6 +75,46 @@ describe("useProgressionPlayer — state", () => {
   });
 });
 
+describe("useProgressionPlayer — next-chord preview", () => {
+  // Plays F then G (one bar each, 4/4) up to and including `lastBeat`.
+  async function playTo(lastBeat: number, preview: number) {
+    prime({ preview });
+    const setupResult = setup();
+    const { result, metronome } = setupResult;
+    act(() => result.current.add(F));
+    act(() => result.current.add(G));
+    act(() => result.current.play());
+    metronome.currentTime = 10;
+    act(() => {
+      for (let beat = 0; beat <= lastBeat; beat++) metronome.emit(beat, beat * 0.5);
+    });
+    await waitFor(() => expect(result.current.currentSlot).toBe(0));
+    return setupResult;
+  }
+
+  it("previews the next slot on the last beat", async () => {
+    const { result } = await playTo(3, 1);
+    await waitFor(() => expect(result.current.previewSlot).toBe(1));
+  });
+
+  it("does not preview before the last beat", async () => {
+    const { result } = await playTo(2, 1);
+    await waitFor(() => expect(result.current.beatInSlot).toBe(2));
+    expect(result.current.previewSlot).toBeNull();
+  });
+
+  it("previews for the last 4 beats when set to 4", async () => {
+    const { result } = await playTo(0, 4);
+    await waitFor(() => expect(result.current.previewSlot).toBe(1));
+  });
+
+  it("never previews when set to 0", async () => {
+    const { result } = await playTo(3, 0);
+    await waitFor(() => expect(result.current.beatInSlot).toBe(3));
+    expect(result.current.previewSlot).toBeNull();
+  });
+});
+
 describe("useProgressionPlayer — playback", () => {
   it("announces the slot's chord when its first beat sounds", async () => {
     const { result, metronome, onChordChange } = setup();
@@ -276,15 +316,5 @@ describe("useProgressionPlayer — metronome only", () => {
     act(() => result.current.play());
     act(() => result.current.setTimeSignature({ beats: 3, unit: 4 }));
     expect([metronome.starts, result.current.isPlaying]).toEqual([2, true]);
-  });
-});
-
-describe("useProgressionPlayer — visibility", () => {
-  it("hiding the panel stops playback", () => {
-    const { result, metronome } = setup();
-    act(() => result.current.add(F));
-    act(() => result.current.play());
-    act(() => result.current.setVisible(false));
-    expect([result.current.isPlaying, metronome.running]).toEqual([false, false]);
   });
 });

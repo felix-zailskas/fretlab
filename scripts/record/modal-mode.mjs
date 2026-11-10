@@ -4,9 +4,11 @@ import {
   loadApp,
   toGif,
   chordRowMode,
+  selectKey,
+  selectMode,
+  inSettings,
   outDir,
   STEP,
-  SHORT,
   HOLD,
 } from "./_lib.mjs";
 
@@ -17,40 +19,40 @@ export async function record(browser) {
   await loadApp(page);
 
   // Stay on Note Map (default) — it's the cleanest view to show modal effects.
-  // Sevenths mode for the chord row so modal Roman numerals show maj7/m7/etc.
+  // Sevenths mode for the chord map so modal Roman numerals show maj7/m7/etc.
   await chordRowMode(page).getByRole("radio", { name: "Sevenths" }).click();
   await page.waitForTimeout(STEP);
 
   // Cycle modes Ionian → Dorian → Phrygian → Lydian → Mixolydian → Aeolian → Locrian.
-  // Exact match — "Lydian" is a substring of "Mixolydian".
-  const modeRadio = (name) => page.getByRole("radio", { name, exact: true });
   for (const mode of [
-    "Dorian",
-    "Phrygian",
-    "Lydian",
-    "Mixolydian",
-    "Aeolian (Minor)",
-    "Locrian",
+    "dorian",
+    "phrygian",
+    "lydian",
+    "mixolydian",
+    "aeolian",
+    "locrian",
   ]) {
-    await modeRadio(mode).click();
+    await selectMode(page, mode);
     await page.waitForTimeout(HOLD);
   }
   // Back to Ionian briefly before the parent-key demo.
-  await modeRadio("Ionian (Major)").click();
+  await selectMode(page, "ionian");
   await page.waitForTimeout(STEP);
 
-  // Switch to D Lydian — accidental should auto-flip to sharps (parent A major).
-  await page.getByRole("button", { name: "D", exact: true }).click();
-  await page.waitForTimeout(SHORT);
-  await modeRadio("Lydian").click();
+  // D Lydian — spelling auto-flips to sharps (parent A major).
+  await selectKey(page, "D");
+  await page.waitForTimeout(STEP);
+  await selectMode(page, "lydian");
   await page.waitForTimeout(HOLD);
 
-  // Switch to D Phrygian — accidental should auto-flip to flats (parent Bb major).
-  await modeRadio("Phrygian").click();
+  // D Phrygian — spelling auto-flips to flats (parent Bb major).
+  await selectMode(page, "phrygian");
   await page.waitForTimeout(HOLD);
 
-  // Manual override: click sharp — sticks until next key/mode change.
-  await page.locator('button[title="Sharp spelling"]').click();
+  // Manual override in Settings: sharps stick until the next key/mode change.
+  await inSettings(page, (settings) =>
+    settings.locator('button[title="Sharp spelling"]').click(),
+  );
   await page.waitForTimeout(HOLD);
 
   const video = page.video();

@@ -7,6 +7,7 @@ test.describe("view gating — non-CAGED tunings", () => {
     await page.goto("/");
 
     // Switch to Open G — use .first() to disambiguate from "Open Gm"
+    await page.getByRole("button", { name: /^Settings/ }).click();
     await page.getByRole("button", { name: /Tuning: Standard/ }).click();
     await page
       .getByRole("option", { name: /Open G/ })
@@ -30,6 +31,7 @@ test.describe("view gating — non-CAGED tunings", () => {
     await page.goto("/");
 
     // Switch to Open G — use .first() to disambiguate from "Open Gm"
+    await page.getByRole("button", { name: /^Settings/ }).click();
     await page.getByRole("button", { name: /Tuning: Standard/ }).click();
     await page
       .getByRole("option", { name: /Open G/ })
@@ -43,7 +45,9 @@ test.describe("view gating — non-CAGED tunings", () => {
     await page.getByRole("button", { name: "Switch to Standard" }).click();
 
     // Trigger label back to Standard
-    await expect(page.getByRole("button", { name: /Tuning: Standard/ })).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: /^Settings: Standard ·/ }),
+    ).toBeVisible();
 
     // Still on Scale Positions tab
     await expect(page.getByRole("tab", { name: "Scale Positions" })).toHaveAttribute(

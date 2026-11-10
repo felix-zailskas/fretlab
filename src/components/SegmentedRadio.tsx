@@ -1,3 +1,5 @@
+import { GROUP_SINGLE, segmentClass } from "./controlStyles";
+
 type Option<Id extends string> = {
   id: Id;
   label: string;
@@ -8,6 +10,8 @@ type SegmentedRadioProps<Id extends string> = {
   selected: Id;
   onChange: (id: Id) => void;
   ariaLabel: string;
+  disabled?: boolean;
+  title?: string;
 };
 
 // Single-choice counterpart to StringSetToggles: same segmented look, but
@@ -17,12 +21,16 @@ export function SegmentedRadio<Id extends string>({
   selected,
   onChange,
   ariaLabel,
+  disabled,
+  title,
 }: SegmentedRadioProps<Id>) {
   return (
     <div
-      className="inline-flex rounded overflow-hidden border border-line"
+      className={`${GROUP_SINGLE} ${disabled ? "opacity-40" : ""}`}
       role="radiogroup"
       aria-label={ariaLabel}
+      aria-disabled={disabled}
+      title={title}
     >
       {options.map((opt) => (
         <button
@@ -30,12 +38,9 @@ export function SegmentedRadio<Id extends string>({
           type="button"
           role="radio"
           aria-checked={selected === opt.id}
+          disabled={disabled}
           onClick={() => onChange(opt.id)}
-          className={`px-3 py-1.5 text-sm font-semibold transition-colors cursor-pointer ${
-            selected === opt.id
-              ? "bg-surface-active text-fg-emphasis"
-              : "bg-surface text-fg-muted hover:bg-surface-raised"
-          }`}
+          className={`${segmentClass(selected === opt.id)} disabled:cursor-not-allowed`}
         >
           {opt.label}
         </button>

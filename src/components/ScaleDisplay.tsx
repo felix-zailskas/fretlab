@@ -1,5 +1,6 @@
 import type { ChordToneSource } from "../theory/harmony";
 import {
+  getCharacteristicNotes,
   getModalScaleNotes,
   MODE_DEGREE_LABELS,
   MODE_NAMES,
@@ -39,9 +40,11 @@ export function ScaleDisplay({
   const notes = getModalScaleNotes(selectedKey, mode);
   const labels = MODE_DEGREE_LABELS[mode];
   const steps = MODE_STEPS[mode].slice(0, notes.length - 1);
+  // Outlined in the same gold as the characteristic ring on the board.
+  const characteristic = new Set(getCharacteristicNotes(selectedKey, mode));
 
   const gridStyle = {
-    gridTemplateColumns: `auto repeat(${notes.length}, auto)`,
+    gridTemplateColumns: `repeat(${notes.length}, auto)`,
   };
 
   return (
@@ -53,12 +56,6 @@ export function ScaleDisplay({
           className="inline-grid items-center gap-x-2 gap-y-1 text-sm"
           style={gridStyle}
         >
-          <span
-            className="hidden md:inline text-xs text-fg-muted uppercase tracking-wide self-center"
-            style={{ gridRow: 1, gridColumn: 1 }}
-          >
-            {selectedKey} {MODE_NAMES[mode]}
-          </span>
           {notes.map((note, i) => {
             let role = roleFromChordTone(note, selectedChord);
             if (
@@ -76,8 +73,11 @@ export function ScaleDisplay({
                 key={`pill-${i}-${note}`}
                 role="listitem"
                 aria-label={`Degree ${labels[i]}, ${note}`}
-                className={`flex items-baseline gap-1 px-2 py-1 rounded border ${pillClasses}`}
-                style={{ gridRow: 1, gridColumn: i + 2 }}
+                data-characteristic={characteristic.has(note) || undefined}
+                className={`flex items-baseline gap-1 px-2 py-1.5 rounded border ${pillClasses} ${
+                  characteristic.has(note) ? "ring-1 ring-characteristic" : ""
+                }`}
+                style={{ gridRow: 1, gridColumn: i + 1 }}
               >
                 <span className="text-xs opacity-70">{labels[i]}</span>
                 <span className="font-semibold">{note}</span>
@@ -87,8 +87,8 @@ export function ScaleDisplay({
           {steps.map((step, i) => (
             <span
               key={`step-${i}`}
-              className="text-xs leading-none text-fg-muted text-center select-none px-1.5 py-0.5 rounded bg-surface-raised mx-auto"
-              style={{ gridRow: 2, gridColumn: `${i + 2} / span 2` }}
+              className="text-xs leading-none text-fg-secondary text-center select-none px-1.5 py-0.5 rounded bg-surface-raised mx-auto"
+              style={{ gridRow: 2, gridColumn: `${i + 1} / span 2` }}
               title={step === "half" ? "Half step" : "Whole step"}
             >
               {step === "half" ? "H" : "W"}
