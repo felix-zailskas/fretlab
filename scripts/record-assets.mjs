@@ -8,6 +8,10 @@
 //   node scripts/record-assets.mjs hero       # one
 //   node scripts/record-assets.mjs note-map tunings
 //
+// Point FRETLAB_URL at another server to record from it instead, e.g. a
+// worktree's dev server or the live site:
+//   FRETLAB_URL=http://localhost:5188/ node scripts/record-assets.mjs
+//
 // Requires ffmpeg on PATH for WebM → GIF conversion.
 
 import { chromium } from "playwright";
@@ -18,20 +22,24 @@ import { record as recordHero } from "./record/hero.mjs";
 import { record as recordNoteMap } from "./record/note-map.mjs";
 import { record as recordScalePositions } from "./record/scale-positions.mjs";
 import { record as recordChordShapes } from "./record/chord-shapes.mjs";
+import { record as recordCagedShapes } from "./record/caged-shapes.mjs";
 import { record as recordModalMode } from "./record/modal-mode.mjs";
 import { record as recordTunings } from "./record/tunings.mjs";
 import { record as recordCustomTuning } from "./record/custom-tuning.mjs";
 import { record as recordStringToggle } from "./record/string-toggle.mjs";
+import { record as recordProgression } from "./record/progression.mjs";
 
 const RECORDERS = {
   hero: recordHero,
   "note-map": recordNoteMap,
   "scale-positions": recordScalePositions,
   "chord-shapes": recordChordShapes,
+  "caged-shapes": recordCagedShapes,
   "modal-mode": recordModalMode,
   tunings: recordTunings,
   "custom-tuning": recordCustomTuning,
   "string-toggle": recordStringToggle,
+  progression: recordProgression,
 };
 
 const requested = process.argv.slice(2);

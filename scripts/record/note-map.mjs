@@ -4,6 +4,9 @@ import {
   loadApp,
   toGif,
   chordRowMode,
+  highlightRoles,
+  selectKey,
+  inSettings,
   outDir,
   STEP,
   SHORT,
@@ -20,14 +23,15 @@ export async function record(browser) {
   await chordRowMode(page).getByRole("radio", { name: "Sevenths" }).click();
   await page.waitForTimeout(STEP);
 
-  // Cycle keys: C → G → D → Eb (flip to flats first for Eb).
-  await page.getByRole("button", { name: "G", exact: true }).click();
+  // Cycle keys: C → G → D → Eb. Eb needs flat spelling, set in Settings.
+  await selectKey(page, "G");
   await page.waitForTimeout(STEP);
-  await page.getByRole("button", { name: "D", exact: true }).click();
+  await selectKey(page, "D");
   await page.waitForTimeout(STEP);
-  await page.locator('button[title="Flat spelling"]').click();
-  await page.waitForTimeout(SHORT);
-  await page.getByRole("button", { name: "Eb", exact: true }).click();
+  await inSettings(page, (settings) =>
+    settings.locator('button[title="Flat spelling"]').click(),
+  );
+  await selectKey(page, "Eb");
   await page.waitForTimeout(HOLD);
 
   // Cycle chords I → ii → iii → IV → V → vi → vii° via 1-7 shortcuts.
@@ -39,9 +43,9 @@ export async function record(browser) {
   await page.keyboard.press("1");
   await page.waitForTimeout(STEP);
 
-  // Toggle 3rd / 5th / 7th in Legend (off then on).
+  // Toggle 3rd / 5th / 7th in the legend's Highlight group (off then on).
   for (const role of ["3rd", "5th", "7th"]) {
-    const btn = page.getByRole("button", { name: role, exact: true });
+    const btn = highlightRoles(page).getByRole("button", { name: role, exact: true });
     await btn.click();
     await page.waitForTimeout(SHORT);
     await btn.click();
@@ -49,13 +53,13 @@ export async function record(browser) {
   }
   await page.waitForTimeout(STEP);
 
-  // Sharp → flat already done; flip back so the All Notes view is in the
-  // sharp default the README caption assumes.
-  await page.locator('button[title="Sharp spelling"]').click();
-  await page.waitForTimeout(SHORT);
+  // Back to sharps so the All notes view shows the sharp default.
+  await inSettings(page, (settings) =>
+    settings.locator('button[title="Sharp spelling"]').click(),
+  );
 
-  // Switch key to All Notes — disables key filtering.
-  await page.getByRole("button", { name: "All", exact: true }).click();
+  // Switch key to All notes — disables key filtering.
+  await selectKey(page, "all");
   await page.waitForTimeout(HOLD);
 
   const video = page.video();

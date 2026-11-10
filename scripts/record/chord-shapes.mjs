@@ -7,6 +7,7 @@ import {
   voicingSystem,
   stringGroups,
   inversions,
+  highlightRoles,
   outDir,
   STEP,
   HOLD,
@@ -15,56 +16,53 @@ import {
 
 export async function record(browser) {
   const start = Date.now();
-  // The view's controls now live below the fretboard, so the standard
-  // 1440x900 viewport fits everything without clipping.
   const context = await newDarkContext(browser, true);
   const page = await context.newPage();
   await loadApp(page);
 
-  // Switch to Chord Shapes tab. Default state: Triads mode, 1-2-3 string-set,
-  // all 3 triad inversions selected → shapes render immediately.
+  // Switch to Chord Shapes tab. Default state: Inversions, Triads, strings
+  // 1-2-3 and all three triad inversions → shapes render immediately.
   await page.getByRole("tab", { name: "Chord Shapes" }).click();
   await page.waitForTimeout(HOLD);
 
-  // Switch to 7ths mode via the chord-row toggle (drives the Chord Shapes
-  // view's mode now that ShapeHeader is gone). Defaults carry over: low
-  // position (3-4-5-6 in close voicing) and Root inversion — board stays
-  // populated.
+  // Add a second string group from its fretboard-slice icon so shapes
+  // ascend the neck.
+  await stringGroups(page)
+    .getByRole("button", { name: "Strings 2-3-4 (middle strings)" })
+    .click();
+  await page.waitForTimeout(HOLD);
+
+  // Narrow to root position only.
+  for (const inv of ["1st", "2nd"]) {
+    await inversions(page).getByRole("button", { name: inv, exact: true }).click();
+    await page.waitForTimeout(STEP);
+  }
+  await page.waitForTimeout(STEP);
+
+  // Switch to 7ths via the chord map's toggle. Defaults carry over: low
+  // position and Root inversion — the board stays populated.
   await chordRowMode(page).getByRole("radio", { name: "Sevenths" }).click();
   await page.waitForTimeout(HOLD);
 
-  // Cycle voicing systems with Root inversion + low position kept ON the whole
-  // time, so each system renders the Cmaj7 root voicing in its own shape.
-  // Exact match — "Drop 2" is a substring of "Drop 2&4".
-  for (const sys of ["Drop 2", "Drop 3", "Drop 2&4"]) {
-    await voicingSystem(page).getByRole("radio", { name: sys, exact: true }).click();
+  // Cycle voicing systems; each renders the Cmaj7 root voicing in its shape.
+  for (const sys of ["drop2", "drop3", "drop2-4"]) {
+    await voicingSystem(page).selectOption(sys);
     await page.waitForTimeout(HOLD);
   }
   // Back to Close for the next steps.
-  await voicingSystem(page).getByRole("radio", { name: "Close", exact: true }).click();
+  await voicingSystem(page).selectOption("close");
   await page.waitForTimeout(STEP);
 
-  // Add 1st Inversion alongside Root — two voicings now stacked on low.
-  await inversions(page).getByRole("button", { name: "1st Inversion" }).click();
+  // Add 1st inversion alongside Root — two voicings now stacked.
+  await inversions(page).getByRole("button", { name: "1st", exact: true }).click();
   await page.waitForTimeout(HOLD);
 
-  // Add the mid string-set (2-3-4-5 in close voicing) — Root + 1st rendered
-  // on both low and mid, populating more of the neck.
-  await stringGroups(page).getByRole("button", { name: "2-3-4-5" }).click();
-  await page.waitForTimeout(HOLD);
-
-  // Switch back to Triads via the chord-row toggle — voicing selector hides,
-  // string-sets become 1-2-3 / 2-3-4 / 3-4-5 / 4-5-6, and the triad-side
-  // state (1-2-3 + all 3 inversions) takes over so shapes are still on screen.
+  // Back to Triads — the voicing select hides and triad string groups return.
   await chordRowMode(page).getByRole("radio", { name: "Triads" }).click();
   await page.waitForTimeout(HOLD);
 
-  // Add a 2nd triad string-set so shapes ascend the neck.
-  await stringGroups(page).getByRole("button", { name: "2-3-4" }).click();
-  await page.waitForTimeout(HOLD);
-
-  // Toggle 3rd off in Legend — markers demote to plain scale tones.
-  await page.getByRole("button", { name: "3rd", exact: true }).click();
+  // Toggle 3rd off in the legend — markers demote to plain scale tones.
+  await highlightRoles(page).getByRole("button", { name: "3rd", exact: true }).click();
   await page.waitForTimeout(HOLD);
 
   const video = page.video();
