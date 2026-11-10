@@ -14,11 +14,13 @@ export function PlayerTransport({ player }: { player: ProgressionPlayer }) {
       timeSignature={state.timeSignature}
       click={state.click}
       loop={state.loop}
+      preview={state.preview}
       onTogglePlay={player.toggle}
       onBpmChange={player.setBpm}
       onTimeSignatureChange={player.setTimeSignature}
       onClickChange={player.setClick}
       onLoopChange={player.setLoop}
+      onPreviewChange={player.setPreview}
       onClear={player.clear}
     />
   );

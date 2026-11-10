@@ -40,7 +40,18 @@ function Harness({ selectedKey = "C" }: { selectedKey?: string }) {
         Add F
       </button>
       <PlayerTransport player={player} />
-      <ProgressionLane player={player} noKey={selectedKey === ALL_NOTES_KEY} />
+      <ProgressionLane
+        player={player}
+        noKey={selectedKey === ALL_NOTES_KEY}
+        picker={
+          <button
+            type="button"
+            onClick={() => player.add({ tier: "diatonic", degree: 5 })}
+          >
+            Pick G
+          </button>
+        }
+      />
     </>
   );
 }
@@ -55,11 +66,35 @@ afterEach(() => {
 });
 
 describe("ProgressionLane — slots", () => {
-  it("takes no space while the progression is empty", () => {
+  it("prompts to start a progression while it is empty", () => {
     render(<Harness />);
     expect(
-      screen.queryByRole("region", { name: "Progression" }),
-    ).not.toBeInTheDocument();
+      screen.getByRole("button", { name: "＋ Start a progression" }),
+    ).toBeInTheDocument();
+  });
+
+  it("adds from the picker and keeps it open for the next chord", async () => {
+    render(<Harness />);
+    await userEvent.click(
+      screen.getByRole("button", { name: "＋ Start a progression" }),
+    );
+    await userEvent.click(screen.getByRole("button", { name: "Pick G" }));
+    expect([
+      screen.getByRole("button", { name: "Select G" }) !== null,
+      screen.queryByRole("dialog", { name: "Add chord" }) !== null,
+      screen
+        .getByRole("button", { name: "＋ Add chord" })
+        .getAttribute("aria-expanded"),
+    ]).toEqual([true, true, "true"]);
+  });
+
+  it("closes the picker on Escape", async () => {
+    render(<Harness />);
+    await userEvent.click(
+      screen.getByRole("button", { name: "＋ Start a progression" }),
+    );
+    await userEvent.keyboard("{Escape}");
+    expect(screen.queryByRole("dialog", { name: "Add chord" })).not.toBeInTheDocument();
   });
 
   it("adds a slot", async () => {
@@ -104,6 +139,26 @@ describe("ProgressionLane — slots", () => {
 });
 
 describe.each(TIME_SIGNATURE_PRESETS.map((p) => [timeSignatureLabel(p), p] as const))(
+  "beat ticks in %s",
+  (_label, preset) => {
+    it.each(allowedSlotLengths(preset))(
+      "marks every beat of a %s-bar chord, the 1 of each bar stronger",
+      (bars) => {
+        prime({
+          timeSignature: preset,
+          slots: [{ id: "f", ref: { tier: "diatonic", degree: 4 }, bars }],
+        });
+        render(<Harness />);
+        const beats = Math.round(bars * preset.beats);
+        const downbeats = Math.ceil(bars);
+        expect(screen.getAllByTestId("bar-tick")).toHaveLength(downbeats);
+        expect(screen.queryAllByTestId("beat-tick")).toHaveLength(beats - downbeats);
+      },
+    );
+  },
+);
+
+describe.each(TIME_SIGNATURE_PRESETS.map((p) => [timeSignatureLabel(p), p] as const))(
   "length stepper in %s",
   (_label, preset) => {
     const allowed = allowedSlotLengths(preset);
@@ -138,9 +193,6 @@ describe("ProgressionLane — transport and visibility", () => {
     render(<Harness />);
     await userEvent.click(screen.getByRole("button", { name: "Play" }));
     expect(screen.getByRole("button", { name: "Stop" })).toBeInTheDocument();
-    expect(
-      screen.queryByRole("region", { name: "Progression" }),
-    ).not.toBeInTheDocument();
   });
 
   it("plays when nothing on the strip resolves", async () => {
@@ -172,14 +224,6 @@ describe("ProgressionLane — transport and visibility", () => {
     await userEvent.click(screen.getByRole("button", { name: "Add F" }));
     await userEvent.click(screen.getByRole("button", { name: "Play" }));
     expect(screen.getByRole("button", { name: "Stop" })).toBeInTheDocument();
-  });
-
-  it("renders nothing when hidden", () => {
-    prime({ visible: false });
-    render(<Harness />);
-    expect(
-      screen.queryByRole("region", { name: "Progression" }),
-    ).not.toBeInTheDocument();
   });
 
   it("under the All key, the lane hides but the transport stays usable", () => {

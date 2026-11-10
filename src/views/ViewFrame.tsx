@@ -8,6 +8,9 @@ export type ViewChrome = {
   tabs: ReactNode;
   scaleName: string;
   scale: ReactNode;
+  // Symbols every view adds while they can appear (the progression's
+  // next-chord preview).
+  sharedSymbols: ReadonlyArray<SymbolKind>;
 };
 
 type ViewFrameProps = {
@@ -45,7 +48,7 @@ export function ViewFrame({
       {children}
       <LegendPanel
         highlight={highlight}
-        symbols={symbols}
+        symbols={[...symbols, ...chrome.sharedSymbols]}
         scaleName={chrome.scaleName}
         scale={chrome.scale}
       />

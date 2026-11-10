@@ -37,6 +37,14 @@ describe("AboutModal", () => {
     );
   });
 
+  it("explains the progression player and its Space shortcut", () => {
+    render(<AboutModal open={true} onClose={() => {}} />);
+    expect(
+      screen.getByRole("heading", { name: "Progressions and the metronome" }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Space")).toBeInTheDocument();
+  });
+
   it("renders the app version with a leading 'v'", () => {
     render(<AboutModal open={true} onClose={() => {}} />);
     const version = screen.getByTestId("app-version");

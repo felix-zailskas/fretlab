@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useCallback, useRef, useState, type ReactNode } from "react";
 import { BUTTON } from "./controlStyles";
+import { usePopoverDismiss } from "./usePopoverDismiss";
 
 type SettingsMenuProps = {
   // Shown on the trigger so the current tuning and fret range stay visible
@@ -34,25 +35,8 @@ export function SettingsMenu({ summary, children }: SettingsMenuProps) {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
 
-  useEffect(() => {
-    if (!open) return;
-    function onMouseDown(e: MouseEvent) {
-      if (!wrapperRef.current?.contains(e.target as Node)) setOpen(false);
-    }
-    function onKey(e: KeyboardEvent) {
-      if (e.key !== "Escape") return;
-      // A nested dropdown (tuning, frets) closes first on its own Escape.
-      if (wrapperRef.current?.querySelector("[data-popover], [role='listbox']")) return;
-      setOpen(false);
-      triggerRef.current?.focus();
-    }
-    document.addEventListener("mousedown", onMouseDown);
-    document.addEventListener("keydown", onKey);
-    return () => {
-      document.removeEventListener("mousedown", onMouseDown);
-      document.removeEventListener("keydown", onKey);
-    };
-  }, [open]);
+  const close = useCallback(() => setOpen(false), []);
+  usePopoverDismiss(open, close, wrapperRef, triggerRef);
 
   return (
     <div className="relative" ref={wrapperRef}>

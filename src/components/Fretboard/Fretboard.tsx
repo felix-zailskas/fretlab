@@ -11,6 +11,8 @@ import {
   type UnplayedStringOverlay,
 } from "./ShapeOverlays";
 import { RegionToggles, type RegionToggle } from "./RegionToggles";
+import { useMarkerTransitions } from "./useMarkerTransitions";
+import { PreviewRings } from "./PreviewRings";
 
 export type PositionWindow = {
   id: string;
@@ -37,6 +39,8 @@ type FretboardProps = {
   // Clickable region labels (positions, CAGED shapes) in the strip above the
   // board. When given, they replace the windows' own text labels.
   regionToggles?: ReadonlyArray<RegionToggle>;
+  // The next chord's targets while a progression previews it.
+  previewMarkers?: ReadonlyArray<NoteMarker>;
   // When set, an overlay with this message renders on top of the fretboard.
   // The presence of the message is the signal — omit it to render normally.
   emptyMessage?: string;
@@ -129,11 +133,14 @@ export function Fretboard({
   barres,
   unplayedStrings,
   regionToggles,
+  previewMarkers,
   emptyMessage,
   tuning,
   enabledStrings,
   onToggleString,
 }: FretboardProps) {
+  const { current: currentMarkers, leaving: leavingMarkers } =
+    useMarkerTransitions(markers);
   const hasRegionToggles = (regionToggles?.length ?? 0) > 0;
   const showWindowLabels =
     !hasRegionToggles && (positionWindows?.some((w) => w.label !== "") ?? false);
@@ -360,10 +367,31 @@ export function Fretboard({
           />
         )}
 
-        {/* Note markers */}
-        {markers.map((marker, i) => (
+        {/* Note markers — keyed by position so a note held across a chord
+          change recolours in place; removed notes fade out underneath. */}
+        {previewMarkers && previewMarkers.length > 0 && (
+          <PreviewRings
+            markers={previewMarkers}
+            fretCenterX={fretCenterX}
+            stringY={stringY}
+          />
+        )}
+        {leavingMarkers.map(({ key, marker }) => (
           <NoteCircle
-            key={`${marker.string}-${marker.fret}-${marker.role}-${i}`}
+            key={`leaving-${key}`}
+            leaving
+            cx={fretCenterX(marker.fret)}
+            cy={stringY(marker.string)}
+            note={marker.note}
+            role={marker.role}
+            isCharacteristic={marker.isCharacteristic}
+            isOutsideKey={marker.isOutsideKey}
+            isNonPentatonic={marker.isNonPentatonic}
+          />
+        ))}
+        {currentMarkers.map(({ key, marker }) => (
+          <NoteCircle
+            key={key}
             cx={fretCenterX(marker.fret)}
             cy={stringY(marker.string)}
             note={marker.note}

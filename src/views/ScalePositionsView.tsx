@@ -1,4 +1,6 @@
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
+import { previewTargets } from "../theory/chordPreview";
+import type { DisabledRoles } from "../components/Legend";
 import {
   Fretboard,
   type OverlapZone,
@@ -29,8 +31,10 @@ type ScalePositionsViewProps = {
   selectedKey: string;
   enabledHighlights: Set<HighlightableRole>;
   onToggleRole: (role: HighlightableRole) => void;
-  disabledRoles?: Set<HighlightableRole>;
+  disabledRoles?: DisabledRoles;
   selectedChord: ChordToneSource | null;
+  // The progression's next chord while it is being previewed.
+  previewChord?: ChordToneSource | null;
   startFret: number;
   endFret: number;
   controls: ScalePositionsControls;
@@ -53,6 +57,7 @@ export function ScalePositionsView({
   onToggleRole,
   disabledRoles,
   selectedChord,
+  previewChord = null,
   startFret,
   endFret,
   controls,
@@ -116,6 +121,7 @@ export function ScalePositionsView({
         id: p.id,
         label: p.id,
         sub: mode === "ionian" ? p.shape : undefined,
+        ariaLabel: `Position ${p.id.slice(1)}${mode === "ionian" ? ` (${p.shape} shape)` : ""}`,
         on: selectedPositions.has(p.id),
         low: first?.[0],
         high: first?.[1],
@@ -138,12 +144,12 @@ export function ScalePositionsView({
     return computeOverlapZones(parentKey, positionsArray, startFret, endFret, tuning);
   }, [tuning, selectedKey, parentKey, positionsArray, startFret, endFret]);
 
-  const markers = useMemo(
-    () =>
+  const markersFor = useCallback(
+    (chord: ChordToneSource | null) =>
       buildChordToneMarkers({
         tuning,
         key: selectedKey,
-        chord: selectedChord,
+        chord,
         positions: positionsArray,
         showContext,
         enabledHighlights,
@@ -156,7 +162,6 @@ export function ScalePositionsView({
     [
       tuning,
       selectedKey,
-      selectedChord,
       positionsArray,
       showContext,
       enabledHighlights,
@@ -166,6 +171,11 @@ export function ScalePositionsView({
       mode,
       scaleType,
     ],
+  );
+  const markers = useMemo(() => markersFor(selectedChord), [markersFor, selectedChord]);
+  const previewMarkers = useMemo(
+    () => (previewChord ? previewTargets(markers, markersFor(previewChord)) : []),
+    [markersFor, markers, previewChord],
   );
 
   // No early return for ALL_NOTES_KEY — keep the fretboard mounted so the
@@ -219,6 +229,7 @@ export function ScalePositionsView({
     >
       <Fretboard
         markers={markers}
+        previewMarkers={previewMarkers}
         startFret={startFret}
         endFret={endFret}
         positionWindows={positionWindows}

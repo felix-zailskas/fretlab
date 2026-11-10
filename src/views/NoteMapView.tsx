@@ -1,4 +1,6 @@
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
+import { previewTargets } from "../theory/chordPreview";
+import type { DisabledRoles } from "../components/Legend";
 import { Fretboard } from "../components/Fretboard/Fretboard";
 import { Legend } from "../components/Legend";
 import type { HighlightableRole } from "../theory/types";
@@ -18,8 +20,10 @@ type NoteMapViewProps = {
   accidentalStyle: AccidentalStyle;
   enabledHighlights: Set<HighlightableRole>;
   onToggleRole: (role: HighlightableRole) => void;
-  disabledRoles?: Set<HighlightableRole>;
+  disabledRoles?: DisabledRoles;
   selectedChord: ChordToneSource | null;
+  // The progression's next chord while it is being previewed.
+  previewChord?: ChordToneSource | null;
   startFret: number;
   endFret: number;
   enabledStrings: ReadonlySet<number>;
@@ -38,20 +42,21 @@ export function NoteMapView({
   onToggleRole,
   disabledRoles,
   selectedChord,
+  previewChord = null,
   startFret,
   endFret,
   enabledStrings,
   onToggleString,
   mode = "ionian",
 }: NoteMapViewProps) {
-  const markers = useMemo(
-    () =>
+  const markersFor = useCallback(
+    (chord: ChordToneSource | null) =>
       buildNoteMapMarkers({
         tuning,
         key: selectedKey,
         mode,
         accidentalStyle,
-        chord: selectedChord,
+        chord,
         enabledHighlights,
         enabledStrings,
         startFret,
@@ -62,12 +67,16 @@ export function NoteMapView({
       selectedKey,
       mode,
       accidentalStyle,
-      selectedChord,
       enabledHighlights,
       enabledStrings,
       startFret,
       endFret,
     ],
+  );
+  const markers = useMemo(() => markersFor(selectedChord), [markersFor, selectedChord]);
+  const previewMarkers = useMemo(
+    () => (previewChord ? previewTargets(markers, markersFor(previewChord)) : []),
+    [markersFor, markers, previewChord],
   );
 
   return (
@@ -84,6 +93,7 @@ export function NoteMapView({
     >
       <Fretboard
         markers={markers}
+        previewMarkers={previewMarkers}
         startFret={startFret}
         endFret={endFret}
         tuning={tuning}

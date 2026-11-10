@@ -40,12 +40,12 @@ test.describe("pentatonic switch", () => {
 
   test("Dorian disables the switch and resets it to Full", async ({ page }) => {
     await page.getByRole("button", { name: "Pentatonic" }).click();
-    await page.getByRole("radio", { name: "Dorian" }).click();
+    await page.getByRole("combobox", { name: "Mode" }).selectOption("dorian");
 
     await expect(page.getByRole("button", { name: "Pentatonic" })).toBeDisabled();
     await expect(marker(page, "F").first()).toBeVisible();
 
-    await page.getByRole("radio", { name: "Ionian" }).click();
+    await page.getByRole("combobox", { name: "Mode" }).selectOption("ionian");
     await expect(page.getByRole("button", { name: "Full" })).toHaveAttribute(
       "aria-pressed",
       "true",

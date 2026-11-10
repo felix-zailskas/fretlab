@@ -60,6 +60,7 @@ export function ProgressionSlotCard({
   const playable = chord !== null;
   const label = chord?.symbol ?? `slot ${index + 1}`;
   const lengthIndex = allowedLengths.indexOf(slot.bars);
+  const slotBeats = Math.round(slot.bars * beatsPerBar);
 
   return (
     <li
@@ -125,10 +126,39 @@ export function ProgressionSlotCard({
         ×
       </button>
       <SlotProgress
-        fraction={isCurrent ? (beatInSlot + 1) / (slot.bars * beatsPerBar) : 0}
+        fraction={isCurrent ? (beatInSlot + 1) / slotBeats : 0}
         beatSeconds={secondsPerBeat(bpm)}
       />
+      <BeatTicks beats={slotBeats} beatsPerBar={beatsPerBar} />
     </li>
+  );
+}
+
+// A tick per beat along the progress track: the 1 of each bar tall and
+// bright, the other beats short and faint, so you can read both which bar
+// and which beat the fill is in. Drawn on every chip (not only the playing
+// one) so nothing appears or shifts on play, and over the fill so the ticks
+// stay readable as it passes them.
+function BeatTicks({ beats, beatsPerBar }: { beats: number; beatsPerBar: number }) {
+  return (
+    <>
+      {Array.from({ length: beats }, (_, i) => {
+        const downbeat = i % beatsPerBar === 0;
+        return (
+          <span
+            key={i}
+            aria-hidden="true"
+            data-testid={downbeat ? "bar-tick" : "beat-tick"}
+            className={`absolute bottom-0.5 -translate-x-1/2 ${
+              downbeat ? "h-2 w-0.5 bg-fg-emphasis" : "h-1 w-px bg-fg-faint"
+            }`}
+            // Accepted inline-style exception: position is a runtime fraction
+            // of the chip (same precedent as SlotProgress below).
+            style={{ left: `calc(3px + ${i / beats} * (100% - 6px))` }}
+          />
+        );
+      })}
+    </>
   );
 }
 

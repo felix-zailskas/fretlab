@@ -1,11 +1,10 @@
 import { describe, it, expect, beforeEach, beforeAll, afterEach, vi } from "vitest";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import App from "./App";
 import type { CustomTuning } from "./theory/tuning";
 import { STORAGE_KEY } from "./theory/customTuningStorage";
 import { FakeAudioContext } from "./audio/testing";
-import { PROGRESSION_STORAGE_KEY } from "./theory/progressionStorage";
 
 // App uses window.innerWidth during initialisation (for default fret range).
 // jsdom defaults to 0 which is falsy but shouldn't throw; no mock needed.
@@ -28,8 +27,6 @@ beforeAll(() => {
     });
   }
 });
-
-const PROGRESSION_TOGGLE = "Edit progression";
 
 const CAGED_CUSTOM: CustomTuning = {
   id: "custom:1715600000-aaa",
@@ -238,14 +235,20 @@ describe("App — secondary dominants in triads mode", () => {
 
   it("disables the 7th toggle again for a triad selection in triads mode", async () => {
     render(<App />);
-    expect(screen.getByRole("button", { name: "7th" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "7th" })).toHaveAttribute(
+      "aria-disabled",
+      "true",
+    );
   });
 
   it("disables the 7th toggle in Chord Shapes with V7/ii selected", async () => {
     render(<App />);
     await userEvent.click(screen.getByRole("button", { name: /^V7\/ii A7/ }));
     await userEvent.click(screen.getByRole("tab", { name: /Chord Shapes/ }));
-    expect(screen.getByRole("button", { name: "7th" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "7th" })).toHaveAttribute(
+      "aria-disabled",
+      "true",
+    );
   });
 
   it("Chord Shapes CAGED voices V7/ii as a dom7 grip with the 7th available", async () => {
@@ -263,7 +266,10 @@ describe("App — secondary dominants in triads mode", () => {
     render(<App />);
     await userEvent.click(screen.getByRole("tab", { name: /Chord Shapes/ }));
     await userEvent.click(screen.getByRole("radio", { name: "CAGED" }));
-    expect(screen.getByRole("button", { name: "7th" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "7th" })).toHaveAttribute(
+      "aria-disabled",
+      "true",
+    );
   });
 
   it("Chord Shapes voices the triad of V7/ii without a seventh", async () => {
@@ -287,15 +293,18 @@ describe("App — progression player", () => {
     vi.unstubAllGlobals();
   });
 
+  // Adds F through the lane's picker, then closes the picker.
   async function addF() {
+    await userEvent.click(screen.getByRole("button", { name: /^＋/ }));
     await userEvent.click(screen.getByRole("button", { name: "Add F to progression" }));
+    await userEvent.keyboard("{Escape}");
   }
 
   function blurActive() {
     (document.activeElement as HTMLElement | null)?.blur();
   }
 
-  it("＋ on a chord card adds it to the progression", async () => {
+  it("adds a chord from the lane's picker", async () => {
     render(<App />);
     await addF();
     expect(screen.getByRole("button", { name: "Select F" })).toBeInTheDocument();
@@ -310,23 +319,6 @@ describe("App — progression player", () => {
         '[data-testid="chord-card"][data-tier="diatonic"][data-degree="4"]',
       ),
     ).toHaveAttribute("aria-pressed", "true");
-  });
-
-  it("Edit progression hides the ＋ buttons but keeps the lane", async () => {
-    render(<App />);
-    await addF();
-    await userEvent.click(screen.getByRole("button", { name: PROGRESSION_TOGGLE }));
-    expect([
-      screen.queryByRole("region", { name: "Progression" }) !== null,
-      screen.queryByRole("button", { name: "Add F to progression" }),
-    ]).toEqual([true, null]);
-  });
-
-  it("persists the hidden state", async () => {
-    render(<App />);
-    await userEvent.click(screen.getByRole("button", { name: PROGRESSION_TOGGLE }));
-    const stored = JSON.parse(localStorage.getItem(PROGRESSION_STORAGE_KEY) ?? "{}");
-    expect(stored.visible).toBe(false);
   });
 
   it("Space toggles playback", async () => {
@@ -372,23 +364,16 @@ describe("App — progression player", () => {
     },
   );
 
+  it("keeps the chord map free of add buttons", () => {
+    render(<App />);
+    const map = screen.getByRole("region", { name: "Chord map" });
+    expect(
+      within(map).queryAllByRole("button", { name: /to progression/ }),
+    ).toHaveLength(0);
+  });
+
   it("Space plays the metronome with an empty progression", async () => {
     render(<App />);
-    blurActive();
-    await userEvent.keyboard(" ");
-    expect(screen.getByRole("button", { name: "Stop" })).toBeInTheDocument();
-  });
-
-  it("leaving edit mode keeps playback running", async () => {
-    render(<App />);
-    await userEvent.click(screen.getByRole("button", { name: "Play" }));
-    await userEvent.click(screen.getByRole("button", { name: PROGRESSION_TOGGLE }));
-    expect(screen.getByRole("button", { name: "Stop" })).toBeInTheDocument();
-  });
-
-  it("Space toggles playback outside edit mode too", async () => {
-    render(<App />);
-    await userEvent.click(screen.getByRole("button", { name: PROGRESSION_TOGGLE }));
     blurActive();
     await userEvent.keyboard(" ");
     expect(screen.getByRole("button", { name: "Stop" })).toBeInTheDocument();

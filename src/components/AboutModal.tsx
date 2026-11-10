@@ -1,4 +1,5 @@
 import { Fragment, useEffect } from "react";
+import { CONTROLS, PROGRESSION, SHORTCUTS, VIEWS } from "./aboutContent";
 
 type AboutModalProps = {
   open: boolean;
@@ -16,40 +17,18 @@ const CLOSE_ICON = (
   </svg>
 );
 
-const CONTROLS = [
-  ["Key", "Pick any of the 12 keys, or All Notes to see the full chromatic set."],
-  [
-    "Mode",
-    "Switch between the 7 diatonic modes. The chord row, CAGED windows, and characteristic-tone markers re-anchor automatically.",
-  ],
-  [
-    "Chord row",
-    "Select any of the 7 diatonic chords. Toggle between Triads and Sevenths.",
-  ],
-  [
-    "R 3 5 7",
-    "Show or hide each chord-tone role on the fretboard. The 7th toggle is only active in Sevenths mode.",
-  ],
-  [
-    "♭ / ♯",
-    "Toggle between flat and sharp accidental display for the chromatic All-Notes view. In-scale notes are always spelled diatonically (C♯ Ionian → B♯, not C).",
-  ],
-  ["Fret range", "Configure which frets are visible (0–24)."],
-  [
-    "Tuning",
-    "Choose from 18 presets — Standard, open, drop, DADGAD, All Fourths, and more — or define your own custom tunings (saved locally and persisted across reloads).",
-  ],
-  [
-    "String focus",
-    "The eye icons on the left of every fretboard mute individual strings. Muted strings keep showing the same set of notes, dimmed.",
-  ],
-] as const;
-
-const SHORTCUTS = [
-  ["1 - 7", "Select chord degree"],
-  ["t", "Switch to Triads mode"],
-  ["s", "Switch to Sevenths mode"],
-] as const;
+function TermList({ items }: { items: ReadonlyArray<readonly [string, string]> }) {
+  return (
+    <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5">
+      {items.map(([term, desc]) => (
+        <Fragment key={term}>
+          <dt className="font-medium text-fg-primary whitespace-nowrap">{term}</dt>
+          <dd className="text-fg-muted">{desc}</dd>
+        </Fragment>
+      ))}
+    </dl>
+  );
+}
 
 export function AboutModal({ open, onClose }: AboutModalProps) {
   useEffect(() => {
@@ -117,47 +96,26 @@ export function AboutModal({ open, onClose }: AboutModalProps) {
             </p>
           </section>
 
-          <section className="space-y-4">
+          <section className="space-y-3">
             <h3 className="text-base font-semibold text-fg-primary">The three views</h3>
-            <div className="space-y-1">
-              <h4 className="font-semibold text-fg-primary">Note Map</h4>
-              <p>
-                Visualise every in-key note across the full neck. Select any chord from
-                the diatonic row and the root, 3rd, 5th, and 7th light up in their fixed
-                colours. Use the R&nbsp;3&nbsp;5&nbsp;7 toggles to focus on individual
-                chord-tone roles.
-              </p>
-            </div>
-            <div className="space-y-1">
-              <h4 className="font-semibold text-fg-primary">Scale Positions</h4>
-              <p>
-                Toggle any of the five CAGED box positions. Overlap zones show where
-                adjacent positions connect, useful for practising transitions between
-                positions.
-              </p>
-            </div>
-            <div className="space-y-1">
-              <h4 className="font-semibold text-fg-primary">Chord Shapes</h4>
-              <p>
-                Browse triad and seventh-chord voicings (Close, Drop&nbsp;2,
-                Drop&nbsp;3, Drop&nbsp;2&amp;4) across all string sets and inversions.
-                Cycle through diatonic chords to see each voicing at every fitting fret.
-              </p>
-            </div>
+            {VIEWS.map(([name, desc]) => (
+              <div key={name} className="space-y-1">
+                <h4 className="font-semibold text-fg-primary">{name}</h4>
+                <p>{desc}</p>
+              </div>
+            ))}
           </section>
 
           <section className="space-y-3">
             <h3 className="text-base font-semibold text-fg-primary">Controls</h3>
-            <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5">
-              {CONTROLS.map(([term, desc]) => (
-                <Fragment key={term}>
-                  <dt className="font-medium text-fg-primary whitespace-nowrap">
-                    {term}
-                  </dt>
-                  <dd className="text-fg-muted">{desc}</dd>
-                </Fragment>
-              ))}
-            </dl>
+            <TermList items={CONTROLS} />
+          </section>
+
+          <section className="space-y-3">
+            <h3 className="text-base font-semibold text-fg-primary">
+              Progressions and the metronome
+            </h3>
+            <TermList items={PROGRESSION} />
           </section>
 
           <section className="space-y-3">

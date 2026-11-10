@@ -46,11 +46,12 @@ for (const { tuningName, namePattern, openStrings } of cases) {
     // Open the tuning selector and pick the target tuning. The option's
     // accessible name is "<TuningName> <string notes>", so we match on a
     // pattern anchored at the start.
+    await page.getByRole("button", { name: /^Settings/ }).click();
     await page.getByRole("button", { name: /Tuning:/ }).click();
     await page.getByRole("option", { name: namePattern }).first().click();
 
     // Select "All Notes" key to disable in-key filtering
-    await page.getByRole("button", { name: "All" }).click();
+    await page.getByRole("combobox", { name: "Key" }).selectOption("all");
 
     // Verify each open-string note
     for (let stringIdx = 0; stringIdx < openStrings.length; stringIdx++) {

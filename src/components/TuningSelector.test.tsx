@@ -15,9 +15,7 @@ describe("TuningSelector", () => {
         onOpenEditModal={() => {}}
       />,
     );
-    expect(screen.getByRole("button", { name: /Tuning:/ })).toHaveTextContent(
-      "Tuning: Open G",
-    );
+    expect(screen.getByRole("button", { name: /Tuning:/ })).toHaveTextContent("Open G");
   });
 
   it("popover is closed by default; opens on trigger click", async () => {
@@ -132,6 +130,23 @@ describe("TuningSelector", () => {
     await userEvent.keyboard("{Escape}");
     expect(screen.queryByRole("listbox")).not.toBeInTheDocument();
   });
+
+  it("returns focus to the trigger on Escape", async () => {
+    render(
+      <TuningSelector
+        tuningId="standard"
+        customs={[]}
+        onTuningChange={() => {}}
+        onOpenCreateModal={() => {}}
+        onOpenEditModal={() => {}}
+      />,
+    );
+    const trigger = screen.getByRole("button", { name: /Tuning:/ });
+    await userEvent.click(trigger);
+    (document.activeElement as HTMLElement | null)?.blur();
+    await userEvent.keyboard("{Escape}");
+    expect(trigger).toHaveFocus();
+  });
 });
 
 const SAMPLE_CUSTOM: CustomTuning = {
@@ -202,7 +217,7 @@ describe("TuningSelector — custom tunings", () => {
       />,
     );
     expect(screen.getByRole("button", { name: /Tuning:/ })).toHaveTextContent(
-      "Tuning: My DADGAD",
+      "My DADGAD",
     );
   });
 

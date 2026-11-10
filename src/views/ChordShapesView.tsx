@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import type { DisabledRoles } from "../components/Legend";
 import { Fretboard } from "../components/Fretboard/Fretboard";
 import type { RegionToggle } from "../components/Fretboard/RegionToggles";
 import type { SymbolKind } from "../components/legend/SymbolKey";
@@ -9,16 +10,16 @@ import {
   buildCagedPlacements,
   CAGED_GRIPS,
   CAGED_SHAPE_ORDER,
-  dedupeMarkers,
   type CagedQuality,
 } from "../theory/cagedShapes";
+import { type ChordShapesMode, type SeventhStringSet } from "../theory/chordShapes";
+import { previewTargets } from "../theory/chordPreview";
 import {
-  buildChordShapeMarkers,
-  type ChordShapesMode,
-  type SeventhStringSet,
-} from "../theory/chordShapes";
+  chordShapeMarkersFor,
+  type ChordShapeMarkerOptions,
+} from "./chordShapeMarkers";
 import type { Tuning } from "../theory/tuning";
-import { triadOf, type ChordRowMode, type ChordToneSource } from "../theory/harmony";
+import { type ChordRowMode, type ChordToneSource } from "../theory/harmony";
 import { type Mode } from "../theory/modes";
 import { type ChordShapesControls } from "./useChordShapesState";
 import { ChordShapesSubModes } from "./ChordShapesSubModes";
@@ -32,10 +33,12 @@ type ChordShapesViewProps = {
   startFret: number;
   endFret: number;
   selectedChord: ChordToneSource | null;
+  // The progression's next chord while it is being previewed.
+  previewChord?: ChordToneSource | null;
   chordRowMode: ChordRowMode;
   enabledHighlights: Set<HighlightableRole>;
   onToggleRole: (role: HighlightableRole) => void;
-  disabledRoles?: Set<HighlightableRole>;
+  disabledRoles?: DisabledRoles;
   controls: ChordShapesControls;
   modalMode: Mode;
   enabledStrings: ReadonlySet<number>;
@@ -64,6 +67,7 @@ export function ChordShapesView({
   startFret,
   endFret,
   selectedChord,
+  previewChord = null,
   chordRowMode,
   enabledHighlights,
   onToggleRole,
@@ -150,72 +154,55 @@ export function ChordShapesView({
     toggleCagedShape,
   ]);
 
-  const markers = useMemo(() => {
-    if (!selectedChord) return [];
-    if (isCaged) return dedupeMarkers(cagedPlacements);
-    if (mode === "triads") {
-      return buildChordShapeMarkers({
-        mode: "triads",
-        tuning,
-        modalMode,
-        // Chord Shapes only voices triads; a secondary dominant drops its 7th.
-        chord: triadOf(selectedChord),
-        key: selectedKey,
-        stringSets: Array.from(selectedStringSets),
-        inversions: Array.from(selectedInversions),
-        enabledStrings,
-        startFret,
-        endFret,
-      });
-    }
-    return buildChordShapeMarkers({
-      mode: "sevenths",
+  const markerOptions = useMemo<ChordShapeMarkerOptions>(
+    () => ({
+      isCaged,
+      mode,
       tuning,
       modalMode,
+      selectedKey,
+      cagedShapes: selectedCagedShapes,
+      stringSets: selectedStringSets,
+      inversions: selectedInversions,
       voicingSystem: selectedVoicingSystem,
-      chord: selectedChord,
-      key: selectedKey,
-      stringSets: activeSeventhStringSets,
-      inversions: Array.from(selectedSeventhInversions),
+      seventhStringSets: activeSeventhStringSets,
+      seventhInversions: selectedSeventhInversions,
+      enabledHighlights,
       enabledStrings,
       startFret,
       endFret,
-    });
-  }, [
-    isCaged,
-    cagedPlacements,
-    mode,
-    tuning,
-    modalMode,
-    selectedChord,
-    selectedKey,
-    selectedStringSets,
-    selectedInversions,
-    selectedVoicingSystem,
-    activeSeventhStringSets,
-    selectedSeventhInversions,
-    enabledStrings,
-    startFret,
-    endFret,
-  ]);
-
-  // Demote unselected roles to plain scale tones instead of removing them —
-  // the chord shape stays recognizable while the focus is on the role(s) the
-  // user actually wants to study. Matches the Note Map / Scale Positions
-  // behavior in chordTones.ts so dimmed chord tones look identical to the
-  // surrounding non-highlighted scale notes.
-  //
-  // "muted" is preserved as-is: it carries different intent (the string is
-  // toggled off) and must not be folded into "scale".
+    }),
+    [
+      isCaged,
+      mode,
+      tuning,
+      modalMode,
+      selectedKey,
+      selectedCagedShapes,
+      selectedStringSets,
+      selectedInversions,
+      selectedVoicingSystem,
+      activeSeventhStringSets,
+      selectedSeventhInversions,
+      enabledHighlights,
+      enabledStrings,
+      startFret,
+      endFret,
+    ],
+  );
   const visibleMarkers = useMemo(
+    () => chordShapeMarkersFor(selectedChord, markerOptions),
+    [selectedChord, markerOptions],
+  );
+  const previewMarkers = useMemo(
     () =>
-      markers.map((m) => {
-        if (m.role === "muted") return m;
-        return enabledHighlights.has(m.role as HighlightableRole)
-          ? m
-          : { ...m, role: "scale" as const };
-      }),
-    [markers, enabledHighlights],
+      previewChord
+        ? previewTargets(
+            visibleMarkers,
+            chordShapeMarkersFor(previewChord, markerOptions),
+          )
+        : [],
+    [previewChord, visibleMarkers, markerOptions],
   );
 
   // No early return for ALL_NOTES_KEY — keep the fretboard mounted so the
@@ -280,6 +267,7 @@ export function ChordShapesView({
     >
       <Fretboard
         markers={visibleMarkers}
+        previewMarkers={previewMarkers}
         startFret={startFret}
         endFret={endFret}
         emptyMessage={fretboardMessage}

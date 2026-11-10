@@ -37,9 +37,9 @@ test.describe("chord map", () => {
     page,
   }) => {
     await page.goto("/");
-    await page.getByRole("radio", { name: "Dorian" }).click();
+    await page.getByRole("combobox", { name: "Mode" }).selectOption("dorian");
 
-    await expect(page.getByText("Borrowed (C Ionian (Major))")).toBeVisible();
+    await expect(page.getByText("Borrowed from C Ionian (Major)")).toBeVisible();
     const borrowed = page.locator('[data-testid="chord-card"][data-tier="borrowed"]');
     await expect(borrowed).toHaveCount(5);
     const labels = await borrowed.evaluateAll((els) =>

@@ -10,14 +10,23 @@ import type { HighlightableRole } from "../theory/types";
 const F_MAJOR: ChordToneSource = { quality: "maj", notes: ["F", "A", "C"] };
 const E_DIM: ChordToneSource = { quality: "dim", notes: ["E", "G", "Bb"] };
 
-const CHROME = { tabs: null, scaleName: "F Ionian (Major)", scale: null };
+const CHROME = {
+  tabs: null,
+  scaleName: "F Ionian (Major)",
+  scale: null,
+  sharedSymbols: [],
+};
+
+const C_MAJOR: ChordToneSource = { quality: "maj", notes: ["C", "E", "G"] };
 
 function Harness({
   chord,
+  previewChord = null,
   rowMode = "triads",
   endFret = 15,
 }: {
   chord: ChordToneSource;
+  previewChord?: ChordToneSource | null;
   rowMode?: "triads" | "sevenths";
   endFret?: number;
 }) {
@@ -30,6 +39,7 @@ function Harness({
       startFret={0}
       endFret={endFret}
       selectedChord={chord}
+      previewChord={previewChord}
       chordRowMode={rowMode}
       enabledHighlights={new Set<HighlightableRole>(["root", "third", "fifth"])}
       onToggleRole={() => {}}
@@ -51,6 +61,30 @@ const regionLabels = () =>
     on: b.getAttribute("aria-pressed") === "true",
   }));
 
+describe("ChordShapesView — next-chord preview", () => {
+  const at = (el: Element) =>
+    `${el.getAttribute("data-string")}-${el.getAttribute("data-fret")}`;
+
+  it("rings the next chord's targets, not notes that keep their role", () => {
+    render(<Harness chord={F_MAJOR} previewChord={C_MAJOR} />);
+    const rings = screen.getAllByTestId("preview-ring");
+    const roleNow = new Map(
+      screen
+        .getAllByTestId("note-marker")
+        .map((m) => [at(m), m.getAttribute("data-role")]),
+    );
+    expect(rings.length).toBeGreaterThan(0);
+    expect(rings.some((r) => roleNow.get(at(r)) === r.getAttribute("data-role"))).toBe(
+      false,
+    );
+  });
+
+  it("draws no rings without a chord to preview", () => {
+    render(<Harness chord={F_MAJOR} />);
+    expect(screen.queryAllByTestId("preview-ring")).toHaveLength(0);
+  });
+});
+
 describe("ChordShapesView — Inversions", () => {
   it("draws string groups as icons named by their strings", () => {
     render(<Harness chord={F_MAJOR} />);
@@ -65,6 +99,16 @@ describe("ChordShapesView — Inversions", () => {
       "Strings 3-4-5 (middle strings)",
       "Strings 4-5-6 (low E side)",
     ]);
+  });
+
+  it("gives each string-group icon a tooltip with its name", () => {
+    render(<Harness chord={F_MAJOR} />);
+    expect(screen.getAllByRole("tooltip").map((t) => t.textContent)).toEqual(
+      expect.arrayContaining([
+        "Strings 1-2-3 (high E side)",
+        "Strings 4-5-6 (low E side)",
+      ]),
+    );
   });
 
   it("names drop-3 groups by the string they skip", async () => {

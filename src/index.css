@@ -214,6 +214,43 @@ svg * {
   }
 }
 
+/* Fretboard notes fade in when they appear and out when they leave, so a
+   chord change reads as a change rather than a cut. Notes that stay in
+   place recolour through the svg fill transition above. Duration matches
+   MARKER_FADE_MS in useMarkerTransitions.ts. */
+.note-enter {
+  animation: fadeIn 200ms ease-out;
+}
+
+.note-leave {
+  animation: fadeOut 200ms ease-in forwards;
+}
+
+/* Next-chord preview rings fade from faint to full by half a beat before the
+   change. The duration is a runtime value set as --preview-ramp by App;
+   reduced motion jumps straight to the end state. */
+.preview-ring {
+  animation: previewRamp var(--preview-ramp, 0.3s) ease-in forwards;
+}
+
+@keyframes previewRamp {
+  from {
+    opacity: 0.15;
+  }
+  to {
+    opacity: 0.85;
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
 @keyframes fadeIn {
   from {
     opacity: 0;

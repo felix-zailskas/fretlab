@@ -1,5 +1,11 @@
 import type { ChordRef } from "./harmony";
-import { TIME_SIGNATURE_PRESETS, snapSlotLength, type TimeSignature } from "./meter";
+import {
+  DEFAULT_PREVIEW_BEATS,
+  PREVIEW_BEAT_OPTIONS,
+  TIME_SIGNATURE_PRESETS,
+  snapSlotLength,
+  type TimeSignature,
+} from "./meter";
 
 export const PROGRESSION_STORAGE_KEY = "fretlab:progression:v1";
 export const BPM_MIN = 30;
@@ -14,7 +20,8 @@ export type StoredProgression = {
   bpm: number;
   click: boolean;
   loop: boolean;
-  visible: boolean;
+  // Beats of next-chord preview before each change; 0 is off.
+  preview: number;
 };
 
 export const DEFAULT_PROGRESSION: StoredProgression = {
@@ -24,7 +31,7 @@ export const DEFAULT_PROGRESSION: StoredProgression = {
   bpm: 90,
   click: false,
   loop: true,
-  visible: true,
+  preview: DEFAULT_PREVIEW_BEATS,
 };
 
 const TIERS: readonly string[] = ["secondary", "diatonic", "borrowed"];
@@ -70,16 +77,37 @@ function isStoredProgression(value: unknown): value is StoredProgression {
   if (new Set(ids).size !== ids.length) return false;
   if (!isTimeSignature(value.timeSignature)) return false;
   if (typeof value.bpm !== "number" || !Number.isFinite(value.bpm)) return false;
+  if (value.preview !== undefined && !isStoredPreview(value.preview)) return false;
+  // A stored "visible" flag from before the lane was always shown is ignored.
+  return typeof value.click === "boolean" && typeof value.loop === "boolean";
+}
+
+// Earlier versions stored the preview as "off" | "beat" | "bar"; a missing
+// value predates the preview.
+const LEGACY_PREVIEWS: readonly unknown[] = ["off", "beat", "bar"];
+
+function isStoredPreview(value: unknown): boolean {
   return (
-    typeof value.click === "boolean" &&
-    typeof value.loop === "boolean" &&
-    typeof value.visible === "boolean"
+    PREVIEW_BEAT_OPTIONS.includes(value as number) || LEGACY_PREVIEWS.includes(value)
   );
 }
 
+function previewBeats(value: unknown, sig: TimeSignature): number {
+  if (typeof value === "number") return value;
+  if (value === "off") return 0;
+  if (value === "bar") return sig.beats;
+  return DEFAULT_PREVIEW_BEATS;
+}
+
 function normalize(state: StoredProgression): StoredProgression {
+  // Rebuilt field by field so keys from older versions (e.g. "visible")
+  // don't ride along.
   return {
-    ...state,
+    version: state.version,
+    timeSignature: state.timeSignature,
+    click: state.click,
+    loop: state.loop,
+    preview: previewBeats(state.preview, state.timeSignature),
     bpm: clampBpm(state.bpm),
     slots: state.slots.map((s) => ({
       ...s,

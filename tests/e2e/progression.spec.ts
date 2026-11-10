@@ -1,14 +1,18 @@
 import { test, expect, type Page } from "@playwright/test";
 import { installFakeAudio } from "./fakeAudio";
 
-// C major triads: F, G and Am are unique on the chord map (C also appears as
-// V/IV, so it is avoided here).
+// Adds chords through the lane's picker (it stays open between picks), then
+// closes it. C major triads: F, G and Am are unique on the chord map (C also
+// appears as V/IV, so it is avoided here).
 async function addChords(page: Page, symbols: readonly string[]) {
+  await page.getByRole("button", { name: /^＋/ }).click();
   for (const symbol of symbols) {
     await page
       .getByRole("button", { name: `Add ${symbol} to progression`, exact: true })
       .click();
   }
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("dialog", { name: "Add chord" })).toBeHidden();
 }
 
 async function setBpm(page: Page, bpm: number) {
@@ -86,6 +90,38 @@ test.describe("progression player", () => {
     await expect(page.getByTestId("progression-slot")).toHaveCount(3);
     await expect(page.getByTestId("progression-slot").nth(2)).toContainText("Am");
     await expect(page.getByRole("spinbutton", { name: "BPM" })).toHaveValue("150");
+  });
+
+  test("rings where the next chord's roots land when practising roots", async ({
+    page,
+  }) => {
+    await page.goto("/");
+    // Only Root highlighted: C → Am should ring Am's roots (A), nothing else.
+    await addChords(page, ["C", "Am"]);
+    for (const role of ["3rd", "5th"]) {
+      await page.getByRole("button", { name: role, exact: true }).click();
+    }
+    await page.getByRole("combobox", { name: "Preview next chord" }).selectOption("4");
+    await page.getByRole("button", { name: "Play", exact: true }).click();
+
+    const rings = page.getByTestId("preview-ring");
+    await expect(rings.first()).toBeVisible();
+    const notes = await page
+      .locator('[data-testid="note-marker"]')
+      .evaluateAll((els) =>
+        els.map(
+          (el) =>
+            `${el.getAttribute("data-string")}-${el.getAttribute("data-fret")}=${el.getAttribute("data-note")}`,
+        ),
+      );
+    const ringSpots = await rings.evaluateAll((els) =>
+      els.map(
+        (el) => `${el.getAttribute("data-string")}-${el.getAttribute("data-fret")}`,
+      ),
+    );
+    const noteAt = new Map(notes.map((n) => n.split("=") as [string, string]));
+    expect(new Set(ringSpots.map((spot) => noteAt.get(spot)))).toEqual(new Set(["A"]));
+    await expect(rings.first()).toHaveAttribute("data-role", "root");
   });
 
   test("plays as a metronome with an empty progression", async ({ page }) => {

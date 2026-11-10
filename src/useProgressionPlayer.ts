@@ -9,7 +9,11 @@ import {
   type MapChord,
 } from "./theory/harmony";
 import {
+  beatsPerSlot,
+  inPreviewWindow,
+  previewRampBeats,
   playbackTimeline,
+  secondsPerBeat,
   snapSlotLength,
   type TimeSignature,
   type TimelinePosition,
@@ -45,6 +49,11 @@ export type ProgressionPlayer = {
   beatInBar: number;
   // Beats elapsed in the current slot (0-based), for the chip's progress line.
   beatInSlot: number;
+  // The slot whose chord to preview on the board right now (the next one,
+  // during the preview window before the change), or null.
+  previewSlot: number | null;
+  // How long the preview takes to fade in, in seconds (see previewRampBeats).
+  previewRampSeconds: number;
   add(ref: ChordRef): void;
   remove(id: string): void;
   move(from: number, to: number): void;
@@ -58,7 +67,7 @@ export type ProgressionPlayer = {
   setTimeSignature(sig: TimeSignature): void;
   setClick(enabled: boolean): void;
   setLoop(loop: boolean): void;
-  setVisible(visible: boolean): void;
+  setPreview(previewBeats: number): void;
 };
 
 type PlaybackState = {
@@ -281,14 +290,12 @@ export function useProgressionPlayer({
     (id: string, bars: number) => dispatch({ type: "set-bars", id, bars }),
     [],
   );
-  const setLoop = useCallback(
-    (loop: boolean) => dispatch({ type: "set-loop", loop }),
+  const setPreview = useCallback(
+    (preview: number) => dispatch({ type: "set-preview", preview }),
     [],
   );
-  // "Edit progression" only shows or hides the chord cards' ＋ buttons; the
-  // transport (and its Stop) is always in the header, so playback continues.
-  const setVisible = useCallback(
-    (visible: boolean) => dispatch({ type: "set-visible", visible }),
+  const setLoop = useCallback(
+    (loop: boolean) => dispatch({ type: "set-loop", loop }),
     [],
   );
 
@@ -305,6 +312,15 @@ export function useProgressionPlayer({
       ? state.slots.findIndex((s) => s.id === nextPlayable.id)
       : -1;
 
+  const currentSlotBeats =
+    currentIndex === -1
+      ? 0
+      : beatsPerSlot(state.slots[currentIndex].bars, state.timeSignature);
+  const previewing =
+    currentIndex !== -1 &&
+    nextIndex !== -1 &&
+    inPreviewWindow(playback.beatInSlot, currentSlotBeats, state.preview);
+
   return {
     state,
     resolvedSlots,
@@ -314,6 +330,9 @@ export function useProgressionPlayer({
     nextSlot: nextIndex === -1 ? null : nextIndex,
     beatInBar: playback.beatInBar,
     beatInSlot: playback.beatInSlot,
+    previewSlot: previewing ? nextIndex : null,
+    previewRampSeconds:
+      previewRampBeats(currentSlotBeats, state.preview) * secondsPerBeat(state.bpm),
     add,
     remove,
     move,
@@ -327,6 +346,6 @@ export function useProgressionPlayer({
     setTimeSignature,
     setClick,
     setLoop,
-    setVisible,
+    setPreview,
   };
 }

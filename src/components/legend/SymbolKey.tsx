@@ -12,7 +12,8 @@ export type SymbolKind =
   | "position"
   | "shape"
   | "barre"
-  | "notPlayed";
+  | "notPlayed"
+  | "nextChord";
 
 const SIZE = 18;
 
@@ -120,6 +121,19 @@ const ICONS: Record<SymbolKind, () => ReactNode> = {
       />
     </Svg>
   ),
+  nextChord: () => (
+    <Svg>
+      <circle
+        cx="9"
+        cy="9"
+        r="7"
+        fill="none"
+        stroke="var(--color-third)"
+        strokeWidth="2"
+        strokeOpacity="0.85"
+      />
+    </Svg>
+  ),
   notPlayed: () => (
     <Svg>
       <text
@@ -148,6 +162,7 @@ const NAMES: Record<SymbolKind, string> = {
   shape: "Shape",
   barre: "Barre",
   notPlayed: "Not played",
+  nextChord: "Next chord",
 };
 
 const EXPLANATIONS: Record<SymbolKind, string> = {
@@ -165,6 +180,8 @@ const EXPLANATIONS: Record<SymbolKind, string> = {
   shape: "A CAGED chord shape. Click a label above the board to show or hide it.",
   barre: "One finger presses all these strings at this fret.",
   notPlayed: "This string isn't played in the chord shape.",
+  nextChord:
+    "While a progression plays, rings mark where the next chord's highlighted notes land, in their new colour. They fade in as the change approaches. A note that keeps its role gets no ring.",
 };
 
 // One legend entry: symbol, short name, ⓘ. The full explanation shows as a

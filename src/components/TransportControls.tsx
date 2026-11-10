@@ -1,5 +1,6 @@
 import { useState } from "react";
 import {
+  PREVIEW_BEAT_OPTIONS,
   TIME_SIGNATURE_PRESETS,
   accentPattern,
   timeSignatureLabel,
@@ -19,18 +20,26 @@ type TransportControlsProps = {
   timeSignature: TimeSignature;
   click: boolean;
   loop: boolean;
+  // Beats of next-chord preview; 0 is off.
+  preview: number;
   onTogglePlay: () => void;
   onBpmChange: (bpm: number) => void;
   onTimeSignatureChange: (sig: TimeSignature) => void;
   onClickChange: (enabled: boolean) => void;
   onLoopChange: (loop: boolean) => void;
+  onPreviewChange: (previewBeats: number) => void;
   onClear: () => void;
 };
+
+function previewLabel(beats: number): string {
+  if (beats === 0) return "No preview";
+  return `Preview ${beats} ${beats === 1 ? "beat" : "beats"}`;
+}
 
 const LABEL = "flex items-center gap-1.5 text-xs text-fg-muted";
 
 function toggleClass(on: boolean): string {
-  return `${BUTTON} ${on ? "bg-surface-active text-fg-emphasis" : "bg-surface-raised text-fg-muted hover:text-fg-secondary"}`;
+  return `${BUTTON} ${on ? "bg-surface-active text-fg-emphasis" : "bg-surface-raised text-fg-secondary hover:text-fg-emphasis"}`;
 }
 
 type BpmInputProps = {
@@ -141,6 +150,19 @@ export function TransportControls(props: TransportControlsProps) {
       >
         Loop
       </button>
+      <select
+        aria-label="Preview next chord"
+        title="How early the next chord's notes appear on the board"
+        value={props.preview}
+        onChange={(e) => props.onPreviewChange(Number(e.target.value))}
+        className={FIELD}
+      >
+        {PREVIEW_BEAT_OPTIONS.map((beats) => (
+          <option key={beats} value={beats}>
+            {previewLabel(beats)}
+          </option>
+        ))}
+      </select>
       <button
         type="button"
         onClick={props.onClear}

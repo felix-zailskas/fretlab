@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { DEFAULT_END_FRET, MAX_FRET } from "../theory/constants";
+import { SETTINGS_TRIGGER } from "./controlStyles";
 
 type FretRangeControlProps = {
   startFret: number;
@@ -62,11 +63,12 @@ export function FretRangeControl({
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="px-3 py-1.5 pointer-coarse:py-3 rounded text-sm font-semibold bg-surface-raised text-fg-secondary hover:bg-surface-active cursor-pointer"
+        className={SETTINGS_TRIGGER}
         aria-haspopup="dialog"
         aria-expanded={open}
+        aria-label={`Frets: ${startFret}–${endFret}`}
       >
-        Frets: {startFret}–{endFret} ▾
+        {startFret}–{endFret} ▾
       </button>
       {open && (
         <div

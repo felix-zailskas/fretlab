@@ -12,7 +12,7 @@ export type ProgressionAction =
   | { type: "set-time-signature"; sig: TimeSignature }
   | { type: "set-click"; enabled: boolean }
   | { type: "set-loop"; loop: boolean }
-  | { type: "set-visible"; visible: boolean };
+  | { type: "set-preview"; preview: number };
 
 export function progressionReducer(
   state: StoredProgression,
@@ -60,7 +60,7 @@ export function progressionReducer(
       return { ...state, click: action.enabled };
     case "set-loop":
       return { ...state, loop: action.loop };
-    case "set-visible":
-      return { ...state, visible: action.visible };
+    case "set-preview":
+      return { ...state, preview: action.preview };
   }
 }

@@ -12,6 +12,15 @@ export const CONTROL_PAD = "px-3 py-1.5 pointer-coarse:py-3";
 export const GROUP_SINGLE = "inline-flex rounded overflow-hidden border border-line";
 export const GROUP_MULTI =
   "inline-flex rounded overflow-hidden border border-dashed border-line-emphasis";
+// Multi-select group whose buttons carry tooltips: no overflow clipping (it
+// would cut the tooltips off), so the end buttons round their own corners.
+export const GROUP_MULTI_TIPPED =
+  "inline-flex rounded border border-dashed border-line-emphasis [&>*:first-child>button]:rounded-l [&>*:last-child>button]:rounded-r";
+
+// A trigger inside the settings panel. Outlined on the page background so it
+// stands out from the raised panel behind it.
+export const SETTINGS_TRIGGER =
+  "px-3 py-1.5 pointer-coarse:py-3 rounded border border-line bg-surface text-sm font-semibold text-fg-secondary hover:bg-surface-active cursor-pointer";
 
 export function segmentClass(on: boolean): string {
   return `${CONTROL_PAD} ${CONTROL_TEXT} whitespace-nowrap transition-colors cursor-pointer ${

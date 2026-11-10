@@ -35,7 +35,7 @@ const SAMPLE: StoredProgression = {
   bpm: 120,
   click: true,
   loop: false,
-  visible: false,
+  preview: 4,
 };
 
 function prime(value: unknown) {
@@ -55,8 +55,29 @@ describe("progressionStorage", () => {
       bpm: 90,
       click: false,
       loop: true,
-      visible: true,
+      preview: 1,
     });
+  });
+
+  it("defaults the preview for progressions saved before it existed", () => {
+    const legacy: Record<string, unknown> = { ...SAMPLE };
+    delete legacy.preview;
+    prime(legacy);
+    expect(loadProgression().preview).toBe(1);
+  });
+
+  it.each([
+    ["off", 0],
+    ["beat", 1],
+    ["bar", 4],
+  ])("converts a stored %s preview to beats", (stored, beats) => {
+    prime({ ...SAMPLE, timeSignature: { beats: 4, unit: 4 }, preview: stored });
+    expect(loadProgression().preview).toBe(beats);
+  });
+
+  it("drops the visible flag older versions stored", () => {
+    prime({ ...SAMPLE, visible: false });
+    expect(loadProgression()).toEqual(SAMPLE);
   });
 
   it("round-trips a saved progression", () => {
@@ -97,7 +118,8 @@ describe("progressionStorage", () => {
     ["bpm is not a number", { bpm: "fast" }],
     ["click is not a boolean", { click: "yes" }],
     ["loop is missing", { loop: undefined }],
-    ["visible is null", { visible: null }],
+    ["preview is unknown", { preview: "always" }],
+    ["preview is not an option", { preview: 5 }],
   ])("returns defaults when %s", (_label, patch) => {
     prime({ ...SAMPLE, ...patch });
     expect(loadProgression()).toEqual(DEFAULT_PROGRESSION);

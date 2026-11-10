@@ -74,7 +74,7 @@ export function ScaleDisplay({
                 role="listitem"
                 aria-label={`Degree ${labels[i]}, ${note}`}
                 data-characteristic={characteristic.has(note) || undefined}
-                className={`flex items-baseline gap-1 px-2 py-1 rounded border ${pillClasses} ${
+                className={`flex items-baseline gap-1 px-2 py-1.5 rounded border ${pillClasses} ${
                   characteristic.has(note) ? "ring-1 ring-characteristic" : ""
                 }`}
                 style={{ gridRow: 1, gridColumn: i + 1 }}
@@ -87,7 +87,7 @@ export function ScaleDisplay({
           {steps.map((step, i) => (
             <span
               key={`step-${i}`}
-              className="text-xs leading-none text-fg-muted text-center select-none px-1.5 py-0.5 rounded bg-surface-raised mx-auto"
+              className="text-xs leading-none text-fg-secondary text-center select-none px-1.5 py-0.5 rounded bg-surface-raised mx-auto"
               style={{ gridRow: 2, gridColumn: `${i + 1} / span 2` }}
               title={step === "half" ? "Half step" : "Whole step"}
             >

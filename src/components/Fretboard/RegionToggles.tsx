@@ -7,6 +7,8 @@ export type RegionToggle = {
   id: string;
   label: string;
   sub?: string;
+  // Spoken name when the visible label is terse ("P1 C" → "Position 1 (C shape)").
+  ariaLabel?: string;
   on: boolean;
   // Fret span of the region on screen; omitted when it doesn't fit the
   // current fret range, in which case the label is pinned to the strip's edge.
@@ -51,6 +53,7 @@ export function RegionToggles({
             data-testid="region-toggle"
             data-region-id={t.id}
             aria-pressed={t.on}
+            aria-label={t.ariaLabel}
             title={
               offBoard ? `${t.label} doesn't fit the current fret range` : undefined
             }
@@ -58,7 +61,7 @@ export function RegionToggles({
             className={`absolute -translate-x-1/2 -translate-y-1/2 pointer-events-auto cursor-pointer whitespace-nowrap rounded-full border px-2.5 py-0.5 pointer-coarse:py-2 text-sm font-semibold transition-opacity ${
               t.on
                 ? "bg-surface-active border-line-hover text-fg-emphasis"
-                : "bg-surface-raised border-line text-fg-secondary opacity-50 hover:opacity-90"
+                : "bg-surface border-line text-fg-muted hover:text-fg-secondary hover:border-line-hover"
             } ${offBoard ? "border-dashed" : ""}`}
             style={{
               left: `${((xs.get(t.id) ?? minX) / totalWidth) * 100}%`,

@@ -1,4 +1,10 @@
+import { GROUP_MULTI_TIPPED } from "./controlStyles";
+import { Tooltip } from "./Tooltip";
 import type { HighlightableRole } from "../theory/types";
+
+// Roles whose highlight is unavailable, each with the reason shown on its
+// button.
+export type DisabledRoles = ReadonlyMap<HighlightableRole, string>;
 
 const LEGEND_ITEMS: {
   label: string;
@@ -35,47 +41,47 @@ const LEGEND_ITEMS: {
 type LegendProps = {
   enabledRoles: Set<HighlightableRole>;
   onToggleRole: (role: HighlightableRole) => void;
-  disabledRoles?: Set<HighlightableRole>;
+  disabledRoles?: DisabledRoles;
 };
 
 export function Legend({ enabledRoles, onToggleRole, disabledRoles }: LegendProps) {
   return (
-    <div
-      className="inline-flex rounded overflow-hidden border border-dashed border-line-emphasis"
-      role="group"
-      aria-label="Highlight roles"
-    >
+    <div className={GROUP_MULTI_TIPPED} role="group" aria-label="Highlight roles">
       {LEGEND_ITEMS.map((item) => {
         const isEnabled = enabledRoles.has(item.role);
-        const isDisabled = disabledRoles?.has(item.role) ?? false;
-        const tooltip = isDisabled
-          ? "Switch chord mode to Sevenths to enable the 7th highlight"
-          : item.title;
-        return (
-          <span
-            key={item.label}
-            title={isDisabled ? tooltip : undefined}
-            className={isDisabled ? "cursor-not-allowed" : undefined}
+        const reason = disabledRoles?.get(item.role);
+        const button = (describedBy?: string) => (
+          // aria-disabled rather than disabled keeps the button focusable, so
+          // the reason is reachable by keyboard and announced as its description.
+          <button
+            type="button"
+            onClick={reason ? undefined : () => onToggleRole(item.role)}
+            title={reason ? undefined : item.title}
+            aria-pressed={isEnabled}
+            aria-disabled={reason ? true : undefined}
+            aria-describedby={describedBy}
+            className={`flex items-center gap-1.5 px-3 py-1.5 pointer-coarse:py-3 text-sm font-semibold transition-colors ${
+              reason
+                ? "bg-surface text-fg-muted opacity-40 cursor-not-allowed"
+                : isEnabled
+                  ? "bg-surface-active text-fg-emphasis cursor-pointer"
+                  : "bg-surface text-fg-muted hover:bg-surface-raised cursor-pointer"
+            }`}
           >
-            <button
-              onClick={() => onToggleRole(item.role)}
-              title={isDisabled ? undefined : tooltip}
-              aria-pressed={isEnabled}
-              disabled={isDisabled}
-              className={`flex items-center gap-1.5 px-3 py-1.5 pointer-coarse:py-3 text-sm font-semibold transition-colors ${
-                isDisabled
-                  ? "bg-surface text-fg-muted opacity-40 pointer-events-none"
-                  : isEnabled
-                    ? "bg-surface-active text-fg-emphasis cursor-pointer"
-                    : "bg-surface text-fg-muted hover:bg-surface-raised cursor-pointer"
-              }`}
-            >
-              <span
-                className="inline-block w-2.5 h-2.5 rounded-full shrink-0"
-                style={{ backgroundColor: item.color }}
-              />
-              <span>{item.label}</span>
-            </button>
+            <span
+              className="inline-block w-2.5 h-2.5 rounded-full shrink-0"
+              style={{ backgroundColor: item.color }}
+            />
+            <span>{item.label}</span>
+          </button>
+        );
+        return reason ? (
+          <Tooltip key={item.role} tip={reason}>
+            {button}
+          </Tooltip>
+        ) : (
+          <span key={item.role} className="inline-flex">
+            {button()}
           </span>
         );
       })}

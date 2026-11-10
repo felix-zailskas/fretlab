@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
-import { GROUP_MULTI, segmentClass } from "./controlStyles";
+import { GROUP_MULTI, GROUP_MULTI_TIPPED, segmentClass } from "./controlStyles";
+import { Tooltip } from "./Tooltip";
 
 type Option<Id extends string> = {
   id: Id;
@@ -23,28 +24,45 @@ export function StringSetToggles<Id extends string>({
   onToggle,
   ariaLabel,
 }: StringSetTogglesProps<Id>) {
+  const hasIcons = options.some((opt) => opt.icon);
   return (
-    <div className={GROUP_MULTI} role="group" aria-label={ariaLabel}>
+    <div
+      className={hasIcons ? GROUP_MULTI_TIPPED : GROUP_MULTI}
+      role="group"
+      aria-label={ariaLabel}
+    >
       {options.map((opt) => {
         const isOn = selected.has(opt.id);
+        if (!opt.icon) {
+          return (
+            <button
+              key={opt.id}
+              type="button"
+              onClick={() => onToggle(opt.id)}
+              aria-pressed={isOn}
+              className={segmentClass(isOn)}
+            >
+              {opt.label}
+            </button>
+          );
+        }
+        const icon = opt.icon;
         return (
-          <button
-            key={opt.id}
-            type="button"
-            onClick={() => onToggle(opt.id)}
-            aria-pressed={isOn}
-            aria-label={opt.icon ? opt.label : undefined}
-            title={opt.icon ? opt.label : undefined}
-            className={
-              opt.icon
-                ? `px-1.5 py-px pointer-coarse:py-2 cursor-pointer transition-colors ${
-                    isOn ? "bg-surface-active" : "bg-surface hover:bg-surface-raised"
-                  }`
-                : segmentClass(isOn)
-            }
-          >
-            {opt.icon ? opt.icon(isOn) : opt.label}
-          </button>
+          <Tooltip key={opt.id} tip={opt.label}>
+            {() => (
+              <button
+                type="button"
+                onClick={() => onToggle(opt.id)}
+                aria-pressed={isOn}
+                aria-label={opt.label}
+                className={`px-1.5 py-px pointer-coarse:py-2 cursor-pointer transition-colors ${
+                  isOn ? "bg-surface-active" : "bg-surface hover:bg-surface-raised"
+                }`}
+              >
+                {icon(isOn)}
+              </button>
+            )}
+          </Tooltip>
         );
       })}
     </div>

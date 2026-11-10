@@ -16,21 +16,28 @@ import {
 import { allowedSlotLengths } from "../theory/meter";
 import type { ProgressionPlayer } from "../useProgressionPlayer";
 import { ProgressionSlotCard } from "./ProgressionSlotCard";
+import { AddChordPicker } from "./AddChordPicker";
+import type { ReactNode } from "react";
 
-// noKey: the key is "All", so no slot resolves. The metronome still plays.
-type ProgressionLaneProps = { player: ProgressionPlayer; noKey: boolean };
+type ProgressionLaneProps = {
+  player: ProgressionPlayer;
+  // The key is "All": no chord resolves, so the lane is absent. The
+  // metronome in the header still plays.
+  noKey: boolean;
+  // The chord grid shown in the add picker.
+  picker: ReactNode;
+};
 
-// Slim strip under the header holding the progression's chord chips. Absent
-// (zero height) while there is nothing to show; the transport lives in the
-// header.
-export function ProgressionLane({ player, noKey }: ProgressionLaneProps) {
+// Slim strip under the header where the progression is built: its chord
+// chips, then the add picker. The transport lives in the header.
+export function ProgressionLane({ player, noKey, picker }: ProgressionLaneProps) {
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
     useSensor(TouchSensor, { activationConstraint: { delay: 150, tolerance: 5 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   );
   const { state, resolvedSlots } = player;
-  if (noKey || resolvedSlots.length === 0) return null;
+  if (noKey) return null;
 
   function handleDragEnd({ active, over }: DragEndEvent) {
     if (!over || active.id === over.id) return;
@@ -44,7 +51,7 @@ export function ProgressionLane({ player, noKey }: ProgressionLaneProps) {
   return (
     <section
       aria-label="Progression"
-      className="border-t border-line bg-surface px-4 py-1.5"
+      className="relative flex items-center gap-1.5 border-t border-line bg-surface px-4 py-1.5"
     >
       <DndContext
         sensors={sensors}
@@ -55,7 +62,7 @@ export function ProgressionLane({ player, noKey }: ProgressionLaneProps) {
           items={state.slots.map((s) => s.id)}
           strategy={horizontalListSortingStrategy}
         >
-          <ol className="flex gap-1.5 overflow-x-auto">
+          <ol className="flex gap-1.5 overflow-x-auto empty:hidden">
             {resolvedSlots.map(({ slot, chord }, index) => (
               <ProgressionSlotCard
                 key={slot.id}
@@ -76,6 +83,7 @@ export function ProgressionLane({ player, noKey }: ProgressionLaneProps) {
           </ol>
         </SortableContext>
       </DndContext>
+      <AddChordPicker empty={resolvedSlots.length === 0}>{picker}</AddChordPicker>
     </section>
   );
 }

@@ -13,7 +13,9 @@ type LegendPanelProps = {
 
 function Group({ caption, children }: { caption: string; children: ReactNode }) {
   return (
-    <div className="flex flex-col gap-1.5 min-w-0">
+    // items-start: controls keep their own width instead of stretching across
+    // the single-column (narrow-screen) layout.
+    <div className="flex flex-col items-start gap-1.5 min-w-0">
       <span className="text-xs text-fg-muted">{caption}</span>
       {children}
     </div>

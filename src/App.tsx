@@ -1,9 +1,11 @@
+import type { DisabledRoles } from "./components/Legend";
 import {
   useCallback,
   useEffect,
   useMemo,
   useReducer,
   useState,
+  type CSSProperties,
   type ReactNode,
 } from "react";
 import { AccidentalToggle } from "./components/AccidentalToggle";
@@ -20,6 +22,7 @@ import type { HighlightableRole } from "./theory/types";
 import { ScaleDisplay } from "./components/ScaleDisplay";
 import { AboutModal } from "./components/AboutModal";
 import { ChordMap } from "./components/ChordMap";
+import { ChordGrid } from "./components/ChordGrid";
 import { ProgressionLane } from "./components/ProgressionLane";
 import { PlayerTransport } from "./components/PlayerTransport";
 import { SettingsMenu, SettingsRow } from "./components/SettingsMenu";
@@ -62,7 +65,16 @@ import { tonalReducer } from "./tonalReducer";
 const DEFAULT_HIGHLIGHTS: HighlightableRole[] = ["root", "third", "fifth", "seventh"];
 
 // Chord Shapes voices only triads in triads mode, so its 7th role is inert.
-const TRIADS_DISABLED_ROLES = new Set<HighlightableRole>(["seventh"]);
+// Why the 7th highlight is off, shown on the disabled button.
+const TRIADS_DISABLED_ROLES: DisabledRoles = new Map([
+  ["seventh", "Triad shapes have no 7th. Switch the chord map to Sevenths to see it."],
+]);
+const NO_SEVENTH_ROLES: DisabledRoles = new Map([
+  [
+    "seventh",
+    "Triads have no 7th. Switch the chord map to Sevenths, or pick a secondary dominant.",
+  ],
+]);
 
 function createCustomTuningId(): CustomTuningId {
   const ts = Date.now();
@@ -300,38 +312,47 @@ function App() {
     [enabledHighlights, seventhShown],
   );
 
-  const seventhDisabledRoles = useMemo(
-    () => (seventhShown ? undefined : new Set<HighlightableRole>(["seventh"])),
-    [seventhShown],
-  );
+  const seventhDisabledRoles = seventhShown ? undefined : NO_SEVENTH_ROLES;
 
   const isAllNotesKey = selectedKey === ALL_NOTES_KEY;
 
-  // The chord map follows every view. "Edit progression" shows the ＋ buttons;
-  // the progression itself lives in the lane under the header.
+  // The chord map follows every view as a reference; the progression is
+  // built in the lane under the header, from the same grid.
   const chordArea = (
-    <>
-      <ChordMap
-        selectedKey={selectedKey}
-        modalMode={mode}
-        rowMode={chordRowMode}
-        onRowModeChange={setChordRowMode}
-        selectedRef={selectedChordRef}
-        onSelect={handleChordSelect}
-        onAdd={player.state.visible ? player.add : undefined}
-        progressionVisible={player.state.visible}
-        onToggleProgression={() => player.setVisible(!player.state.visible)}
-        showAddHint={
-          player.state.visible && player.state.slots.length === 0 && !isAllNotesKey
-        }
-      />
-    </>
+    <ChordMap
+      selectedKey={selectedKey}
+      modalMode={mode}
+      rowMode={chordRowMode}
+      onRowModeChange={setChordRowMode}
+      selectedRef={selectedChordRef}
+      onSelect={handleChordSelect}
+    />
+  );
+  const addPicker = !isAllNotesKey && (
+    <ChordGrid
+      selectedKey={selectedKey}
+      modalMode={mode}
+      rowMode={chordRowMode}
+      selectedRef={null}
+      onPick={player.add}
+      cardLabel={(chord) => `Add ${chord.symbol} to progression`}
+      showResolution={false}
+    />
   );
 
   // Handed to every view: the tabs (which the view extends with its own
   // sub-modes) and the scale summary shown in its legend.
+  // The progression's next chord, during the preview window before a change.
+  const previewChord =
+    player.previewSlot === null
+      ? null
+      : (player.resolvedSlots[player.previewSlot]?.chord ?? null);
+  const showsPreview =
+    !isAllNotesKey && player.state.slots.length > 0 && player.state.preview > 0;
+
   const chrome: ViewChrome = {
     tabs: <ViewSelector selectedView={selectedView} onViewChange={setSelectedView} />,
+    sharedSymbols: showsPreview ? ["nextChord"] : [],
     scaleName: isAllNotesKey ? "Scale" : `${selectedKey} ${MODE_NAMES[mode]}`,
     scale: isAllNotesKey ? (
       <p className="text-fg-muted text-sm">Pick a key to see scales and chords.</p>
@@ -371,6 +392,7 @@ function App() {
               enabledHighlights={effectiveHighlights}
               onToggleRole={toggleHighlight}
               selectedChord={selectedChord}
+              previewChord={previewChord}
               startFret={startFret}
               endFret={endFret}
               mode={mode}
@@ -391,6 +413,7 @@ function App() {
               enabledHighlights={effectiveHighlights}
               onToggleRole={toggleHighlight}
               selectedChord={selectedChord}
+              previewChord={previewChord}
               startFret={startFret}
               endFret={endFret}
               controls={scalePositionsControls}
@@ -412,6 +435,7 @@ function App() {
               startFret={startFret}
               endFret={endFret}
               selectedChord={selectedChord}
+              previewChord={previewChord}
               chordRowMode={chordRowMode}
               enabledHighlights={effectiveHighlights}
               onToggleRole={toggleHighlight}
@@ -537,7 +561,7 @@ function App() {
           </div>
         </div>
         <div className="max-w-[90rem] mx-auto">
-          <ProgressionLane player={player} noKey={isAllNotesKey} />
+          <ProgressionLane player={player} noKey={isAllNotesKey} picker={addPicker} />
         </div>
       </header>
 
@@ -545,6 +569,9 @@ function App() {
         id="main-content"
         tabIndex={-1}
         className="max-w-[90rem] mx-auto px-4 pt-3 pb-4 focus:outline-none"
+        // Accepted inline-style exception: the preview rings' fade-in length
+        // depends on tempo and chord length at runtime (see .preview-ring).
+        style={{ "--preview-ramp": `${player.previewRampSeconds}s` } as CSSProperties}
       >
         {renderView()}
       </main>
