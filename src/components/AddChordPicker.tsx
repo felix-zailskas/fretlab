@@ -24,7 +24,7 @@ export function AddChordPicker({ empty, children }: AddChordPickerProps) {
         onClick={() => setOpen((v) => !v)}
         aria-haspopup="dialog"
         aria-expanded={open}
-        className={`shrink-0 px-2.5 py-0.5 pointer-coarse:py-2 rounded-lg border-2 border-dashed text-sm font-semibold whitespace-nowrap cursor-pointer ${
+        className={`relative touch-target shrink-0 px-2.5 py-0.5 pointer-coarse:py-1.5 rounded-lg border-2 border-dashed text-sm font-semibold whitespace-nowrap cursor-pointer ${
           open
             ? "border-line-hover text-fg-emphasis"
             : "border-line-emphasis text-fg-muted hover:text-fg-secondary hover:border-line-hover"

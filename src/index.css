@@ -162,6 +162,20 @@ svg * {
     stroke 200ms ease-out;
 }
 
+/* Touch tap area: on coarse pointers, controls are drawn ~36px tall but get
+   an invisible 4px band above and below so the target is 44px. The element
+   must be positioned (relative or absolute), and no ancestor may clip it
+   with overflow-hidden — groups round their end buttons instead. */
+@utility touch-target {
+  @media (pointer: coarse) {
+    &::after {
+      content: "";
+      position: absolute;
+      inset: -4px 0;
+    }
+  }
+}
+
 /* Respect users who request reduced motion — collapses every transition
    and animation to near-zero without removing the visual end-state. */
 @media (prefers-reduced-motion: reduce) {

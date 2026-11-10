@@ -60,7 +60,7 @@ export function Legend({ enabledRoles, onToggleRole, disabledRoles }: LegendProp
             aria-pressed={isEnabled}
             aria-disabled={reason ? true : undefined}
             aria-describedby={describedBy}
-            className={`flex items-center gap-1.5 px-3 py-1.5 pointer-coarse:py-3 text-sm font-semibold transition-colors ${
+            className={`relative flex items-center gap-1.5 px-3 py-1.5 pointer-coarse:py-2 touch-target text-sm font-semibold transition-colors ${
               reason
                 ? "bg-surface text-fg-muted opacity-40 cursor-not-allowed"
                 : isEnabled

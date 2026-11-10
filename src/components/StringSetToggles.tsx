@@ -55,7 +55,7 @@ export function StringSetToggles<Id extends string>({
                 onClick={() => onToggle(opt.id)}
                 aria-pressed={isOn}
                 aria-label={opt.label}
-                className={`px-1.5 py-px pointer-coarse:py-2 cursor-pointer transition-colors ${
+                className={`relative touch-target px-1.5 py-px pointer-coarse:py-1.5 cursor-pointer transition-colors ${
                   isOn ? "bg-surface-active" : "bg-surface hover:bg-surface-raised"
                 }`}
               >

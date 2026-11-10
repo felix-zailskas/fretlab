@@ -58,7 +58,7 @@ export function RegionToggles({
               offBoard ? `${t.label} doesn't fit the current fret range` : undefined
             }
             onClick={t.onToggle}
-            className={`absolute -translate-x-1/2 -translate-y-1/2 pointer-events-auto cursor-pointer whitespace-nowrap rounded-full border px-2.5 py-0.5 pointer-coarse:py-2 text-sm font-semibold transition-opacity ${
+            className={`absolute -translate-x-1/2 -translate-y-1/2 pointer-events-auto cursor-pointer whitespace-nowrap rounded-full border touch-target px-2.5 py-0.5 pointer-coarse:py-1 text-sm font-semibold transition-opacity ${
               t.on
                 ? "bg-surface-active border-line-hover text-fg-emphasis"
                 : "bg-surface border-line text-fg-muted hover:text-fg-secondary hover:border-line-hover"

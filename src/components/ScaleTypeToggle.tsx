@@ -25,7 +25,7 @@ export function ScaleTypeToggle({
       aria-label="Scale"
       aria-disabled={disabled || undefined}
       title={disabled ? PENTATONIC_UNAVAILABLE_HINT : undefined}
-      className={`inline-grid grid-cols-2 rounded overflow-hidden border border-line ${
+      className={`inline-grid grid-cols-2 rounded border border-line [&>:first-child]:rounded-l [&>:last-child]:rounded-r ${
         disabled ? "opacity-40 cursor-not-allowed" : ""
       }`}
     >
@@ -38,7 +38,7 @@ export function ScaleTypeToggle({
             onClick={() => onChange(opt.value)}
             aria-pressed={isActive}
             disabled={disabled}
-            className={`px-3 py-1.5 pointer-coarse:py-3 text-sm font-semibold transition-colors ${
+            className={`relative px-3 py-1.5 pointer-coarse:py-2 touch-target text-sm font-semibold transition-colors ${
               disabled ? "pointer-events-none" : "cursor-pointer"
             } ${
               isActive

@@ -20,8 +20,9 @@ type ProgressionSlotCardProps = {
   onSetBars: (id: string, bars: number) => void;
 };
 
+// On touch, icon buttons widen to 32px and take a 44px-tall tap area.
 const ICON_BUTTON =
-  "px-1.5 rounded text-fg-muted hover:text-fg-secondary cursor-pointer disabled:cursor-not-allowed disabled:opacity-40";
+  "relative touch-target pointer-coarse:min-w-8 pointer-coarse:py-1 px-1.5 rounded text-fg-muted hover:text-fg-secondary cursor-pointer disabled:cursor-not-allowed disabled:opacity-40";
 
 function formatBars(bars: number): string {
   if (bars === 0.5) return "½ bar";
@@ -72,7 +73,7 @@ export function ProgressionSlotCard({
       data-index={index}
       data-current={isCurrent}
       title={playable ? undefined : "Not available in this mode"}
-      className={`relative overflow-hidden flex items-center gap-1.5 shrink-0 pl-1 pr-1.5 py-0.5 rounded-lg border-2 bg-surface-raised ${frameClass(isCurrent, isNext)} ${playable ? "" : "opacity-40"} ${isDragging ? "relative z-10 shadow-lg" : ""}`}
+      className={`relative flex items-center gap-1.5 shrink-0 pl-1 pr-1.5 py-0.5 pointer-coarse:py-0 rounded-lg border-2 bg-surface-raised ${frameClass(isCurrent, isNext)} ${playable ? "" : "opacity-40"} ${isDragging ? "relative z-10 shadow-lg" : ""}`}
     >
       <button
         type="button"

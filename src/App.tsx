@@ -497,7 +497,7 @@ function App() {
                 onClick={() => setShowAbout(true)}
                 title="About Fretlab"
                 aria-label="About Fretlab"
-                className="p-1.5 pointer-coarse:p-3 rounded text-fg-muted hover:text-fg-secondary hover:bg-surface-raised cursor-pointer inline-flex items-center"
+                className="relative touch-target p-1.5 pointer-coarse:p-2.5 rounded text-fg-muted hover:text-fg-secondary hover:bg-surface-raised cursor-pointer inline-flex items-center"
               >
                 <svg
                   width="14"

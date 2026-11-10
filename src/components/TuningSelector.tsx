@@ -98,7 +98,7 @@ export function TuningSelector({
         aria-disabled={editDisabled}
         aria-label="Edit tuning"
         title={editDisabled ? "Select a custom tuning to edit" : "Edit tuning"}
-        className={`px-2.5 py-1.5 pointer-coarse:py-3 rounded border border-line bg-surface text-sm text-fg-secondary transition-transform active:scale-[0.97] ${
+        className={`relative px-2.5 py-1.5 pointer-coarse:py-2 touch-target rounded border border-line bg-surface text-sm text-fg-secondary transition-transform active:scale-[0.97] ${
           editDisabled
             ? "opacity-40 cursor-not-allowed"
             : "hover:bg-surface-active cursor-pointer"
