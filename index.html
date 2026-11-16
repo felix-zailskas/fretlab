@@ -4,10 +4,75 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Fretlab</title>
+    <title>Fretlab: interactive guitar fretboard for scales, chords & modes</title>
+    <meta
+      name="description"
+      content="Free key-aware guitar fretboard reference. See scales, chord tones, CAGED positions and all seven modes in interval colors. Built to sit on your music stand while you practice."
+    />
+    <link rel="canonical" href="https://fretlab.studio/" />
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f0e2bf" />
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#111827" />
+
+    <!-- Open Graph (link previews on social, messengers, Discord …) -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Fretlab" />
+    <meta property="og:url" content="https://fretlab.studio/" />
+    <meta
+      property="og:title"
+      content="Fretlab: interactive guitar fretboard for scales, chords & modes"
+    />
+    <meta
+      property="og:description"
+      content="Free key-aware guitar fretboard reference. Scales, chord tones, CAGED positions and modes in interval colors."
+    />
+    <meta property="og:image" content="https://fretlab.studio/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta
+      property="og:image:alt"
+      content="The Fretlab Note Map showing C Ionian with Cmaj7 highlighted in interval colors on the guitar neck."
+    />
+
+    <!-- Twitter / X -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta
+      name="twitter:title"
+      content="Fretlab: interactive guitar fretboard for scales, chords & modes"
+    />
+    <meta
+      name="twitter:description"
+      content="Free key-aware guitar fretboard reference. Scales, chord tones, CAGED positions and modes in interval colors."
+    />
+    <meta name="twitter:image" content="https://fretlab.studio/og-image.png" />
+
+    <!-- Structured data: tells search engines this is a free web app -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "Fretlab",
+        "url": "https://fretlab.studio/",
+        "description": "Free key-aware guitar fretboard reference for scales, chord tones, CAGED positions and modes.",
+        "applicationCategory": "MusicApplication",
+        "operatingSystem": "Any (web browser)",
+        "browserRequirements": "Requires JavaScript",
+        "image": "https://fretlab.studio/og-image.png",
+        "isAccessibleForFree": true,
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+        "sameAs": ["https://github.com/felix-zailskas/fretlab"]
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>
+    <noscript>
+      <h1>Fretlab: interactive guitar fretboard</h1>
+      <p>
+        A free, key-aware fretboard reference for guitarists: scales, chord tones, CAGED
+        positions and all seven modes shown in interval colors. Please enable JavaScript
+        to use Fretlab.
+      </p>
+    </noscript>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
