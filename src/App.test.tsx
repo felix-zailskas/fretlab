@@ -521,3 +521,18 @@ describe("App — topic pages", () => {
     expect(window.location.pathname).toBe("/chords/drop-2/m7");
   });
 });
+
+describe("App — URL writes can fail", () => {
+  it("keeps working when the browser refuses a history update (Safari's rate limit)", async () => {
+    render(<App />);
+    const replace = vi.spyOn(window.history, "replaceState").mockImplementation(() => {
+      throw new DOMException(
+        "Attempt to use history.replaceState() more than 100 times",
+        "SecurityError",
+      );
+    });
+    await userEvent.selectOptions(screen.getByRole("combobox", { name: "Key" }), "G");
+    replace.mockRestore();
+    expect(screen.getByRole("combobox", { name: "Key" })).toHaveValue("G");
+  });
+});
