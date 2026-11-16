@@ -410,6 +410,25 @@ with browser shortcuts.
 | `s`     | Switch the chord map to **Sevenths**                                          |
 | `Space` | Play / stop the progression (ignored while a button or form field is focused) |
 
+## Sharing links and topic pages
+
+The address bar always describes what's on screen, so copying it shares the exact view:
+key, mode, tab, selected chord, highlights, strings, fret range and each view's
+settings. A teacher can send `/?view=scales&key=A&mode=dorian&pos=E,D` and the student
+opens A Dorian with the E and D shapes on. Only settings that differ from the defaults
+appear, switching tabs adds a Back-button step, and your saved tuning and progression
+are never touched by opening a link.
+
+About 90 topic pages, such as `/scales/minor-pentatonic/e-shape`,
+`/chords/triads/major/strings-2-3-4`, `/chords/drop-2/m7` and
+`/chords/caged/minor/a-shape`, open the app on that topic with a short intro and links
+to related topics. They are pre-rendered at build time so search engines can read them.
+`?key=` picks any key on a topic page.
+
+The URL format is a public contract: names never change, unknown or invalid parameters
+are ignored, and the tests in `src/url/url.test.ts` keep a growing list of example links
+that must keep working.
+
 ## Getting started
 
 Fretlab is a Vite + React + TypeScript app. To run it locally:
@@ -425,16 +444,16 @@ The dev server prints a local URL (typically `http://localhost:5173/`).
 
 ### Available scripts
 
-| Script                | Description                                                   |
-| --------------------- | ------------------------------------------------------------- |
-| `npm run dev`         | Start the Vite dev server with HMR                            |
-| `npm run build`       | Type-check and produce a production build in `dist/`          |
-| `npm run preview`     | Preview the production build locally                          |
-| `npm run lint`        | Run ESLint                                                    |
-| `npm test`            | Run the Vitest suite once (theory unit + RTL component)       |
-| `npm run test:watch`  | Run Vitest in watch mode                                      |
-| `npm run test:e2e`    | Run Playwright E2E tests (boots the dev server automatically) |
-| `npm run test:e2e:ui` | Run Playwright in interactive UI mode for debugging           |
+| Script                | Description                                              |
+| --------------------- | -------------------------------------------------------- |
+| `npm run dev`         | Start the Vite dev server with HMR                       |
+| `npm run build`       | Type-check, build and pre-render every page into `dist/` |
+| `npm run preview`     | Preview the production build locally                     |
+| `npm run lint`        | Run ESLint                                               |
+| `npm test`            | Run the Vitest suite once (theory unit + RTL component)  |
+| `npm run test:watch`  | Run Vitest in watch mode                                 |
+| `npm run test:e2e`    | Run Playwright E2E tests (boots dev and preview servers) |
+| `npm run test:e2e:ui` | Run Playwright in interactive UI mode for debugging      |
 
 The README's screenshots and GIFs are recorded with
 `node scripts/record-assets.mjs [asset …]` against a running dev server (`FRETLAB_URL`

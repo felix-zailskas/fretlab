@@ -4,27 +4,40 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Fretlab: guitar fretboard for scales, chords & modes</title>
+    <!-- Per-page tags. scripts/prerender.ts replaces everything between the
+         app-head markers with each page's own (src/searchPages/renderHead.ts);
+         keep this copy in sync with renderHead(null) for the dev server. -->
+    <!--app-head-->
+    <title>Fretlab: guitar fretboard for scales, chords &amp; modes</title>
     <meta
       name="description"
       content="Free key-aware guitar fretboard reference: scales, chord tones, CAGED positions and all seven modes in interval colors. Built for your music stand."
     />
     <link rel="canonical" href="https://fretlab.studio/" />
+    <meta property="og:url" content="https://fretlab.studio/" />
+    <meta
+      property="og:title"
+      content="Fretlab: guitar fretboard for scales, chords &amp; modes"
+    />
+    <meta
+      property="og:description"
+      content="Free key-aware guitar fretboard reference. Scales, chord tones, CAGED positions and modes in interval colors."
+    />
+    <meta
+      name="twitter:title"
+      content="Fretlab: guitar fretboard for scales, chords &amp; modes"
+    />
+    <meta
+      name="twitter:description"
+      content="Free key-aware guitar fretboard reference. Scales, chord tones, CAGED positions and modes in interval colors."
+    />
+    <!--/app-head-->
     <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f0e2bf" />
     <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#111827" />
 
     <!-- Open Graph (link previews on social, messengers, Discord …) -->
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Fretlab" />
-    <meta property="og:url" content="https://fretlab.studio/" />
-    <meta
-      property="og:title"
-      content="Fretlab: guitar fretboard for scales, chords & modes"
-    />
-    <meta
-      property="og:description"
-      content="Free key-aware guitar fretboard reference. Scales, chord tones, CAGED positions and modes in interval colors."
-    />
     <meta property="og:image" content="https://fretlab.studio/og-image.png" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
@@ -35,14 +48,6 @@
 
     <!-- Twitter / X -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta
-      name="twitter:title"
-      content="Fretlab: guitar fretboard for scales, chords & modes"
-    />
-    <meta
-      name="twitter:description"
-      content="Free key-aware guitar fretboard reference. Scales, chord tones, CAGED positions and modes in interval colors."
-    />
     <meta name="twitter:image" content="https://fretlab.studio/og-image.png" />
 
     <!-- Structured data: tells search engines this is a free web app -->
@@ -64,14 +69,9 @@
     </script>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root"><!--app-html--></div>
     <noscript>
-      <h1>Fretlab: interactive guitar fretboard</h1>
-      <p>
-        A free, key-aware fretboard reference for guitarists: scales, chord tones, CAGED
-        positions and all seven modes shown in interval colors. Please enable JavaScript
-        to use Fretlab.
-      </p>
+      <p>Fretlab is interactive: please enable JavaScript to use the fretboard.</p>
     </noscript>
     <script type="module" src="/src/main.tsx"></script>
   </body>
