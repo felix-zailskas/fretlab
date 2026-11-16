@@ -77,7 +77,7 @@ describe("buildChordToneMarkers", () => {
       tuning: TUNINGS.standard,
       key: ALL_NOTES_KEY,
       chord: null,
-      positions: ["P1"],
+      positions: ["P3"],
       showContext: false,
       enabledHighlights: allRoles,
       enabledStrings: new Set([0, 1, 2, 3, 4, 5]),
@@ -102,14 +102,14 @@ describe("buildChordToneMarkers", () => {
     expect(markers).toEqual([]);
   });
 
-  it("with positions=[P1] and showContext=false, every marker is in a P1 octave window", () => {
-    // C major P1 fits twice within [0, DEFAULT_END_FRET=15]: [0, 3] and
+  it("with positions=[P3] and showContext=false, every marker is in a P3 octave window", () => {
+    // C major P3 fits twice within [0, DEFAULT_END_FRET=15]: [0, 3] and
     // [12, 15]. Every marker must land in one of those octave windows.
     const markers = buildChordToneMarkers({
       tuning: TUNINGS.standard,
       key: "C",
       chord: cMajor_ii(),
-      positions: ["P1"],
+      positions: ["P3"],
       showContext: false,
       enabledHighlights: allRoles,
       enabledStrings: new Set([0, 1, 2, 3, 4, 5]),
@@ -124,12 +124,12 @@ describe("buildChordToneMarkers", () => {
     }
   });
 
-  it("with positions=[P1] and chord=Dm7 in C, marks D=root, F=third, A=fifth, C=seventh", () => {
+  it("with positions=[P3] and chord=Dm7 in C, marks D=root, F=third, A=fifth, C=seventh", () => {
     const markers = buildChordToneMarkers({
       tuning: TUNINGS.standard,
       key: "C",
       chord: cMajor_ii(),
-      positions: ["P1"],
+      positions: ["P3"],
       showContext: false,
       enabledHighlights: allRoles,
       enabledStrings: new Set([0, 1, 2, 3, 4, 5]),
@@ -156,7 +156,7 @@ describe("buildChordToneMarkers", () => {
       tuning: TUNINGS.standard,
       key: "C",
       chord: cMajor_ii(),
-      positions: ["P1"],
+      positions: ["P3"],
       showContext: false,
       enabledHighlights: allRoles,
       enabledStrings: new Set([0, 1, 2, 3, 4, 5]),
@@ -170,14 +170,14 @@ describe("buildChordToneMarkers", () => {
   });
 
   it('with showContext=true, at least one outside-window marker exists with role "muted"', () => {
-    // C major P1 fits as [0, 3] and [12, 15] within [0, 15]. The "outside"
+    // C major P3 fits as [0, 3] and [12, 15] within [0, 15]. The "outside"
     // region (where context-only muted markers should render) is the gap
     // [4, 11] between those octave windows.
     const markers = buildChordToneMarkers({
       tuning: TUNINGS.standard,
       key: "C",
       chord: cMajor_ii(),
-      positions: ["P1"],
+      positions: ["P3"],
       showContext: true,
       enabledHighlights: allRoles,
       enabledStrings: new Set([0, 1, 2, 3, 4, 5]),
@@ -197,7 +197,7 @@ describe("buildChordToneMarkers", () => {
       tuning: TUNINGS.standard,
       key: "C",
       chord: cMajor_ii(),
-      positions: ["P1"],
+      positions: ["P3"],
       showContext: false,
       enabledHighlights: without5,
       enabledStrings: new Set([0, 1, 2, 3, 4, 5]),
@@ -210,16 +210,16 @@ describe("buildChordToneMarkers", () => {
     expect(a?.role).toBe("scale");
   });
 
-  it("with positions=[P1, P2], renders markers across the union of both windows", () => {
-    // C major within [0, 15]: P1 fits as [0, 3] and [12, 15]; P2 fits as
+  it("with positions=[P3, P4], renders markers across the union of both windows", () => {
+    // C major within [0, 15]: P3 fits as [0, 3] and [12, 15]; P4 fits as
     // [2, 5] (its +12 octave [14, 17] spills past 15). Union of all
     // octave windows = [0, 5] ∪ [12, 15]. Should see markers at fret 4
-    // (in P2 only) and fret 1 (in P1 only).
+    // (in P4 only) and fret 1 (in P3 only).
     const markers = buildChordToneMarkers({
       tuning: TUNINGS.standard,
       key: "C",
       chord: cMajor_ii(),
-      positions: ["P1", "P2"],
+      positions: ["P3", "P4"],
       showContext: false,
       enabledHighlights: allRoles,
       enabledStrings: new Set([0, 1, 2, 3, 4, 5]),
@@ -231,8 +231,8 @@ describe("buildChordToneMarkers", () => {
       const inHighP1 = m.fret >= 12 && m.fret <= 15;
       expect(inLowUnion || inHighP1).toBe(true);
     }
-    expect(markers.some((m) => m.fret === 4)).toBe(true); // P2-only territory
-    expect(markers.some((m) => m.fret === 1)).toBe(true); // P1-only territory
+    expect(markers.some((m) => m.fret === 4)).toBe(true); // P4-only territory
+    expect(markers.some((m) => m.fret === 1)).toBe(true); // P3-only territory
   });
 
   it('with chord=null, every in-window in-key marker renders as "scale" (no chord-tone highlights)', () => {
@@ -243,7 +243,7 @@ describe("buildChordToneMarkers", () => {
       tuning: TUNINGS.standard,
       key: "C",
       chord: null,
-      positions: ["P1"],
+      positions: ["P3"],
       showContext: false,
       enabledHighlights: allRoles,
       enabledStrings: new Set([0, 1, 2, 3, 4, 5]),
@@ -261,7 +261,7 @@ describe("buildChordToneMarkers", () => {
       tuning: TUNINGS.standard,
       key: "C",
       chord: cMajor_ii(),
-      positions: ["P1", "P2", "P3", "P4", "P5"],
+      positions: ["P3", "P4", "P5", "P1", "P2"],
       showContext: false,
       enabledHighlights: allRoles,
       enabledStrings: new Set([0, 1, 2, 3, 4, 5]),
@@ -317,7 +317,7 @@ describe("buildChordToneMarkers with triads", () => {
       tuning: TUNINGS.standard,
       key: "C",
       chord: cMajor_ii_triad(),
-      positions: ["P1"],
+      positions: ["P3"],
       showContext: false,
       enabledHighlights: allRoles,
       enabledStrings: new Set([0, 1, 2, 3, 4, 5]),
@@ -330,12 +330,12 @@ describe("buildChordToneMarkers with triads", () => {
     }
   });
 
-  it("marks the triad notes correctly (D=root, F=third, A=fifth in C major P1)", () => {
+  it("marks the triad notes correctly (D=root, F=third, A=fifth in C major P3)", () => {
     const markers = buildChordToneMarkers({
       tuning: TUNINGS.standard,
       key: "C",
       chord: cMajor_ii_triad(),
-      positions: ["P1"],
+      positions: ["P3"],
       showContext: false,
       enabledHighlights: allRoles,
       enabledStrings: new Set([0, 1, 2, 3, 4, 5]),
@@ -355,7 +355,7 @@ describe("buildChordToneMarkers with triads", () => {
       tuning: TUNINGS.standard,
       key: "C",
       chord: cMajor_ii_triad(),
-      positions: ["P1"],
+      positions: ["P3"],
       showContext: false,
       enabledHighlights: allRoles,
       enabledStrings: new Set([0, 1, 2, 3, 4, 5]),
@@ -378,13 +378,13 @@ describe("buildChordToneMarkers — narrowed range", () => {
   ]);
 
   it("emits no markers when the only fitting position window falls outside the range", () => {
-    // P1 = C-shape window [0, 3] in C major. With startFret=5, that
+    // P3 = C-shape window [0, 3] in C major. With startFret=5, that
     // window is outside the visible range, so no markers.
     const markers = buildChordToneMarkers({
       tuning: TUNINGS.standard,
       key: "C",
       chord: null,
-      positions: ["P1"],
+      positions: ["P3"],
       showContext: false,
       enabledHighlights: allRoles,
       enabledStrings: new Set([0, 1, 2, 3, 4, 5]),
@@ -395,12 +395,12 @@ describe("buildChordToneMarkers — narrowed range", () => {
   });
 
   it("only emits markers within [startFret, endFret] when at least one fits", () => {
-    // P3 = G-shape window [4, 8] in C major fits inside [4, 8] exactly.
+    // P5 = G-shape window [4, 8] in C major fits inside [4, 8] exactly.
     const markers = buildChordToneMarkers({
       tuning: TUNINGS.standard,
       key: "C",
       chord: null,
-      positions: ["P3"],
+      positions: ["P5"],
       showContext: false,
       enabledHighlights: allRoles,
       enabledStrings: new Set([0, 1, 2, 3, 4, 5]),
@@ -421,7 +421,7 @@ describe("buildChordToneMarkers — modal", () => {
       tuning: TUNINGS.standard,
       key: "C",
       chord: getModalDiatonicChords("C", "ionian")[0],
-      positions: ["P1" as const],
+      positions: ["P3" as const],
       showContext: false,
       enabledHighlights: new Set(["root", "third", "fifth", "seventh"] as const),
       enabledStrings: new Set([0, 1, 2, 3, 4, 5]),
@@ -433,22 +433,22 @@ describe("buildChordToneMarkers — modal", () => {
     expect(withIonian).toEqual(without);
   });
 
-  it("D Dorian + Dm7 + P1 emits markers in frets 0-3 (parent C major's P1)", () => {
+  it("D Dorian + Dm7 + P2 (D shape) emits markers in frets 0-3, inside parent C major's C-shape box", () => {
     const dDorianI = getModalDiatonicChords("D", "dorian")[0]; // Dm7
     const markers = buildChordToneMarkers({
       tuning: TUNINGS.standard,
       key: "D",
       mode: "dorian",
       chord: dDorianI,
-      positions: ["P1"],
+      positions: ["P2"],
       showContext: false,
       enabledHighlights: new Set(["root", "third", "fifth", "seventh"]),
       enabledStrings: new Set([0, 1, 2, 3, 4, 5]),
       startFret: 0,
       endFret: 12,
     });
-    // Every marker should fall inside the parent C-major P1 window (0-3),
-    // not D-Ionian's P1 (2-5).
+    // D's D shape sits in parent C major's C-shape box (0-3), not in
+    // D Ionian's D-shape box (11-15).
     expect(markers.length).toBeGreaterThan(0);
     for (const m of markers) {
       expect(m.fret).toBeGreaterThanOrEqual(0);
@@ -463,7 +463,7 @@ describe("buildChordToneMarkers — modal", () => {
       key: "C",
       mode: "lydian",
       chord: cLydianI,
-      positions: ["P1"],
+      positions: ["P3"],
       showContext: true, // include context so we'd see F if it weren't filtered
       enabledHighlights: new Set(["root", "third", "fifth", "seventh"]),
       enabledStrings: new Set([0, 1, 2, 3, 4, 5]),
@@ -483,7 +483,7 @@ describe("buildChordToneMarkers — modal", () => {
       key: "C",
       mode: "dorian",
       chord: cDorianI,
-      positions: ["P1", "P2", "P3", "P4", "P5"],
+      positions: ["P3", "P4", "P5", "P1", "P2"],
       showContext: false,
       enabledHighlights: new Set(["root", "third", "fifth", "seventh"]),
       enabledStrings: new Set([0, 1, 2, 3, 4, 5]),
@@ -507,7 +507,7 @@ describe("buildChordToneMarkers — enabledStrings", () => {
     tuning: TUNINGS.standard,
     key: "C",
     chord: null,
-    positions: ["P1"],
+    positions: ["P3"],
     showContext: false,
     enabledHighlights: new Set<HighlightableRole>([
       "root",
@@ -587,7 +587,7 @@ describe("buildChordToneMarkers — tuning-agnostic invariant", () => {
         tuning,
         key: "C",
         chord: null,
-        positions: ["P1", "P2", "P3", "P4", "P5"],
+        positions: ["P3", "P4", "P5", "P1", "P2"],
         showContext: true,
         enabledHighlights: new Set(["root", "third", "fifth", "seventh"]),
         enabledStrings: new Set([0, 1, 2, 3, 4, 5]),
@@ -828,7 +828,7 @@ describe("buildChordToneMarkers with pentatonic", () => {
   it("shows only pentatonic notes as context outside the windows", () => {
     const markers = buildChordToneMarkers({
       ...base,
-      positions: ["P1"],
+      positions: ["P3"],
       showContext: true,
       scaleType: "pentatonic",
     });
@@ -840,7 +840,7 @@ describe("buildChordToneMarkers with pentatonic", () => {
     const markers = buildChordToneMarkers({
       ...base,
       chord: g7(),
-      positions: ["P1"],
+      positions: ["P3"],
       showContext: true,
       enabledStrings: new Set([0, 1, 2, 3, 4]),
       scaleType: "pentatonic",
@@ -868,4 +868,28 @@ describe("buildChordToneMarkers with pentatonic", () => {
       );
     });
   }
+});
+
+describe("buildChordToneMarkers — tonic-relative positions in modes", () => {
+  it("A Aeolian position 1 (E shape, box 1) frames frets 4-8, not the open position", () => {
+    const markers = buildChordToneMarkers({
+      tuning: TUNINGS.standard,
+      key: "A",
+      mode: "aeolian",
+      chord: null,
+      positions: ["P1"],
+      showContext: false,
+      enabledHighlights: new Set(["root", "third", "fifth", "seventh"]),
+      enabledStrings: new Set([0, 1, 2, 3, 4, 5]),
+      startFret: 0,
+      endFret: 12,
+    });
+    expect(markers.length).toBeGreaterThan(0);
+    for (const m of markers) {
+      expect(m.fret).toBeGreaterThanOrEqual(4);
+      expect(m.fret).toBeLessThanOrEqual(8);
+    }
+    // A on the low E string at fret 5 is the shape's anchor root.
+    expect(markers.some((m) => m.string === 0 && m.fret === 5)).toBe(true);
+  });
 });

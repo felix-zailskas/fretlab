@@ -107,12 +107,14 @@ switch next to the chord map's title applies to every row.
 ![Short recording of Scale Positions in C with Cmaj7 — P1 starts on, then P2 and P3 are switched on from their labels above the board, adding overlap zones. The chord is deselected and reselected, the key changes to G and the boxes move up the neck, Context notes is switched on, and finally Pentatonic drops the 4th and 7th, leaving the chord tones outside the pentatonic as hollow notes.](docs/images/scale-positions.gif)
 
 A consolidated CAGED-box practice tool. The five positions are switched on and off from
-labels above the board (`P1 C`, `P2 A`, …), each sitting over the box it controls. A
-position that doesn't fit the current fret range keeps its label, pinned to the right
-edge, so it stays reachable. Each selected position renders as a bracketed region on the
-neck. When two or more boxes overlap, the shared frets render as a brighter outlined
-zone — reinforcing that the CAGED shapes are connected pieces of one continuous map, not
-isolated islands.
+labels above the board (`P1 E`, `P2 D`, …), each sitting over the box it controls.
+Positions are numbered E-first, as most guitar material does, and named after the shape
+the key's root chord takes in that box: in A minor, P1 is the E shape at the 5th fret,
+the familiar "box 1". A position that doesn't fit the current fret range keeps its
+label, pinned to the right edge, so it stays reachable. Each selected position renders
+as a bracketed region on the neck. When two or more boxes overlap, the shared frets
+render as a brighter outlined zone — reinforcing that the CAGED shapes are connected
+pieces of one continuous map, not isolated islands.
 
 The view supports two complementary practice modes via the same controls:
 
@@ -130,8 +132,9 @@ pentatonic) and explains why.
 
 **Features**
 
-- Independent toggles for the 5 CAGED positions (P1 C-shape through P5 D-shape, the
-  canonical CAGED order ascending from open in C major); any combination is valid
+- Independent toggles for the 5 CAGED positions (P1 E-shape, P2 D, P3 C, P4 A, P5 G,
+  ascending the neck from the E shape); with Pentatonic on they are the five boxes, box
+  1 being the E shape; any combination is valid
 - Multi-octave window placement: every octave that fits fully inside the visible fret
   range renders as its own bracketed box
 - Corner-bracket framing on each selected position, with brighter overlap zones
@@ -142,8 +145,8 @@ pentatonic) and explains why.
 
 **During practice**
 
-- _Box study_ — _"What does the C-shape (P1) look like in G major? Where does it overlap
-  with the A-shape (P2)?"_ Toggle on adjacent positions and the overlap zone shows you
+- _Box study_ — _"What does the E-shape (P1) look like in G major? Where does it overlap
+  with the D-shape (P2)?"_ Toggle on adjacent positions and the overlap zone shows you
   exactly which frets connect them.
 - _Target-tone soloing_ — _"Soloing over Am7 in P3 — where do I aim?"_ Pick the chord,
   pick the position, and the chord's R / 3 / 5 / 7 light up only inside the box.
@@ -309,9 +312,9 @@ empty state explaining why and offers a one-click **Switch to Standard tuning** 
 Switching back re-renders the view normally; your previous tab selection is preserved.
 
 In CAGED-compatible step-down tunings (Eb / D / C# Standard), the entire CAGED-window
-math shifts by the tuning's offset — so C major P1 sits at frets 1-4 in Eb Standard, 2-5
-in D Standard, and 3-6 in C# Standard. The labeled shape (P1 — C, P2 — A, etc.)
-correctly identifies where each shape's barre actually lives on the new neck.
+math shifts by the tuning's offset — so C major P3 (C shape) sits at frets 1-4 in Eb
+Standard, 2-5 in D Standard, and 3-6 in C# Standard. The labeled shape (P1 — E, P2 — D,
+etc.) correctly identifies where each shape's barre actually lives on the new neck.
 
 **Features**
 

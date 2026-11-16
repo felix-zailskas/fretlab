@@ -379,3 +379,29 @@ describe("App — progression player", () => {
     expect(screen.getByRole("button", { name: "Stop" })).toBeInTheDocument();
   });
 });
+
+describe("App — E-first, tonic-relative position labels", () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  it("labels positions E-first with their shape in every mode, and calls them boxes in pentatonic", async () => {
+    render(<App />);
+    await userEvent.click(screen.getByRole("tab", { name: /Scale Positions/ }));
+    await userEvent.selectOptions(
+      screen.getByRole("combobox", { name: "Mode" }),
+      "aeolian",
+    );
+
+    const p1 = document.querySelector(
+      '[data-testid="region-toggle"][data-region-id="P1"]',
+    )!;
+    expect(p1.getAttribute("aria-label")).toBe("Position 1 (E shape)");
+    expect(p1.textContent).toContain("E");
+    // Default selection is position 1 (E shape).
+    expect(p1.getAttribute("aria-pressed")).toBe("true");
+
+    await userEvent.click(screen.getByRole("button", { name: "Pentatonic" }));
+    expect(p1.getAttribute("aria-label")).toBe("Position 1 (E shape), box 1");
+  });
+});

@@ -5,7 +5,7 @@ import { test, expect } from "@playwright/test";
 // tuning regardless of what the user had selected.
 
 test.describe("position-window tuning offset", () => {
-  test("C major P2 (A shape) anchors at frets 5-8 in C# Standard", async ({ page }) => {
+  test("C major P4 (A shape) anchors at frets 5-8 in C# Standard", async ({ page }) => {
     await page.goto("/");
 
     // Select C# Standard
@@ -16,18 +16,18 @@ test.describe("position-window tuning offset", () => {
     // Navigate to Scale Positions
     await page.getByRole("tab", { name: "Scale Positions" }).click();
 
-    // Enable P2 (default is P1 only)
-    await page.locator('[data-testid="region-toggle"][data-region-id="P2"]').click();
+    // Enable P4 (default is P1 only)
+    await page.locator('[data-testid="region-toggle"][data-region-id="P4"]').click();
 
-    // P2 window for C major in C# Standard should be frets 5-8
+    // P4 window for C major in C# Standard should be frets 5-8
     const window = page.locator(
-      '[data-testid="position-window"][data-window-id^="P2-"]',
+      '[data-testid="position-window"][data-window-id^="P4-"]',
     );
     await expect(window.first()).toHaveAttribute("data-low", "5");
     await expect(window.first()).toHaveAttribute("data-high", "8");
   });
 
-  test("C major P2 (A shape) anchors at frets 2-5 in Standard tuning", async ({
+  test("C major P4 (A shape) anchors at frets 2-5 in Standard tuning", async ({
     page,
   }) => {
     await page.goto("/");
@@ -37,18 +37,18 @@ test.describe("position-window tuning offset", () => {
     // Navigate to Scale Positions
     await page.getByRole("tab", { name: "Scale Positions" }).click();
 
-    // Enable P2
-    await page.locator('[data-testid="region-toggle"][data-region-id="P2"]').click();
+    // Enable P4
+    await page.locator('[data-testid="region-toggle"][data-region-id="P4"]').click();
 
-    // P2 window for C major in Standard should be frets 2-5
+    // P4 window for C major in Standard should be frets 2-5
     const window = page.locator(
-      '[data-testid="position-window"][data-window-id^="P2-"]',
+      '[data-testid="position-window"][data-window-id^="P4-"]',
     );
     await expect(window.first()).toHaveAttribute("data-low", "2");
     await expect(window.first()).toHaveAttribute("data-high", "5");
   });
 
-  test("C major P2 (A shape) anchors at frets 4-7 in D Standard", async ({ page }) => {
+  test("C major P4 (A shape) anchors at frets 4-7 in D Standard", async ({ page }) => {
     await page.goto("/");
 
     // Select D Standard
@@ -59,12 +59,12 @@ test.describe("position-window tuning offset", () => {
     // Navigate to Scale Positions
     await page.getByRole("tab", { name: "Scale Positions" }).click();
 
-    // Enable P2
-    await page.locator('[data-testid="region-toggle"][data-region-id="P2"]').click();
+    // Enable P4
+    await page.locator('[data-testid="region-toggle"][data-region-id="P4"]').click();
 
-    // P2 window for C major in D Standard should be frets 4-7
+    // P4 window for C major in D Standard should be frets 4-7
     const window = page.locator(
-      '[data-testid="position-window"][data-window-id^="P2-"]',
+      '[data-testid="position-window"][data-window-id^="P4-"]',
     );
     await expect(window.first()).toHaveAttribute("data-low", "4");
     await expect(window.first()).toHaveAttribute("data-high", "7");
