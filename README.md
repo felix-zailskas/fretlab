@@ -338,7 +338,7 @@ etc.) correctly identifies where each shape's barre actually lives on the new ne
 
 ## String focus
 
-![Screenshot of Scale Positions in C with P1 boxed at frets 0–3 and again at 12–15. The high E and B strings are muted with the eye icons on the left of the board, so their notes are dimmed.](docs/images/string-toggle.png)
+![Screenshot of Scale Positions in C with P1 (the E shape) boxed at frets 7–10; the labels above the board run P3 C, P4 A, P5 G, P1 E, P2 D up the neck. The high E and B strings are muted with the eye icons on the left of the board, so their notes are dimmed.](docs/images/string-toggle.png)
 
 An eye-icon column on the left of every fretboard lets you mute individual strings.
 Click an eye to toggle that string — the icon swaps to an eye-with-slash, and every
