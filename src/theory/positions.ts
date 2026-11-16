@@ -1,4 +1,6 @@
 import { getNoteIndex } from "./notes";
+import type { Mode } from "./modes";
+import { parentMajorOf } from "./modes";
 import type { Tuning } from "./tuning";
 
 export type PositionId = "P1" | "P2" | "P3" | "P4" | "P5";
@@ -12,18 +14,50 @@ type PositionDef = {
   cMajorWindow: FretWindow;
 };
 
-// Anchored to C major. Shapes follow the canonical CAGED order ascending the
-// neck from the open position in C major: C → A → G → E → D (then C again
-// one octave up). Each shape's window is the fret span where its barre form
-// sits for C major, derived by adding the shape's relative offset to its
-// barre fret. Other keys are derived from these by getPositionWindows.
+// Numbered E-first, the most common convention in guitar material:
+// position 1 = E shape, then D, C, A, G going up the neck from it. Each
+// shape's window is the fret span where its barre form sits for C major;
+// other keys are derived from these by getPositionWindows.
 export const CAGED_POSITIONS: ReadonlyArray<PositionDef> = [
-  { id: "P1", shape: "C", cMajorWindow: [0, 3] },
-  { id: "P2", shape: "A", cMajorWindow: [2, 5] },
-  { id: "P3", shape: "G", cMajorWindow: [4, 8] },
-  { id: "P4", shape: "E", cMajorWindow: [7, 10] },
-  { id: "P5", shape: "D", cMajorWindow: [9, 13] },
+  { id: "P1", shape: "E", cMajorWindow: [7, 10] },
+  { id: "P2", shape: "D", cMajorWindow: [9, 13] },
+  { id: "P3", shape: "C", cMajorWindow: [0, 3] },
+  { id: "P4", shape: "A", cMajorWindow: [2, 5] },
+  { id: "P5", shape: "G", cMajorWindow: [4, 8] },
 ];
+
+// The CAGED cycle in the order the shapes follow each other up the neck.
+const CAGED_CYCLE: readonly CagedShape[] = ["C", "A", "G", "E", "D"];
+
+// Steps along CAGED_CYCLE from a parent-major box's shape to the form the
+// mode's tonic chord takes in that same box (e.g. C major's G-shape box
+// holds A minor's E shape: one step for Aeolian).
+const TONIC_SHAPE_STEP: Record<Mode, number> = {
+  ionian: 0,
+  dorian: 4,
+  phrygian: 3,
+  lydian: 3,
+  mixolydian: 2,
+  aeolian: 1,
+  locrian: 0,
+};
+
+export function tonicShapeOf(mode: Mode, parentShape: CagedShape): CagedShape {
+  const i = CAGED_CYCLE.indexOf(parentShape);
+  return CAGED_CYCLE[(i + TONIC_SHAPE_STEP[mode]) % CAGED_CYCLE.length];
+}
+
+export function positionForShape(shape: CagedShape): PositionId {
+  return CAGED_POSITIONS.find((p) => p.shape === shape)!.id;
+}
+
+// The parent-major position whose box holds the tonic-relative `position`.
+export function parentPositionOf(mode: Mode, position: PositionId): PositionId {
+  const tonicShape = lookup(position).shape;
+  const i = CAGED_CYCLE.indexOf(tonicShape);
+  const n = CAGED_CYCLE.length;
+  return positionForShape(CAGED_CYCLE[(i - TONIC_SHAPE_STEP[mode] + n) % n]);
+}
 
 const C_INDEX = getNoteIndex("C");
 const STANDARD_LOW_INDEX = getNoteIndex("E"); // standard tuning's low E
@@ -160,4 +194,23 @@ export function computeOverlapZones(
     }
   }
   return result;
+}
+
+// Windows for a tonic-relative position of (key, mode): the parent major's
+// box in which the mode's tonic chord takes `position`'s shape.
+export function getScalePositionWindows(
+  key: string,
+  mode: Mode,
+  position: PositionId,
+  startFret: number,
+  endFret: number,
+  tuning: Tuning,
+): FretWindow[] {
+  return getPositionWindows(
+    parentMajorOf(key, mode),
+    parentPositionOf(mode, position),
+    startFret,
+    endFret,
+    tuning,
+  );
 }

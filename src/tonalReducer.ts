@@ -23,7 +23,9 @@ export type TonalState = {
 export type TonalAction =
   | { type: "set-key"; key: string }
   | { type: "set-mode"; mode: Mode }
-  | { type: "set-accidental"; style: AccidentalStyle };
+  | { type: "set-accidental"; style: AccidentalStyle }
+  // Replaces the whole tonal state, e.g. when back/forward restores a URL.
+  | { type: "load"; state: TonalState };
 
 export function tonalReducer(state: TonalState, action: TonalAction): TonalState {
   switch (action.type) {
@@ -47,6 +49,8 @@ export function tonalReducer(state: TonalState, action: TonalAction): TonalState
       }
       return { ...state, mode: action.mode };
     }
+    case "load":
+      return action.state;
     case "set-accidental": {
       if (state.accidentalStyle === action.style) return state;
       const swapped = ENHARMONIC_KEY_SWAP[state.key] ?? state.key;

@@ -61,8 +61,16 @@ import {
   type ChordRowMode,
 } from "./theory/harmony";
 import { tonalReducer } from "./tonalReducer";
-
-const DEFAULT_HIGHLIGHTS: HighlightableRole[] = ["root", "third", "fifth", "seventh"];
+import { parseUrl, type ParsedUrl } from "./url/parseUrl";
+import {
+  accidentalForKey,
+  DEFAULT_SHARE_STATE,
+  type ShareState,
+} from "./url/shareState";
+import { useUrlSync } from "./url/useUrlSync";
+import { findPage } from "./searchPages/pages";
+import { TopicStrip } from "./components/TopicStrip";
+import { RelatedTopics } from "./components/RelatedTopics";
 
 // Chord Shapes voices only triads in triads mode, so its 7th role is inert.
 // Why the 7th highlight is off, shown on the disabled button.
@@ -101,14 +109,35 @@ function pickNextCustomName(customs: readonly CustomTuning[]): string {
   return `Custom ${n}`;
 }
 
-function App() {
+// The fret range a device starts with: narrower on phones. Outside a
+// browser (pre-rendering) the desktop range is used.
+function deviceDefaultEndFret(): number {
+  if (typeof window === "undefined") return DEFAULT_END_FRET;
+  return window.innerWidth < MOBILE_BREAKPOINT
+    ? DEFAULT_END_FRET_MOBILE
+    : DEFAULT_END_FRET;
+}
+
+function readInitialUrl(): ParsedUrl {
+  if (typeof window === "undefined") return { state: DEFAULT_SHARE_STATE, topic: null };
+  return parseUrl(new URL(window.location.href));
+}
+
+type AppProps = {
+  // What the page's URL describes. Read from the browser when omitted.
+  initial?: ParsedUrl;
+};
+
+function App({ initial: initialProp }: AppProps = {}) {
+  const [initial] = useState<ParsedUrl>(() => initialProp ?? readInitialUrl());
+  const start = initial.state;
   const [tonal, dispatchTonal] = useReducer(tonalReducer, {
-    key: "C",
-    mode: "ionian",
-    accidentalStyle: "sharp",
+    key: start.key,
+    mode: start.mode,
+    accidentalStyle: accidentalForKey(start.key, start.mode),
   });
   const { key: selectedKey, mode, accidentalStyle } = tonal;
-  const [selectedView, setSelectedView] = useState<ViewId>("note-map");
+  const [selectedView, setSelectedView] = useState<ViewId>(start.view);
   const [persisted, setPersisted] = useState<StoredState>(loadCustomTunings);
   const customs = persisted.tunings;
   const tuningId: AnyTuningId = persisted.selectedTuningId ?? "standard";
@@ -126,10 +155,10 @@ function App() {
     setPersisted((prev) => ({ ...prev, selectedTuningId: id }));
   }
   const [enabledHighlights, setEnabledHighlights] = useState<Set<HighlightableRole>>(
-    () => new Set(DEFAULT_HIGHLIGHTS),
+    () => new Set(start.highlights),
   );
   const [enabledStrings, setEnabledStrings] = useState<ReadonlySet<number>>(
-    () => new Set([0, 1, 2, 3, 4, 5]),
+    () => new Set(start.strings),
   );
   const toggleString = useCallback((stringIndex: number) => {
     setEnabledStrings((prev) => {
@@ -142,11 +171,10 @@ function App() {
       return next;
     });
   }, []);
-  const [selectedChordRef, setSelectedChordRef] = useState<ChordRef | null>({
-    tier: "diatonic",
-    degree: 1,
-  });
-  const [chordRowMode, setChordRowMode] = useState<ChordRowMode>("triads");
+  const [selectedChordRef, setSelectedChordRef] = useState<ChordRef | null>(
+    start.chord,
+  );
+  const [chordRowMode, setChordRowMode] = useState<ChordRowMode>(start.rowMode);
   const player = useProgressionPlayer({
     selectedKey,
     mode,
@@ -155,17 +183,98 @@ function App() {
   });
   const togglePlayback = player.toggle;
   const [showAbout, setShowAbout] = useState(false);
-  const [startFret, setStartFret] = useState(0);
-  const [endFret, setEndFret] = useState(() =>
-    window.innerWidth < MOBILE_BREAKPOINT ? DEFAULT_END_FRET_MOBILE : DEFAULT_END_FRET,
+  const [startFret, setStartFret] = useState(start.frets?.start ?? 0);
+  const [endFret, setEndFret] = useState(
+    () => start.frets?.end ?? deviceDefaultEndFret(),
   );
   const [themeMode, setThemeMode] = useState<"auto" | "light" | "dark">("auto");
 
   // Per-view selector state, lifted here so it survives tab switches. Each
   // view's hook bundles its own useState calls + handlers.
-  const chordShapesControls = useChordShapesState();
-  const scalePositionsControls = useScalePositionsState();
+  const chordShapesControls = useChordShapesState(start);
+  const scalePositionsControls = useScalePositionsState(start);
   const { setScaleType } = scalePositionsControls;
+
+  // What a share link would carry right now; the URL is written from it.
+  const shareState = useMemo<ShareState>(
+    () => ({
+      view: selectedView,
+      key: selectedKey,
+      mode,
+      chord: selectedChordRef,
+      rowMode: chordRowMode,
+      highlights: enabledHighlights,
+      strings: enabledStrings,
+      frets:
+        startFret === 0 && endFret === deviceDefaultEndFret()
+          ? null
+          : { start: startFret, end: endFret },
+      positions: scalePositionsControls.selectedPositions,
+      scaleType: scalePositionsControls.scaleType,
+      showContext: scalePositionsControls.showContext,
+      stringSets: chordShapesControls.selectedStringSets,
+      inversions: chordShapesControls.selectedInversions,
+      voicing: chordShapesControls.selectedVoicingSystem,
+      seventhPositions: chordShapesControls.selectedSeventhPositions,
+      seventhInversions: chordShapesControls.selectedSeventhInversions,
+      voicingStyle: chordShapesControls.voicingStyle,
+      cagedShapes: chordShapesControls.selectedCagedShapes,
+    }),
+    [
+      selectedView,
+      selectedKey,
+      mode,
+      selectedChordRef,
+      chordRowMode,
+      enabledHighlights,
+      enabledStrings,
+      startFret,
+      endFret,
+      scalePositionsControls.selectedPositions,
+      scalePositionsControls.scaleType,
+      scalePositionsControls.showContext,
+      chordShapesControls.selectedStringSets,
+      chordShapesControls.selectedInversions,
+      chordShapesControls.selectedVoicingSystem,
+      chordShapesControls.selectedSeventhPositions,
+      chordShapesControls.selectedSeventhInversions,
+      chordShapesControls.voicingStyle,
+      chordShapesControls.selectedCagedShapes,
+    ],
+  );
+
+  // Back/forward: replace every shared field with what the URL describes.
+  const loadScalePositions = scalePositionsControls.load;
+  const loadChordShapes = chordShapesControls.load;
+  const applyShareState = useCallback(
+    (s: ShareState) => {
+      dispatchTonal({
+        type: "load",
+        state: {
+          key: s.key,
+          mode: s.mode,
+          accidentalStyle: accidentalForKey(s.key, s.mode),
+        },
+      });
+      setSelectedView(s.view);
+      setSelectedChordRef(s.chord);
+      setChordRowMode(s.rowMode);
+      setEnabledHighlights(new Set(s.highlights));
+      setEnabledStrings(new Set(s.strings));
+      setStartFret(s.frets?.start ?? 0);
+      setEndFret(s.frets?.end ?? deviceDefaultEndFret());
+      loadScalePositions(s);
+      loadChordShapes(s);
+    },
+    [loadScalePositions, loadChordShapes],
+  );
+  const urlSync = useUrlSync(shareState, applyShareState, initial.topic);
+  // The topic page (e.g. /scales/minor-pentatonic/e-shape) while the board
+  // still shows that topic.
+  const topicPage = urlSync.topic ? findPage(urlSync.topic.path) : null;
+  const showTopicStrip = topicPage !== null && urlSync.topicActive;
+  // One h1 per page: the topic heading when the strip shows, else the name.
+  const AppName = showTopicStrip ? "p" : "h1";
 
   // Pentatonic exists only in Ionian/Aeolian. Leaving those modes resets the
   // Scale Positions switch to Full, so returning doesn't silently re-enable it.
@@ -492,7 +601,7 @@ function App() {
         <div className="max-w-[90rem] mx-auto flex flex-wrap items-center justify-between gap-x-6 gap-y-2 px-4 py-2">
           <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
             <div className="flex items-center gap-1">
-              <h1 className="text-lg font-bold">Fretlab</h1>
+              <AppName className="text-lg font-bold">Fretlab</AppName>
               <button
                 onClick={() => setShowAbout(true)}
                 title="About Fretlab"
@@ -573,7 +682,20 @@ function App() {
         // depends on tempo and chord length at runtime (see .preview-ring).
         style={{ "--preview-ramp": `${player.previewRampSeconds}s` } as CSSProperties}
       >
+        {showTopicStrip && (
+          <TopicStrip
+            page={topicPage}
+            selectedKey={selectedKey}
+            onPickKey={() =>
+              document
+                .querySelector<HTMLSelectElement>('select[aria-label="Key"]')
+                ?.focus()
+            }
+            onDismiss={urlSync.dismissTopic}
+          />
+        )}
         {renderView()}
+        {topicPage !== null && <RelatedTopics page={topicPage} />}
       </main>
       <AboutModal open={showAbout} onClose={() => setShowAbout(false)} />
       {modalState !== null && (

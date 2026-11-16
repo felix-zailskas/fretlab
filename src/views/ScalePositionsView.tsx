@@ -17,6 +17,7 @@ import {
   CAGED_POSITIONS,
   computeOverlapZones,
   getPositionWindows,
+  parentPositionOf,
 } from "../theory/positions";
 import type { ChordToneSource } from "../theory/harmony";
 import { parentMajorOf, type Mode } from "../theory/modes";
@@ -93,20 +94,23 @@ export function ScalePositionsView({
     [selectedPositions],
   );
 
+  // Positions are named relative to the mode's tonic (P1 = its E shape);
+  // each one's window is the parent major's box that holds that shape.
   const positionWindows = useMemo<PositionWindow[]>(() => {
     if (selectedKey === ALL_NOTES_KEY) return [];
     return CAGED_POSITIONS.filter((p) => selectedPositions.has(p.id)).flatMap((p) =>
-      getPositionWindows(parentKey, p.id, startFret, endFret, tuning).map(
-        ([low, high], octaveIndex) => ({
-          id: `${p.id}-${octaveIndex}`,
-          low,
-          high,
-          // Drop the C/A/G/E/D shape suffix in non-Ionian modes — the shape
-          // names refer to major-scale fingering patterns and are misleading
-          // in modal context. Just the position number remains useful.
-          label: mode === "ionian" ? `${p.id} — ${p.shape}` : `${p.id}`,
-        }),
-      ),
+      getPositionWindows(
+        parentKey,
+        parentPositionOf(mode, p.id),
+        startFret,
+        endFret,
+        tuning,
+      ).map(([low, high], octaveIndex) => ({
+        id: `${p.id}-${octaveIndex}`,
+        low,
+        high,
+        label: `${p.id} — ${p.shape}`,
+      })),
     );
   }, [tuning, selectedKey, parentKey, selectedPositions, startFret, endFret, mode]);
 
@@ -116,12 +120,19 @@ export function ScalePositionsView({
   const regionToggles = useMemo<RegionToggle[]>(() => {
     if (selectedKey === ALL_NOTES_KEY) return [];
     return CAGED_POSITIONS.map((p) => {
-      const [first] = getPositionWindows(parentKey, p.id, startFret, endFret, tuning);
+      const [first] = getPositionWindows(
+        parentKey,
+        parentPositionOf(mode, p.id),
+        startFret,
+        endFret,
+        tuning,
+      );
+      const n = p.id.slice(1);
       return {
         id: p.id,
         label: p.id,
-        sub: mode === "ionian" ? p.shape : undefined,
-        ariaLabel: `Position ${p.id.slice(1)}${mode === "ionian" ? ` (${p.shape} shape)` : ""}`,
+        sub: p.shape,
+        ariaLabel: `Position ${n} (${p.shape} shape)${showPentatonic ? `, box ${n}` : ""}`,
         on: selectedPositions.has(p.id),
         low: first?.[0],
         high: first?.[1],
@@ -135,14 +146,21 @@ export function ScalePositionsView({
     endFret,
     tuning,
     mode,
+    showPentatonic,
     selectedPositions,
     togglePosition,
   ]);
 
   const overlapZones = useMemo<OverlapZone[]>(() => {
     if (selectedKey === ALL_NOTES_KEY) return [];
-    return computeOverlapZones(parentKey, positionsArray, startFret, endFret, tuning);
-  }, [tuning, selectedKey, parentKey, positionsArray, startFret, endFret]);
+    return computeOverlapZones(
+      parentKey,
+      positionsArray.map((p) => parentPositionOf(mode, p)),
+      startFret,
+      endFret,
+      tuning,
+    );
+  }, [tuning, selectedKey, parentKey, positionsArray, startFret, endFret, mode]);
 
   const markersFor = useCallback(
     (chord: ChordToneSource | null) =>

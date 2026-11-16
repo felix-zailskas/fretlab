@@ -17,30 +17,53 @@ export type VoicingStyle = "inversions" | "caged";
 //   high — bass on string 4 (D); only the adjacent-string systems have it
 export type SeventhStringPosition = "low" | "mid" | "high";
 
+export type ChordShapesSlice = {
+  stringSets: ReadonlySet<StringSet>;
+  inversions: ReadonlySet<Inversion>;
+  voicing: VoicingSystem;
+  seventhPositions: ReadonlySet<SeventhStringPosition>;
+  seventhInversions: ReadonlySet<SeventhInversion>;
+  voicingStyle: VoicingStyle;
+  cagedShapes: ReadonlySet<CagedShape>;
+};
+
 // Hook bundling all selector state for the Chord Shapes view, lifted out so
 // App.tsx owns the lifetime — survives tab switches as long as App stays
-// mounted. Refresh resets to defaults; persistence (localStorage / URL) would
-// be a follow-up swap of the inner useState calls.
-export function useChordShapesState() {
+// mounted. `initial` comes from a share link; `load` replaces everything
+// when back/forward restores a URL.
+export function useChordShapesState(initial?: ChordShapesSlice) {
   const [selectedStringSets, setSelectedStringSets] = useState<Set<StringSet>>(
-    () => new Set<StringSet>(["1-2-3"]),
+    () => new Set<StringSet>(initial?.stringSets ?? ["1-2-3"]),
   );
   const [selectedInversions, setSelectedInversions] = useState<Set<Inversion>>(
-    () => new Set<Inversion>(["root", "first", "second"]),
+    () => new Set<Inversion>(initial?.inversions ?? ["root", "first", "second"]),
   );
-  const [selectedVoicingSystem, setSelectedVoicingSystem] =
-    useState<VoicingSystem>("drop2");
+  const [selectedVoicingSystem, setSelectedVoicingSystem] = useState<VoicingSystem>(
+    initial?.voicing ?? "drop2",
+  );
   const [selectedSeventhPositions, setSelectedSeventhPositions] = useState<
     Set<SeventhStringPosition>
-  >(() => new Set<SeventhStringPosition>(["low"]));
+  >(() => new Set<SeventhStringPosition>(initial?.seventhPositions ?? ["low"]));
   const [selectedSeventhInversions, setSelectedSeventhInversions] = useState<
     Set<SeventhInversion>
-  >(() => new Set<SeventhInversion>(["root"]));
-  const [voicingStyle, setVoicingStyle] = useState<VoicingStyle>("inversions");
+  >(() => new Set<SeventhInversion>(initial?.seventhInversions ?? ["root"]));
+  const [voicingStyle, setVoicingStyle] = useState<VoicingStyle>(
+    initial?.voicingStyle ?? "inversions",
+  );
   // E and A first: the two barre shapes beginners learn first.
   const [selectedCagedShapes, setSelectedCagedShapes] = useState<Set<CagedShape>>(
-    () => new Set<CagedShape>(["E", "A"]),
+    () => new Set<CagedShape>(initial?.cagedShapes ?? ["E", "A"]),
   );
+
+  const load = useCallback((slice: ChordShapesSlice) => {
+    setSelectedStringSets(new Set(slice.stringSets));
+    setSelectedInversions(new Set(slice.inversions));
+    setSelectedVoicingSystem(slice.voicing);
+    setSelectedSeventhPositions(new Set(slice.seventhPositions));
+    setSelectedSeventhInversions(new Set(slice.seventhInversions));
+    setVoicingStyle(slice.voicingStyle);
+    setSelectedCagedShapes(new Set(slice.cagedShapes));
+  }, []);
 
   const toggleStringSet = useCallback((id: StringSet) => {
     setSelectedStringSets((prev) => {
@@ -102,6 +125,7 @@ export function useChordShapesState() {
     setVoicingStyle,
     selectedCagedShapes,
     toggleCagedShape,
+    load,
   };
 }
 

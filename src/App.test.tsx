@@ -379,3 +379,160 @@ describe("App — progression player", () => {
     expect(screen.getByRole("button", { name: "Stop" })).toBeInTheDocument();
   });
 });
+
+describe("App — E-first, tonic-relative position labels", () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  it("labels positions E-first with their shape in every mode, and calls them boxes in pentatonic", async () => {
+    render(<App />);
+    await userEvent.click(screen.getByRole("tab", { name: /Scale Positions/ }));
+    await userEvent.selectOptions(
+      screen.getByRole("combobox", { name: "Mode" }),
+      "aeolian",
+    );
+
+    const p1 = document.querySelector(
+      '[data-testid="region-toggle"][data-region-id="P1"]',
+    )!;
+    expect(p1.getAttribute("aria-label")).toBe("Position 1 (E shape)");
+    expect(p1.textContent).toContain("E");
+    // Default selection is position 1 (E shape).
+    expect(p1.getAttribute("aria-pressed")).toBe("true");
+
+    await userEvent.click(screen.getByRole("button", { name: "Pentatonic" }));
+    expect(p1.getAttribute("aria-label")).toBe("Position 1 (E shape), box 1");
+  });
+});
+
+describe("App — share links", () => {
+  beforeEach(() => {
+    localStorage.clear();
+    window.history.replaceState(null, "", "/");
+  });
+
+  it("starts from the URL: view, key, mode and positions", () => {
+    window.history.replaceState(null, "", "/?view=scales&key=A&mode=dorian&pos=E,D");
+    render(<App />);
+    expect(screen.getByRole("tab", { name: /Scale Positions/ })).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
+    expect(screen.getByRole("combobox", { name: "Key" })).toHaveValue("A");
+    expect(screen.getByRole("combobox", { name: "Mode" })).toHaveValue("dorian");
+    const pressed = (id: string) =>
+      document
+        .querySelector(`[data-testid="region-toggle"][data-region-id="${id}"]`)!
+        .getAttribute("aria-pressed");
+    expect(pressed("P1")).toBe("true");
+    expect(pressed("P2")).toBe("true");
+    expect(pressed("P3")).toBe("false");
+  });
+
+  it("rewrites the URL on a setting change without adding history entries", async () => {
+    render(<App />);
+    const before = window.history.length;
+    await userEvent.selectOptions(screen.getByRole("combobox", { name: "Key" }), "G");
+    expect(window.location.search).toBe("?key=G");
+    expect(window.history.length).toBe(before);
+  });
+
+  it("adds one history entry per tab switch and restores the view on popstate", async () => {
+    render(<App />);
+    const before = window.history.length;
+    await userEvent.click(screen.getByRole("tab", { name: /Chord Shapes/ }));
+    expect(window.location.search).toBe("?view=shapes");
+    expect(window.history.length).toBe(before + 1);
+
+    window.history.replaceState(null, "", "/?view=scales");
+    fireEvent.popState(window);
+    expect(screen.getByRole("tab", { name: /Scale Positions/ })).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
+  });
+
+  it("opening a shared link writes nothing to local storage", () => {
+    const setItem = vi.spyOn(Storage.prototype, "setItem");
+    window.history.replaceState(null, "", "/?view=shapes&key=Eb&set=sevenths");
+    render(<App />);
+    const keys = setItem.mock.calls.map(([k]) => k);
+    setItem.mockRestore();
+    // Saving the untouched defaults on mount is today's behaviour; a link
+    // must not add anything beyond it.
+    window.history.replaceState(null, "", "/");
+    localStorage.clear();
+    const baseline = vi.spyOn(Storage.prototype, "setItem");
+    render(<App />);
+    const baseKeys = baseline.mock.calls.map(([k]) => k);
+    baseline.mockRestore();
+    expect(keys).toEqual(baseKeys);
+  });
+});
+
+describe("App — topic pages", () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  it("shows the topic strip and related links on a topic path, and drops them after leaving the topic", async () => {
+    window.history.replaceState(null, "", "/scales/minor-pentatonic/e-shape");
+    render(<App />);
+    expect(screen.getByTestId("topic-strip")).toBeInTheDocument();
+    expect(screen.getByTestId("related-topics")).toBeInTheDocument();
+    expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
+
+    await userEvent.selectOptions(screen.getByRole("combobox", { name: "Key" }), "E");
+    expect(window.location.pathname).toBe("/scales/minor-pentatonic/e-shape");
+    expect(screen.getByTestId("topic-strip")).toBeInTheDocument();
+
+    await userEvent.selectOptions(
+      screen.getByRole("combobox", { name: "Mode" }),
+      "dorian",
+    );
+    expect(window.location.pathname).toBe("/");
+    expect(screen.queryByTestId("topic-strip")).toBeNull();
+    expect(screen.queryByTestId("related-topics")).toBeNull();
+  });
+
+  it("keeps the topic strip when the saved tuning cannot show the view", () => {
+    primeStorage({
+      tunings: [NON_CAGED_CUSTOM],
+      selectedTuningId: NON_CAGED_CUSTOM.id,
+    });
+    window.history.replaceState(null, "", "/scales/minor-pentatonic/e-shape");
+    render(<App />);
+    expect(screen.getByTestId("topic-strip")).toBeInTheDocument();
+  });
+
+  it("survives picking All notes on a topic page", async () => {
+    window.history.replaceState(null, "", "/scales/minor-pentatonic/e-shape");
+    render(<App />);
+    await userEvent.selectOptions(screen.getByRole("combobox", { name: "Key" }), "all");
+    expect(screen.getByTestId("topic-strip")).toHaveTextContent("pick a key");
+  });
+
+  it("closing the strip hides it but keeps the topic URL", async () => {
+    window.history.replaceState(null, "", "/chords/drop-2/m7");
+    render(<App />);
+    await userEvent.click(screen.getByRole("button", { name: "Hide topic intro" }));
+    expect(screen.queryByTestId("topic-strip")).toBeNull();
+    expect(window.location.pathname).toBe("/chords/drop-2/m7");
+  });
+});
+
+describe("App — URL writes can fail", () => {
+  it("keeps working when the browser refuses a history update (Safari's rate limit)", async () => {
+    render(<App />);
+    const replace = vi.spyOn(window.history, "replaceState").mockImplementation(() => {
+      throw new DOMException(
+        "Attempt to use history.replaceState() more than 100 times",
+        "SecurityError",
+      );
+    });
+    await userEvent.selectOptions(screen.getByRole("combobox", { name: "Key" }), "G");
+    replace.mockRestore();
+    expect(screen.getByRole("combobox", { name: "Key" })).toHaveValue("G");
+  });
+});

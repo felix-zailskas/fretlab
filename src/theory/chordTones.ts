@@ -8,7 +8,7 @@ import {
   ALL_NOTES_KEY,
 } from "./notes";
 import type { Tuning } from "./tuning";
-import { isInPositionWindow, type PositionId } from "./positions";
+import { isInPositionWindow, parentPositionOf, type PositionId } from "./positions";
 import type { ChordToneSource } from "./harmony";
 import {
   getCharacteristicNoteIndexSet,
@@ -166,6 +166,10 @@ export function buildChordToneMarkers({
     scaleType === "pentatonic" ? getPentatonicPitchClasses(key, mode) : null;
   const filterPentatonic = pentatonic !== null && pentatonic.size > 0;
 
+  // Positions are named relative to the mode's tonic; the windows live on
+  // the parent major's boxes.
+  const parentPositions = positions.map((p) => parentPositionOf(mode, p));
+
   const result: NoteMarker[] = [];
 
   for (let stringIndex = 0; stringIndex < tuning.strings.length; stringIndex++) {
@@ -176,7 +180,7 @@ export function buildChordToneMarkers({
       const spelled = spellKeyOrChordTone(pc, spelling);
       if (spelled === null) continue;
 
-      const inWindow = positions.some((p) =>
+      const inWindow = parentPositions.some((p) =>
         isInPositionWindow(parentKey, p, fret, startFret, endFret, tuning),
       );
       if (!inWindow && !showContext) continue; // hide outside-position notes

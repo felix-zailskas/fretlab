@@ -28,6 +28,14 @@ export default defineConfig({
     poolOptions: {
       forks: { execArgv: ["--no-experimental-webstorage"] },
     },
-    exclude: ["node_modules", "dist", "tests/e2e/**", ".worktrees/**", ".claude/**"],
+    exclude: [
+      "node_modules",
+      "dist",
+      "dist-ssr",
+      "tests/e2e/**",
+      "tests/e2e-built/**",
+      ".worktrees/**",
+      ".claude/**",
+    ],
   },
 });
