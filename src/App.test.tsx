@@ -470,3 +470,54 @@ describe("App — share links", () => {
     expect(keys).toEqual(baseKeys);
   });
 });
+
+describe("App — topic pages", () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  it("shows the topic strip and related links on a topic path, and drops them after leaving the topic", async () => {
+    window.history.replaceState(null, "", "/scales/minor-pentatonic/e-shape");
+    render(<App />);
+    expect(screen.getByTestId("topic-strip")).toBeInTheDocument();
+    expect(screen.getByTestId("related-topics")).toBeInTheDocument();
+    expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
+
+    await userEvent.selectOptions(screen.getByRole("combobox", { name: "Key" }), "E");
+    expect(window.location.pathname).toBe("/scales/minor-pentatonic/e-shape");
+    expect(screen.getByTestId("topic-strip")).toBeInTheDocument();
+
+    await userEvent.selectOptions(
+      screen.getByRole("combobox", { name: "Mode" }),
+      "dorian",
+    );
+    expect(window.location.pathname).toBe("/");
+    expect(screen.queryByTestId("topic-strip")).toBeNull();
+    expect(screen.queryByTestId("related-topics")).toBeNull();
+  });
+
+  it("keeps the topic strip when the saved tuning cannot show the view", () => {
+    primeStorage({
+      tunings: [NON_CAGED_CUSTOM],
+      selectedTuningId: NON_CAGED_CUSTOM.id,
+    });
+    window.history.replaceState(null, "", "/scales/minor-pentatonic/e-shape");
+    render(<App />);
+    expect(screen.getByTestId("topic-strip")).toBeInTheDocument();
+  });
+
+  it("survives picking All notes on a topic page", async () => {
+    window.history.replaceState(null, "", "/scales/minor-pentatonic/e-shape");
+    render(<App />);
+    await userEvent.selectOptions(screen.getByRole("combobox", { name: "Key" }), "all");
+    expect(screen.getByTestId("topic-strip")).toHaveTextContent("pick a key");
+  });
+
+  it("closing the strip hides it but keeps the topic URL", async () => {
+    window.history.replaceState(null, "", "/chords/drop-2/m7");
+    render(<App />);
+    await userEvent.click(screen.getByRole("button", { name: "Hide topic intro" }));
+    expect(screen.queryByTestId("topic-strip")).toBeNull();
+    expect(window.location.pathname).toBe("/chords/drop-2/m7");
+  });
+});

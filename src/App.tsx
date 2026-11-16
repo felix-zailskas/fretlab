@@ -68,6 +68,9 @@ import {
   type ShareState,
 } from "./url/shareState";
 import { useUrlSync } from "./url/useUrlSync";
+import { findPage } from "./searchPages/pages";
+import { TopicStrip } from "./components/TopicStrip";
+import { RelatedTopics } from "./components/RelatedTopics";
 
 // Chord Shapes voices only triads in triads mode, so its 7th role is inert.
 // Why the 7th highlight is off, shown on the disabled button.
@@ -265,7 +268,13 @@ function App({ initial: initialProp }: AppProps = {}) {
     },
     [loadScalePositions, loadChordShapes],
   );
-  useUrlSync(shareState, applyShareState, initial.topic);
+  const urlSync = useUrlSync(shareState, applyShareState, initial.topic);
+  // The topic page (e.g. /scales/minor-pentatonic/e-shape) while the board
+  // still shows that topic.
+  const topicPage = urlSync.topic ? findPage(urlSync.topic.path) : null;
+  const showTopicStrip = topicPage !== null && urlSync.topicActive;
+  // One h1 per page: the topic heading when the strip shows, else the name.
+  const AppName = showTopicStrip ? "p" : "h1";
 
   // Pentatonic exists only in Ionian/Aeolian. Leaving those modes resets the
   // Scale Positions switch to Full, so returning doesn't silently re-enable it.
@@ -592,7 +601,7 @@ function App({ initial: initialProp }: AppProps = {}) {
         <div className="max-w-[90rem] mx-auto flex flex-wrap items-center justify-between gap-x-6 gap-y-2 px-4 py-2">
           <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
             <div className="flex items-center gap-1">
-              <h1 className="text-lg font-bold">Fretlab</h1>
+              <AppName className="text-lg font-bold">Fretlab</AppName>
               <button
                 onClick={() => setShowAbout(true)}
                 title="About Fretlab"
@@ -673,7 +682,20 @@ function App({ initial: initialProp }: AppProps = {}) {
         // depends on tempo and chord length at runtime (see .preview-ring).
         style={{ "--preview-ramp": `${player.previewRampSeconds}s` } as CSSProperties}
       >
+        {showTopicStrip && (
+          <TopicStrip
+            page={topicPage}
+            selectedKey={selectedKey}
+            onPickKey={() =>
+              document
+                .querySelector<HTMLSelectElement>('select[aria-label="Key"]')
+                ?.focus()
+            }
+            onDismiss={urlSync.dismissTopic}
+          />
+        )}
         {renderView()}
+        {topicPage !== null && <RelatedTopics page={topicPage} />}
       </main>
       <AboutModal open={showAbout} onClose={() => setShowAbout(false)} />
       {modalState !== null && (
