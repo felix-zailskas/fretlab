@@ -25,4 +25,6 @@ if (typeof window !== "undefined" && typeof window.matchMedia !== "function") {
 // Unmount any lingering React trees between tests so DOM state doesn't leak.
 afterEach(() => {
   cleanup();
+  // The app keeps its state in the URL; start every test from a bare "/".
+  if (typeof window !== "undefined") window.history.replaceState(null, "", "/");
 });

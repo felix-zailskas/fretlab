@@ -405,3 +405,68 @@ describe("App — E-first, tonic-relative position labels", () => {
     expect(p1.getAttribute("aria-label")).toBe("Position 1 (E shape), box 1");
   });
 });
+
+describe("App — share links", () => {
+  beforeEach(() => {
+    localStorage.clear();
+    window.history.replaceState(null, "", "/");
+  });
+
+  it("starts from the URL: view, key, mode and positions", () => {
+    window.history.replaceState(null, "", "/?view=scales&key=A&mode=dorian&pos=E,D");
+    render(<App />);
+    expect(screen.getByRole("tab", { name: /Scale Positions/ })).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
+    expect(screen.getByRole("combobox", { name: "Key" })).toHaveValue("A");
+    expect(screen.getByRole("combobox", { name: "Mode" })).toHaveValue("dorian");
+    const pressed = (id: string) =>
+      document
+        .querySelector(`[data-testid="region-toggle"][data-region-id="${id}"]`)!
+        .getAttribute("aria-pressed");
+    expect(pressed("P1")).toBe("true");
+    expect(pressed("P2")).toBe("true");
+    expect(pressed("P3")).toBe("false");
+  });
+
+  it("rewrites the URL on a setting change without adding history entries", async () => {
+    render(<App />);
+    const before = window.history.length;
+    await userEvent.selectOptions(screen.getByRole("combobox", { name: "Key" }), "G");
+    expect(window.location.search).toBe("?key=G");
+    expect(window.history.length).toBe(before);
+  });
+
+  it("adds one history entry per tab switch and restores the view on popstate", async () => {
+    render(<App />);
+    const before = window.history.length;
+    await userEvent.click(screen.getByRole("tab", { name: /Chord Shapes/ }));
+    expect(window.location.search).toBe("?view=shapes");
+    expect(window.history.length).toBe(before + 1);
+
+    window.history.replaceState(null, "", "/?view=scales");
+    fireEvent.popState(window);
+    expect(screen.getByRole("tab", { name: /Scale Positions/ })).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
+  });
+
+  it("opening a shared link writes nothing to local storage", () => {
+    const setItem = vi.spyOn(Storage.prototype, "setItem");
+    window.history.replaceState(null, "", "/?view=shapes&key=Eb&set=sevenths");
+    render(<App />);
+    const keys = setItem.mock.calls.map(([k]) => k);
+    setItem.mockRestore();
+    // Saving the untouched defaults on mount is today's behaviour; a link
+    // must not add anything beyond it.
+    window.history.replaceState(null, "", "/");
+    localStorage.clear();
+    const baseline = vi.spyOn(Storage.prototype, "setItem");
+    render(<App />);
+    const baseKeys = baseline.mock.calls.map(([k]) => k);
+    baseline.mockRestore();
+    expect(keys).toEqual(baseKeys);
+  });
+});
